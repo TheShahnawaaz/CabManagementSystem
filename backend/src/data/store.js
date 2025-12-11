@@ -45,6 +45,8 @@ let allocations = [];
 
 export const getHalls = () => Array.from(new Set(trips.map((trip) => trip.hall)));
 
+export const listTrips = () => trips;
+
 export const findTrip = (tripId) => trips.find((trip) => trip.id === tripId);
 
 export const createBooking = ({ userId, hall, tripId, paymentMethod }) => {
