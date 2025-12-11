@@ -1,14 +1,14 @@
 # Campus Cab System
 
-Early scaffolding for the Campus Friday Prayer Cab System described in `docs/PRD.md`. The repo now includes an Express API
-(backed by Supabase) and a Vite + React frontend with shadcn-inspired UI primitives.
+Campus Friday Prayer Cab System described in `docs/PRD.md`. The repo now ships a runnable Express API (Supabase-aware) and
+a Vite + React frontend with shadcn-inspired UI primitives.
 
 ## Project structure
 
-- `backend/` — Express server exposing health checks, booking stubs, mock Razorpay payments, admin demand view, and QR scan
-  timing rules. Supabase client is initialized via environment variables.
-- `frontend/` — Vite + React + Tailwind frontend with lightweight shadcn-style components and landing sections for students,
-  drivers, and admins.
+- `backend/` — Express server exposing health checks, booking creation, mock Razorpay payments, admin demand + allocations,
+  and QR scan timing rules. Supabase client is initialized via environment variables.
+- `frontend/` — Vite + React + Tailwind frontend with shadcn-style components, live booking form, driver scan simulator,
+  and admin demand/allocation widgets.
 - `docs/` — PRD and supporting design docs.
 
 ## Getting started
@@ -33,26 +33,29 @@ npm install
 npm run dev
 ```
 
-The app runs on `http://localhost:5173` and can call the backend using `VITE_BACKEND_URL`.
+The app runs on `http://localhost:5173` and can call the backend using `VITE_API_BASE` (defaults to `http://localhost:4000`).
 
-## Key endpoints (development stubs)
+## Key endpoints
 
-- `GET /health` — basic status
-- `POST /api/bookings` — create a confirmed booking after mock payment
-- `POST /api/payments/mock` — mock Razorpay payment response (toggle with `MOCK_PAYMENT_MODE`)
-- `POST /api/admin/login` — password-only admin sign-in
-- `GET /api/admin/demand` — example demand summary for halls
-- `GET /api/scans/:tripId/rule` — expose scan-direction rules for a trip
-- `POST /api/scans/:tripId/scan` — classify outbound vs return vs no-show using configured return/close times
+- `GET /health` — basic status.
+- `GET /api/bookings/halls` and `/api/bookings/trips` — discover halls and sample trips.
+- `POST /api/bookings` — create a confirmed booking (mock payment) and issue a QR token.
+- `POST /api/payments/mock` — mock Razorpay payment response (toggle with `MOCK_PAYMENT_MODE`).
+- `POST /api/admin/login` — password-only admin sign-in.
+- `GET /api/admin/demand` — demand summary derived from created bookings.
+- `POST /api/admin/allocations` — simple allocation model that assigns seeded cabs to halls by demand.
+- `GET /api/admin/allocations` — view the current allocation set.
+- `GET /api/scans/:tripId/rule` — expose scan-direction rules for a trip.
+- `POST /api/scans/:tripId/scan` — classify outbound vs return vs no-show using configured return/close times.
 
 ## Tech choices
 
-- Backend: Node.js (Express), Supabase client, dotenv, and morgan for logging
-- Frontend: React 18, Vite, Tailwind, class-variance-authority/tailwind-merge for shadcn-style components
-- Hosting targets: Vercel (frontend) and Azure (backend), with Supabase-managed Postgres/auth
+- Backend: Node.js (Express), Supabase client, dotenv, date-fns for scan rules, faker for demo IDs, and morgan for logging.
+- Frontend: React 18, Vite, Tailwind, class-variance-authority/tailwind-merge for shadcn-style components.
+- Hosting targets: Vercel (frontend) and Azure (backend), with Supabase-managed Postgres/auth.
 
 ## Next steps
 
-- Wire Supabase auth (Google for students) and database entities
-- Implement real Razorpay integration and replace mock payment flow
-- Build allocation model execution and admin fleet management UI
+- Wire Supabase auth (Google for students) and database entities.
+- Implement real Razorpay integration and replace mock payment flow.
+- Persist bookings/payments/allocations in Supabase and expose QR/passkey validation pages.

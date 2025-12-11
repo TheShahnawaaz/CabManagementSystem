@@ -1,38 +1,54 @@
 import { Router } from 'express';
-import { faker } from '@faker-js/faker/locale/en';
+import { findTrip, createBooking, getHalls, getBooking, getBookingsForUser, listTrips } from '../data/store.js';
 
 const router = Router();
 
-const halls = ['LBS Hall', 'MMM Hall', 'VS Hall'];
-
 router.get('/halls', (_req, res) => {
-  res.json({ halls });
+  res.json({ halls: getHalls() });
+});
+
+router.get('/trips', (_req, res) => {
+  res.json({ trips: listTrips() });
 });
 
 router.post('/', (req, res) => {
-  const { userId, hall, paymentMethod = 'mock' } = req.body;
+  const { userId, hall, tripId, paymentMethod = 'mock' } = req.body;
 
-  if (!userId || !hall) {
-    return res.status(400).json({ message: 'userId and hall are required' });
+  if (!userId || !hall || !tripId) {
+    return res.status(400).json({ message: 'userId, hall, and tripId are required' });
   }
 
-  const hallExists = halls.includes(hall);
-  if (!hallExists) {
+  try {
+    const trip = findTrip(tripId);
+
+    if (!trip) {
+      return res.status(404).json({ message: 'Trip not found' });
+    }
+
+    const booking = createBooking({ userId, hall, tripId, paymentMethod });
+    return res.status(201).json({
+      ...booking,
+      trip,
+      message: 'Booking confirmed, awaiting cab allocation',
+    });
+  } catch (error) {
     return res.status(422).json({ message: 'Unknown hall selection' });
   }
+});
 
-  const bookingId = faker.string.alphanumeric(10).toUpperCase();
+router.get('/:bookingId', (req, res) => {
+  const booking = getBooking(req.params.bookingId);
 
-  const response = {
-    bookingId,
-    userId,
-    hall,
-    paymentMethod,
-    status: 'confirmed',
-    message: 'Booking confirmed, awaiting cab allocation',
-  };
+  if (!booking) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
 
-  return res.status(201).json(response);
+  return res.json(booking);
+});
+
+router.get('/user/:userId', (req, res) => {
+  const userBookings = getBookingsForUser(req.params.userId);
+  res.json({ bookings: userBookings });
 });
 
 export default router;

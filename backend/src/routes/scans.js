@@ -1,20 +1,17 @@
 import { Router } from 'express';
-import { sampleTrip, determineScanDirection } from '../data/trips.js';
 import { loadConfig } from '../utils/config.js';
+import { hydrateTripsFromEnv, classifyScan, findTrip } from '../data/store.js';
 
 const router = Router();
 const config = loadConfig();
 
 router.get('/:tripId/rule', (req, res) => {
-  if (req.params.tripId !== sampleTrip.id) {
+  const trips = hydrateTripsFromEnv(config.tripTiming);
+  const trip = trips.find((item) => item.id === req.params.tripId);
+
+  if (!trip) {
     return res.status(404).json({ message: 'Trip not found' });
   }
-
-  const trip = {
-    ...sampleTrip,
-    returnTime: config.tripTiming.returnTime || sampleTrip.returnTime,
-    closeTime: config.tripTiming.closeTime || sampleTrip.closeTime,
-  };
 
   res.json({
     tripId: trip.id,
@@ -31,25 +28,15 @@ router.post('/:tripId/scan', (req, res) => {
     return res.status(400).json({ message: 'scanTime is required' });
   }
 
-  if (req.params.tripId !== sampleTrip.id) {
+  const trip = findTrip(req.params.tripId);
+
+  if (!trip) {
     return res.status(404).json({ message: 'Trip not found' });
   }
 
-  const trip = {
-    ...sampleTrip,
-    returnTime: config.tripTiming.returnTime || sampleTrip.returnTime,
-    closeTime: config.tripTiming.closeTime || sampleTrip.closeTime,
-  };
+  const scan = classifyScan({ tripId: trip.id, scanTime });
 
-  const direction = determineScanDirection(trip, scanTime);
-
-  res.json({
-    tripId: trip.id,
-    direction,
-    scanTime,
-    returnTime: trip.returnTime,
-    closeTime: trip.closeTime,
-  });
+  res.json(scan);
 });
 
 export default router;

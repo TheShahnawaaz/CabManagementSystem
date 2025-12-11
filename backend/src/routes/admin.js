@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { loadConfig } from '../utils/config.js';
+import { summarizeDemand, runAllocation, listAllocations, listBookings, listPayments } from '../data/store.js';
 
 const router = Router();
 const config = loadConfig();
@@ -15,13 +16,30 @@ router.post('/login', (req, res) => {
 });
 
 router.get('/demand', (_req, res) => {
-  const demand = [
-    { hall: 'LBS Hall', confirmedStudents: 50 },
-    { hall: 'MMM Hall', confirmedStudents: 20 },
-    { hall: 'VS Hall', confirmedStudents: 12 },
-  ];
+  const demand = summarizeDemand().map((item) => ({
+    hall: item.hall,
+    tripId: item.tripId,
+    confirmedStudents: item.students,
+  }));
 
   res.json({ demand });
+});
+
+router.post('/allocations', (_req, res) => {
+  const allocations = runAllocation();
+  res.json({ allocations });
+});
+
+router.get('/allocations', (_req, res) => {
+  res.json({ allocations: listAllocations() });
+});
+
+router.get('/overview', (_req, res) => {
+  res.json({
+    bookings: listBookings(),
+    payments: listPayments(),
+    allocations: listAllocations(),
+  });
 });
 
 export default router;
