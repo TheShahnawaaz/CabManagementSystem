@@ -5,6 +5,8 @@
 **Document Title:** Campus Cab Allocation & Validation System
 **Version:** Draft v1.0
 **Platform:** Web Application (mobile-responsive, especially for Drivers and Students)
+**Tech Stack:** Node.js (Express) backend, React frontend, Supabase for database/auth/session persistence
+**Hosting:** Frontend on Vercel, backend on Azure, Supabase-managed Postgres
 **Target Use Case:** Weekly Friday Prayer Logistics
 
 ---
@@ -35,6 +37,12 @@ Build a centralized web platform that manages the **end-to-end lifecycle** of Fr
 2. **Optimization:** Admin runs a model to compute the required number of cabs per hall.
 3. **Cab Assignment:** The system maps students to specific cabs and generates unique QR passes.
 4. **Validation:** A QR + passkey-based validation flow ensures correct boarding on both onward and return journeys, using only a browser on the driver’s phone.
+
+**Directional rules clarified:**
+
+* Each trip stores a **scheduled return time**.
+* QR scans **before the return time** count as **outbound**; scans **after** count as **return**.
+* If a QR is not scanned within the trip’s active window before closure, the student is marked **no-show**.
 
 ---
 
@@ -80,14 +88,15 @@ Build a centralized web platform that manages the **end-to-end lifecycle** of Fr
 
 1. **Registration & Login**
 
-   * Students access the website and log in using a **unique email ID**.
+   * Students access the website and log in via **Google Sign-In** (Supabase OAuth) using their campus email.
+   * Admins authenticate via **password-based login**; admin accounts are provisioned by ops (no self-registration).
    * Student selects their **Residence Hall** from a predefined list.
 
 2. **Payment**
 
    * A fixed fare is displayed.
-   * Student is redirected to a **payment gateway**.
-   * **Constraint:** Booking is considered complete **only after** successful payment.
+   * Student is redirected to a **payment gateway**; Razorpay is the target provider, with a **mock payment method** during development.
+   * **Constraint:** Booking is considered complete **only after** successful payment (or mock payment success in development).
 
 3. **Booking Status**
 
@@ -197,6 +206,7 @@ Build a centralized web platform that manages the **end-to-end lifecycle** of Fr
 
      * If QR is valid and belongs to a **paid student**.
      * If the **Cab ID associated with the student** matches the **passkey’s cab**.
+     * That the scan timestamp is **before the trip’s return time**; else it is treated as a return scan.
 
    * **If match:**
 
@@ -229,6 +239,7 @@ Build a centralized web platform that manages the **end-to-end lifecycle** of Fr
 
      * Student is a **valid paid user**.
      * Passkey corresponds to a **valid hired cab** in the system (any cab, not necessarily the outbound one).
+     * That the scan timestamp is **after the trip’s return time**.
 
 4. **If valid:**
 
@@ -239,6 +250,13 @@ Build a centralized web platform that manages the **end-to-end lifecycle** of Fr
 5. **If invalid (unpaid student / non-hired cab):**
 
    * Show **Red Error Screen** with appropriate message.
+
+---
+
+### Phase 6: Attendance & No-Show Handling
+
+* Each trip has an **active window** from pickup start through the scheduled return time and closure.
+* **No-Show Rule:** If a student’s QR is **never scanned** (neither before nor after the return time) before the trip is closed, the student is marked **`No-Show`** for that trip.
 
 ---
 
@@ -333,6 +351,10 @@ Build a centralized web platform that manages the **end-to-end lifecycle** of Fr
 
   * QR codes should be tamper-resistant (signed tokens or server-side validation).
   * Passkeys should be unique per cab and not guessable.
+
+* **UI/UX:**
+
+  * Frontend uses **React with shadcn** for a minimal, clean design that is mobile-friendly.
 
 ---
 
