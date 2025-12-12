@@ -105,15 +105,20 @@ VALUES ('Shahnawaz Hussain', 'shahnawaz@example.com', 'https://lh3.googleusercon
 | Column Name          | Data Type      | Constraints                    | Description                           |
 |----------------------|----------------|--------------------------------|---------------------------------------|
 | `id`                 | BIGINT         | PRIMARY KEY, AUTO_INCREMENT    | Unique trip identifier                |
+| `trip_title`         | VARCHAR(255)   | NOT NULL                       | Title/name of the trip                |
 | `trip_date`          | DATE           | NOT NULL, UNIQUE               | Date of Friday prayer trip            |
 | `booking_start_time` | TIMESTAMP      | NOT NULL                       | When booking window opens             |
 | `booking_end_time`   | TIMESTAMP      | NOT NULL                       | When booking window closes            |
 | `return_time`        | TIMESTAMP      | NOT NULL                       | Expected prayer time in the mosque     |
+| `end_time`           | TIMESTAMP      | NOT NULL                       | Expected trip end time                |
+| `amount_per_person`  | DECIMAL(10,2)  | NOT NULL                       | Cost per person for the trip          |
 | `created_at`         | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP      | Trip record creation                  |
 | `updated_at`         | TIMESTAMP      | ON UPDATE CURRENT_TIMESTAMP    | Last update timestamp                 |
 
 **Constraints:**
 - `booking_end_time` must be after `booking_start_time`
+- `end_time` must be after `return_time`
+- `amount_per_person` must be > 0
 
 **Indexes:**
 - PRIMARY KEY on `id`
@@ -122,8 +127,8 @@ VALUES ('Shahnawaz Hussain', 'shahnawaz@example.com', 'https://lh3.googleusercon
 
 **Sample Data:**
 ```sql
-INSERT INTO trips (trip_date, booking_start_time, booking_end_time, return_time)
-VALUES ('2025-12-12', '2025-12-08 00:00:00', '2025-12-11 23:59:59', '2025-12-12 15:00:00');
+INSERT INTO trips (trip_title, trip_date, booking_start_time, booking_end_time, return_time, end_time, amount_per_person)
+VALUES ('Friday Prayer - Dec 12', '2025-12-12', '2025-12-08 00:00:00', '2025-12-11 23:59:59', '2025-12-12 15:00:00', '2025-12-12 16:30:00', 50.00);
 ```
 
 ---
@@ -482,8 +487,8 @@ INSERT INTO admins (name, email, password_hash)
 VALUES ('Admin User', 'admin@example.com', '$2b$12$...');
 
 -- Create first trip
-INSERT INTO trips (trip_date, booking_start_time, booking_end_time, return_time)
-VALUES ('2025-12-19', '2025-12-15 00:00:00', '2025-12-18 23:59:59', '2025-12-19 15:00:00');
+INSERT INTO trips (trip_title, trip_date, booking_start_time, booking_end_time, return_time, end_time, amount_per_person)
+VALUES ('Friday Prayer - Dec 19', '2025-12-19', '2025-12-15 00:00:00', '2025-12-18 23:59:59', '2025-12-19 15:00:00', '2025-12-19 16:30:00', 50.00);
 ```
 
 ---
@@ -517,4 +522,6 @@ VALUES ('2025-12-19', '2025-12-15 00:00:00', '2025-12-18 23:59:59', '2025-12-19 
 ---
 
 **Document End**
+
+
 

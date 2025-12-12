@@ -50,10 +50,13 @@ erDiagram
     
     trips {
         BIGINT id PK
+        VARCHAR trip_title
         DATE trip_date UK
         TIMESTAMP booking_start_time
         TIMESTAMP booking_end_time
         TIMESTAMP return_time
+        TIMESTAMP end_time
+        DECIMAL amount_per_person
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -478,4 +481,6 @@ To view this diagram:
 1. Copy the Mermaid code block
 2. Paste into: https://mermaid.live/
 3. Or use Mermaid plugins in VS Code, Notion, GitHub, etc.
+
+
 
