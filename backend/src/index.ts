@@ -1,17 +1,39 @@
+// Load environment variables FIRST (must be at the very top)
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
+import session from 'express-session';
+import passport from './config/passport';
+import authRoutes from './routes/auth.routes';
+import { runMigrations } from './config/migrations';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Session configuration (required for Passport OAuth flow)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Basic route
 app.get('/', (req: Request, res: Response) => {
@@ -30,11 +52,26 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-});
+// API Routes
+app.use('/api/auth', authRoutes);
 
+// Start server with migrations
+async function startServer() {
+  try {
+    // Run database migrations first
+    await runMigrations();
+    
+    // Then start the server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 
 export default app;
