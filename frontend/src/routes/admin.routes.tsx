@@ -1,3 +1,10 @@
+import AdminDashboard from '@/pages/admin/Dashboard';
+import UserManagement from '@/pages/admin/Users';
+import TripManagement from '@/pages/admin/Trips';
+import VehicleManagement from '@/pages/admin/Vehicles';
+import PaymentsManagement from '@/pages/admin/Payments';
+import ReportsPage from '@/pages/admin/Reports';
+import AdminSettings from '@/pages/admin/AdminSettings';
 import type { CustomRouteObject } from './guards';
 
 /**
@@ -19,52 +26,6 @@ import type { CustomRouteObject } from './guards';
  * - Non-admin users shown error toast and redirected
  * - Loading screen prevents unauthorized content flash
  */
-
-// Placeholder admin components - create these as features are built
-const AdminDashboard = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
-    <p className="text-gray-600 dark:text-gray-400">
-      Welcome to the admin panel. Manage trips, users, and system settings from here.
-    </p>
-  </div>
-);
-
-const UserManagement = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">User Management</h1>
-    <p className="text-gray-600 dark:text-gray-400">
-      View and manage all users in the system.
-    </p>
-  </div>
-);
-
-const TripManagement = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">Trip Management</h1>
-    <p className="text-gray-600 dark:text-gray-400">
-      Create and manage Friday cab trips.
-    </p>
-  </div>
-);
-
-const VehicleManagement = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">Vehicle Management</h1>
-    <p className="text-gray-600 dark:text-gray-400">
-      Manage the vehicle fleet and assignments.
-    </p>
-  </div>
-);
-
-const AdminSettings = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">System Settings</h1>
-    <p className="text-gray-600 dark:text-gray-400">
-      Configure system-wide settings and preferences.
-    </p>
-  </div>
-);
 
 export const adminRoutes: CustomRouteObject[] = [
   {
@@ -108,6 +69,26 @@ export const adminRoutes: CustomRouteObject[] = [
     },
   },
   {
+    path: 'admin/payments',
+    element: <PaymentsManagement />,
+    meta: {
+      requireAuth: true,
+      requireAdmin: true,
+      title: 'Payments',
+      description: 'Manage payments',
+    },
+  },
+  {
+    path: 'admin/reports',
+    element: <ReportsPage />,
+    meta: {
+      requireAuth: true,
+      requireAdmin: true,
+      title: 'Reports',
+      description: 'Analytics and reports',
+    },
+  },
+  {
     path: 'admin/settings',
     element: <AdminSettings />,
     meta: {
@@ -125,15 +106,6 @@ export const adminRoutes: CustomRouteObject[] = [
   //     requireAuth: true,
   //     requireAdmin: true,
   //     title: 'Analytics'
-  //   }
-  // },
-  // {
-  //   path: 'admin/reports',
-  //   element: <Reports />,
-  //   meta: {
-  //     requireAuth: true,
-  //     requireAdmin: true,
-  //     title: 'Reports'
   //   }
   // },
 ];

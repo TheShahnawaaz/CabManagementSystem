@@ -29,14 +29,14 @@ export const apiClient = {
     return this.request(endpoint);
   },
 
-  post(endpoint: string, data: any) {
+  post(endpoint: string, data?: unknown) {
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
 
-  put(endpoint: string, data: any) {
+  put(endpoint: string, data?: unknown) {
     return this.request(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data)

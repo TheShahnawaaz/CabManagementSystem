@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import RootLayout from '@/components/layout/RootLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import AuthCallback from '@/pages/AuthCallback';
 import NotFoundPage from '@/pages/NotFound';
 import { processRoutes, validateRouteConfig } from './guards';
@@ -58,7 +59,7 @@ export const router = createBrowserRouter([
   },
 
   // ==========================================
-  // MAIN APPLICATION (With Layout)
+  // GUEST ROUTES (RootLayout - No Sidebar)
   // ==========================================
   {
     path: '/',
@@ -77,7 +78,16 @@ export const router = createBrowserRouter([
       // GUEST-ONLY ROUTES
       // Only non-authenticated users (login, register, etc.)
       ...processRoutes(guestRoutes),
+    ],
+  },
 
+  // ==========================================
+  // AUTHENTICATED ROUTES (Dashboard Layout with Sidebar)
+  // ==========================================
+  {
+    path: '/',
+    element: <DashboardLayout />,
+    children: [
       // AUTHENTICATED USER ROUTES
       // Requires valid authentication token
       ...processRoutes(userRoutes),
@@ -85,10 +95,18 @@ export const router = createBrowserRouter([
       // ADMIN-ONLY ROUTES
       // Requires authentication + admin privileges
       ...processRoutes(adminRoutes),
+    ],
+  },
 
+  // ==========================================
+  // ROUGH/TESTING ROUTES (Original Layout)
+  // ==========================================
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
       // ROUGH/TESTING ROUTES
       // Keep existing rough routes for component testing
-      // TODO: Consider adding guards to these if needed
       roughRoutes,
 
       // 404 HANDLER

@@ -1,4 +1,8 @@
 import Home from '@/pages/Home';
+import ProfilePage from '@/pages/Profile';
+import BookingsPage from '@/pages/Bookings';
+import TripsPage from '@/pages/Trips';
+import SettingsPage from '@/pages/Settings';
 import type { CustomRouteObject } from './guards';
 
 /**
@@ -19,28 +23,6 @@ import type { CustomRouteObject } from './guards';
  * - Users without tokens are redirected to login
  * - Loading screen shown during auth verification
  */
-
-// Placeholder components - create these as needed
-const ProfilePage = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">User Profile</h1>
-    <p className="text-gray-600 dark:text-gray-400">Profile management coming soon...</p>
-  </div>
-);
-
-const BookingsPage = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">My Bookings</h1>
-    <p className="text-gray-600 dark:text-gray-400">View and manage your cab bookings here.</p>
-  </div>
-);
-
-const SettingsPage = () => (
-  <div className="container mx-auto px-4 py-8">
-    <h1 className="text-3xl font-bold mb-4">Settings</h1>
-    <p className="text-gray-600 dark:text-gray-400">Manage your account settings.</p>
-  </div>
-);
 
 export const userRoutes: CustomRouteObject[] = [
   {
@@ -68,6 +50,15 @@ export const userRoutes: CustomRouteObject[] = [
       requireAuth: true,
       title: 'My Bookings',
       description: 'View and manage your bookings',
+    },
+  },
+  {
+    path: 'trips',
+    element: <TripsPage />,
+    meta: {
+      requireAuth: true,
+      title: 'Trip History',
+      description: 'View your past trips',
     },
   },
   {
