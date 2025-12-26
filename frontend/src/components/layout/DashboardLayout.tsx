@@ -17,6 +17,7 @@ import { ThemeToggle } from "./ThemeToggle"
  * 
  * Features:
  * - Collapsible sidebar (desktop: icons only, mobile: sheet)
+ * - Sticky header with breadcrumbs
  * - Responsive breadcrumbs
  * - Theme toggle
  * - Auto-collapses on mobile
@@ -27,8 +28,8 @@ export default function DashboardLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        {/* Header with breadcrumbs and controls */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        {/* Sticky Header with breadcrumbs and controls */}
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           

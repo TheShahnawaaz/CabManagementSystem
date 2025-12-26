@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import RootLayout from '@/components/layout/RootLayout';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import ProtectedLayout from '@/components/layout/ProtectedLayout';
 import AuthCallback from '@/pages/AuthCallback';
 import NotFoundPage from '@/pages/NotFound';
 import { processRoutes, validateRouteConfig } from './guards';
@@ -86,15 +87,20 @@ export const router = createBrowserRouter([
   // ==========================================
   {
     path: '/',
-    element: <DashboardLayout />,
+    element: <ProtectedLayout />, // Auth check BEFORE layout renders
     children: [
-      // AUTHENTICATED USER ROUTES
-      // Requires valid authentication token
-      ...processRoutes(userRoutes),
+      {
+        element: <DashboardLayout />, // Layout renders AFTER auth verified
+        children: [
+          // AUTHENTICATED USER ROUTES
+          // Requires valid authentication token
+          ...processRoutes(userRoutes),
 
-      // ADMIN-ONLY ROUTES
-      // Requires authentication + admin privileges
-      ...processRoutes(adminRoutes),
+          // ADMIN-ONLY ROUTES
+          // Requires authentication + admin privileges
+          ...processRoutes(adminRoutes),
+        ],
+      },
     ],
   },
 
@@ -128,21 +134,31 @@ export const router = createBrowserRouter([
  * Guest Only (Not Logged In):
  * - /login
  * 
- * Authenticated Users:
+ * Authenticated Users (Fullscreen loading → then DashboardLayout):
  * - /dashboard
  * - /profile
  * - /bookings
+ * - /trips
  * - /settings
  * 
- * Admin Only:
+ * Admin Only (Fullscreen loading → then DashboardLayout):
  * - /admin
  * - /admin/users
  * - /admin/trips
  * - /admin/vehicles
+ * - /admin/payments
+ * - /admin/reports
  * - /admin/settings
  * 
  * Special:
  * - /auth/callback (OAuth callback)
  * - /rough/* (Testing routes)
  * - * (404 Not Found)
+ * 
+ * Auth Flow:
+ * 1. User visits protected route (e.g., /dashboard)
+ * 2. ProtectedLayout checks auth → shows FULLSCREEN loading
+ * 3. Auth verified → renders DashboardLayout with sidebar
+ * 4. RouteGuard checks specific permissions (admin, etc.)
+ * 5. Page content renders
  */
