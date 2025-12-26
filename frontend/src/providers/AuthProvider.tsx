@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     
     // Optionally call backend logout endpoint
-    apiClient.post('/auth/logout').catch(() => {
+    apiClient.post('/auth/logout', {}).catch(() => {
       // Ignore errors on logout
     });
     

@@ -37,7 +37,7 @@ router.get('/google/callback',
 
       // Redirect to frontend with token
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+      res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}`);
     } catch (error) {
       console.error('OAuth callback error:', error);
       res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=server_error`);
@@ -71,4 +71,3 @@ router.post('/logout', (req, res) => {
 });
 
 export default router;
-

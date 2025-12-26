@@ -15,17 +15,6 @@ import type { CustomRouteObject } from './guards';
  */
 
 // Placeholder components - these will be created as needed
-const LandingPage = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center space-y-4">
-      <h1 className="text-4xl font-bold">Friday Cab System</h1>
-      <p className="text-gray-600 dark:text-gray-400">
-        Efficient transportation management for Friday prayers
-      </p>
-    </div>
-  </div>
-);
-
 const AboutPage = () => (
   <div className="container mx-auto px-4 py-8">
     <h1 className="text-3xl font-bold mb-4">About Friday Cab</h1>
