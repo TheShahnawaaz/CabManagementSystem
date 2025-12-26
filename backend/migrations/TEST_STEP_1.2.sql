@@ -144,6 +144,18 @@ RETURNING id, cab_number, passkey;
 -- FROM first_trip;
 
 -- ====================================
+-- TEST 9A: Test UNIQUE Constraint (duplicate passkey in same trip)
+-- ====================================
+-- This should FAIL - passkeys must be unique per trip (SECURITY CRITICAL)
+-- WITH first_trip AS (
+--   SELECT id FROM trips LIMIT 1
+-- )
+-- INSERT INTO cabs (trip_id, cab_number, cab_capacity, pickup_region, passkey)
+-- SELECT first_trip.id, 'WB-06-9999', 7, 'MMM', '4590'  -- Same passkey as first cab
+-- FROM first_trip;
+-- Expected Error: duplicate key value violates unique constraint "uq_cabs_trip_passkey"
+
+-- ====================================
 -- TEST 10: Insert Cab Allocation
 -- ====================================
 WITH first_trip AS (

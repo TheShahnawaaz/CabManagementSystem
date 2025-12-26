@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS trips (
   
   -- Constraints
   CONSTRAINT chk_booking_window CHECK (booking_end_time > booking_start_time),
+  CONSTRAINT chk_booking_before_trip CHECK (booking_end_time < return_time),
   CONSTRAINT chk_trip_times CHECK (end_time > return_time),
   CONSTRAINT chk_amount_positive CHECK (amount_per_person > 0)
 );
@@ -36,8 +37,9 @@ CREATE TRIGGER trips_updated_at
 COMMENT ON TABLE trips IS 'Stores Friday prayer trip information. One trip per Friday date.';
 COMMENT ON COLUMN trips.trip_date IS 'Date of the Friday prayer trip. Must be unique.';
 COMMENT ON COLUMN trips.booking_start_time IS 'When booking window opens for students.';
-COMMENT ON COLUMN trips.booking_end_time IS 'When booking window closes for students.';
-COMMENT ON COLUMN trips.return_time IS 'Expected return time from mosque.';
-COMMENT ON COLUMN trips.end_time IS 'Expected trip end time.';
+COMMENT ON COLUMN trips.booking_end_time IS 'When booking window closes for students. Must be before return_time.';
+COMMENT ON COLUMN trips.return_time IS 'Expected return time from mosque (trip start time).';
+COMMENT ON COLUMN trips.end_time IS 'Expected trip end time (when students are back).';
 COMMENT ON COLUMN trips.amount_per_person IS 'Cost per person in INR or local currency.';
+COMMENT ON CONSTRAINT chk_booking_before_trip ON trips IS 'Ensures booking window closes before the trip starts (return_time).';
 

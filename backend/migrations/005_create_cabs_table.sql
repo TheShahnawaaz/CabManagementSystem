@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS cabs (
   
   -- Constraints
   CONSTRAINT uq_cabs_trip_number UNIQUE (trip_id, cab_number),
+  CONSTRAINT uq_cabs_trip_passkey UNIQUE (trip_id, passkey),
   CONSTRAINT chk_cab_capacity_positive CHECK (cab_capacity > 0),
   CONSTRAINT chk_passkey_length CHECK (LENGTH(passkey) = 4 AND passkey ~ '^[0-9]{4}$')
 );
@@ -43,5 +44,6 @@ COMMENT ON COLUMN cabs.cab_capacity IS 'Maximum passenger capacity. Default is 7
 COMMENT ON COLUMN cabs.pickup_region IS 'Assigned pickup region/hall for this cab. Maps to residence halls.';
 COMMENT ON COLUMN cabs.passkey IS 'Unique 4-digit code for driver validation. Shared with driver by admin.';
 COMMENT ON CONSTRAINT uq_cabs_trip_number ON cabs IS 'Prevents duplicate cab numbers in the same trip.';
+COMMENT ON CONSTRAINT uq_cabs_trip_passkey ON cabs IS 'Ensures passkeys are unique per trip. Critical for security - prevents drivers from validating wrong students.';
 COMMENT ON CONSTRAINT chk_passkey_length ON cabs IS 'Ensures passkey is exactly 4 digits (0000-9999).';
 
