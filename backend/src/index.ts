@@ -5,12 +5,23 @@ dotenv.config();
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import session from 'express-session';
+import morgan from 'morgan';
 import passport from './config/passport';
 import authRoutes from './routes/auth.routes';
 import { runMigrations } from './config/migrations';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
+
+// HTTP Request Logger (Morgan)
+// Logs all incoming requests with method, URL, status, response time
+if (process.env.NODE_ENV === 'development') {
+  // Detailed logging in development
+  app.use(morgan('dev')); // Format: :method :url :status :response-time ms - :res[content-length]
+} else {
+  // Concise logging in production
+  app.use(morgan('combined')); // Apache combined log format
+}
 
 // Middleware
 app.use(cors({
