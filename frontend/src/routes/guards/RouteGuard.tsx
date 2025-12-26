@@ -93,7 +93,7 @@ export function RouteGuard({ children, meta }: RouteGuardProps) {
   // Show loading screen during authentication check
   // This prevents flash of unauthorized content
   if (loading) {
-    return <LoadingScreen message="Verifying access..." />;
+    return <LoadingScreen />;
   }
 
   // ===========================================
