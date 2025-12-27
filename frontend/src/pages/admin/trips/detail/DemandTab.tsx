@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useOutletContext, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -18,24 +18,12 @@ import {
   ItemTitle,
 } from '@/components/ui/item';
 import { tripApi } from '@/services/trip.service';
-import type { Trip, HallDemand } from '@/types/trip.types';
-import type { TripDetailStatus } from './utils';
-
-interface DemandTabContext {
-  trip: Trip;
-  status: TripDetailStatus;
-  refreshTrip: () => void;
-}
+import type { HallDemand } from '@/types/trip.types';
 
 export default function DemandTab() {
   const { tripId } = useParams<{ tripId: string }>();
-  const { trip } = useOutletContext<DemandTabContext>();
   const [demands, setDemands] = useState<HallDemand[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDemand();
-  }, [tripId]);
 
   const fetchDemand = async () => {
     try {
@@ -44,13 +32,18 @@ export default function DemandTab() {
       if (response.success && response.data) {
         setDemands(response.data);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching demand:', error);
       toast.error('Failed to load demand data');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDemand();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId]);
 
   if (loading) {
     return (
@@ -111,7 +104,7 @@ export default function DemandTab() {
 
         {demands.map((demand) => (
           <TabsContent key={demand.hall} value={demand.hall} className="mt-6">
-            <ItemGroup variant="outline" className="rounded-lg border">
+            <ItemGroup className="rounded-lg border">
               {demand.students.map((student, index) => (
                 <div key={student.id}>
                   <Item className="p-4">

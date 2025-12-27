@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useLocation, useParams, matchPath } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, matchPath } from 'react-router-dom';
 import { Home } from 'lucide-react';
 import type { BreadcrumbItem } from '@/types/breadcrumb.types';
 import { breadcrumbCache } from '@/lib/breadcrumbCache';
@@ -11,14 +11,8 @@ import { allRoutes } from '@/routes';
  */
 export function useBreadcrumbs() {
   const location = useLocation();
-  const params = useParams();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Generate breadcrumbs whenever location changes
-  useEffect(() => {
-    generateBreadcrumbs();
-  }, [location.pathname]);
 
   const generateBreadcrumbs = async () => {
     setLoading(true);
@@ -95,6 +89,12 @@ export function useBreadcrumbs() {
     setBreadcrumbs(items);
     setLoading(false);
   };
+
+  // Generate breadcrumbs whenever location changes
+  useEffect(() => {
+    generateBreadcrumbs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return { breadcrumbs, loading };
 }

@@ -2,7 +2,9 @@
 // ALLOCATION TYPES
 // ====================================
 
-export type Hall = 'RK' | 'VS' | 'MS' | 'HJB' | 'LLR' | 'LBS' | 'PAN';
+// Note: Hall type is defined in booking.types.ts
+import type { Hall } from './booking.types';
+export type { Hall };
 
 export interface AssignedStudent {
   user_id: string;

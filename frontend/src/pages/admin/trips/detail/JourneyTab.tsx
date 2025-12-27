@@ -1,19 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useOutletContext, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Car, MapPin, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Trip } from '@/types/trip.types';
-import type { TripDetailStatus } from './utils';
-
-interface JourneyTabContext {
-  trip: Trip;
-  status: TripDetailStatus;
-  refreshTrip: () => void;
-}
 
 interface JourneyLog {
   student_name: string;
@@ -34,13 +26,8 @@ interface CabJourney {
 
 export default function JourneyTab() {
   const { tripId } = useParams<{ tripId: string }>();
-  const { trip } = useOutletContext<JourneyTabContext>();
   const [journeys, setJourneys] = useState<CabJourney[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchJourneys();
-  }, [tripId]);
 
   const fetchJourneys = async () => {
     try {
@@ -73,12 +60,17 @@ export default function JourneyTab() {
         ]);
         setLoading(false);
       }, 500);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching journeys:', error);
       toast.error('Failed to load journey data');
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchJourneys();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId]);
 
   if (loading) {
     return (
