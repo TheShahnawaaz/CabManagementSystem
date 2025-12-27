@@ -3,7 +3,6 @@ import {
   createBooking,
   getMyBookings,
   getBookingById,
-  cancelBooking,
 } from '../controllers/booking.controller';
 import { authenticateUser } from '../middleware/auth.middleware';
 import { validateBooking } from '../middleware/validation.middleware';
@@ -14,7 +13,7 @@ const router = Router();
  * Booking Routes
  * 
  * All routes require authentication (student or admin)
- * Handles booking creation, viewing, and cancellation
+ * Handles booking creation and viewing
  */
 
 // ====================================
@@ -48,13 +47,6 @@ router.get('/bookings', authenticateUser, getMyBookings);
  * @access  Authenticated users only (must own the booking)
  */
 router.get('/bookings/:id', authenticateUser, getBookingById);
-
-/**
- * @route   DELETE /api/bookings/:id
- * @desc    Cancel a booking
- * @access  Authenticated users only (must own the booking)
- */
-router.delete('/bookings/:id', authenticateUser, cancelBooking);
 
 export default router;
 

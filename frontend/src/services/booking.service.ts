@@ -31,12 +31,5 @@ export const bookingApi = {
   async getBookingById(id: string): Promise<ApiResponse<Booking>> {
     return apiClient.get(`/bookings/${id}`);
   },
-
-  /**
-   * Cancel a booking
-   */
-  async cancelBooking(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete(`/bookings/${id}`);
-  },
 };
 

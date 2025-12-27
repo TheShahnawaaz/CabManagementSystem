@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, CreditCard, Users, Trash2, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, CreditCard, Users, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { bookingApi } from '@/services/booking.service';
@@ -9,16 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
   Tabs,
   TabsList,
   TabsTrigger,
@@ -27,9 +17,6 @@ import {
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [cancelling, setCancelling] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
   const fetchBookings = async () => {
@@ -82,53 +69,6 @@ export default function BookingsPage() {
       return { label: 'Cab Allocated', color: 'bg-blue-500' };
     } else {
       return { label: 'Awaiting Allocation', color: 'bg-yellow-500' };
-    }
-  };
-
-  const canCancelBooking = (booking: Booking) => {
-    const now = new Date();
-    const returnTime = new Date(booking.return_time);
-    return now < returnTime && booking.payment_status !== 'cancelled';
-  };
-
-  const handleCancelClick = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setCancelDialogOpen(true);
-  };
-
-  const handleConfirmCancel = async () => {
-    if (!selectedBooking) return;
-
-    try {
-      setCancelling(true);
-      const response = await bookingApi.cancelBooking(selectedBooking.id);
-
-      if (response.success) {
-        toast.success('Booking Cancelled', {
-          description: 'Your booking has been cancelled successfully.',
-          duration: 5000,
-        });
-        setCancelDialogOpen(false);
-        setSelectedBooking(null);
-        fetchBookings(); // Refresh list
-      }
-    } catch (error) {
-      console.error('Cancellation failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
-      if (errorMessage.includes('already started')) {
-        toast.error('Cannot Cancel', {
-          description: 'Trip has already started. Cancellation is not allowed.',
-          duration: 5000,
-        });
-      } else {
-        toast.error('Cancellation Failed', {
-          description: errorMessage || 'Failed to cancel booking. Please try again.',
-          duration: 5000,
-        });
-      }
-    } finally {
-      setCancelling(false);
     }
   };
 
@@ -192,12 +132,11 @@ export default function BookingsPage() {
         <div className="space-y-4">
           {bookings.map((booking) => {
             const status = getBookingStatus(booking);
-            const isCancellable = canCancelBooking(booking);
 
             return (
               <Card key={booking.id} className="p-6">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                  {/* Left Section - Trip Info */}
+                <div className="flex flex-col gap-4">
+                  {/* Trip Info */}
                   <div className="flex-1 space-y-3">
                     {/* Title & Status */}
                     <div className="flex items-center gap-3 flex-wrap">
@@ -267,21 +206,6 @@ export default function BookingsPage() {
                       )}
                     </div>
                   </div>
-
-                  {/* Right Section - Actions */}
-                  {isCancellable && (
-                    <div className="flex md:flex-col gap-2">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleCancelClick(booking)}
-                        className="flex-1 md:flex-none"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Cancel
-                      </Button>
-                    </div>
-                  )}
                 </div>
 
                 {/* Transaction ID */}
@@ -293,30 +217,6 @@ export default function BookingsPage() {
           })}
         </div>
       )}
-
-      {/* Cancel Confirmation Dialog */}
-      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel your booking for "{selectedBooking?.trip_title}"?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={cancelling}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmCancel}
-              disabled={cancelling}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {cancelling ? 'Cancelling...' : 'Confirm Cancellation'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

@@ -7,7 +7,6 @@ import pool from '../config/database';
  * Handles student booking operations:
  * - Create booking with payment
  * - Get user's bookings
- * - Cancel booking (if within allowed timeframe)
  * 
  * Flow:
  * 1. Student selects trip and hall
@@ -305,100 +304,6 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
       error: 'Failed to fetch booking',
       details: error.message,
     });
-  }
-};
-
-// ====================================
-// CANCEL BOOKING
-// ====================================
-export const cancelBooking = async (req: Request, res: Response): Promise<void> => {
-  const client = await pool.connect();
-  
-  try {
-    const userId = (req as any).user?.id;
-    const { id } = req.params;
-
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        error: 'User not authenticated',
-      });
-      return;
-    }
-
-    await client.query('BEGIN');
-
-    // 1. Get booking details
-    const bookingResult = await client.query(
-      `SELECT tu.*, t.return_time, tu.payment_id
-       FROM trip_users tu
-       JOIN trips t ON tu.trip_id = t.id
-       WHERE tu.id = $1 AND tu.user_id = $2`,
-      [id, userId]
-    );
-
-    if (bookingResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      res.status(404).json({
-        success: false,
-        error: 'Booking not found',
-      });
-      return;
-    }
-
-    const booking = bookingResult.rows[0];
-
-    // 2. Check if trip has already started
-    const returnTime = new Date(booking.return_time);
-    const now = new Date();
-
-    if (now >= returnTime) {
-      await client.query('ROLLBACK');
-      res.status(400).json({
-        success: false,
-        error: 'Cannot cancel booking - trip has already started',
-      });
-      return;
-    }
-
-    // 3. Delete cab allocation if exists
-    await client.query(
-      `DELETE FROM cab_allocations 
-       WHERE trip_id = $1 AND user_id = $2`,
-      [booking.trip_id, userId]
-    );
-
-    // 4. Update payment status to cancelled
-    await client.query(
-      `UPDATE payments 
-       SET payment_status = 'cancelled'
-       WHERE id = $1`,
-      [booking.payment_id]
-    );
-
-    // 5. Delete booking
-    await client.query(
-      `DELETE FROM trip_users 
-       WHERE id = $1`,
-      [id]
-    );
-
-    await client.query('COMMIT');
-
-    res.status(200).json({
-      success: true,
-      message: 'Booking cancelled successfully',
-    });
-  } catch (error: any) {
-    await client.query('ROLLBACK');
-    console.error('Error cancelling booking:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to cancel booking',
-      details: error.message,
-    });
-  } finally {
-    client.release();
   }
 };
 
