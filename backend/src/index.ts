@@ -1,6 +1,11 @@
 // Load environment variables FIRST (must be at the very top)
 import dotenv from 'dotenv';
-dotenv.config();
+
+// In production (Render), env vars are injected by the platform
+// In development, load from .env file
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
