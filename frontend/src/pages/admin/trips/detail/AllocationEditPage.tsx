@@ -143,9 +143,9 @@ export default function AllocationEditPage() {
       return {
         temp_id: cab.id || cab.temp_id || `cab_${index + 1}`,
         cab_number: cab.cab_number,
-        cab_type: 'omni',
+        cab_type: cab.cab_type || 'Omni',
         driver_name: cab.driver_name,
-        driver_phone: '',
+        driver_phone: cab.driver_phone || '',
         pickup_region: cab.pickup_region,
         passkey: cab.passkey,
         seats,
@@ -233,13 +233,23 @@ export default function AllocationEditPage() {
       passkey: cab.passkey,
       assigned_students: Object.entries(cab.seats)
         .filter(([, userId]) => userId !== null)
-        .map(([ , userId], index) => {
-          const student = allStudents.find(s => s.user_id === userId)!;
+        .map(([seatId, userId]) => {
+          const student = allStudents.find(s => s.user_id === userId);
+          if (!student) {
+            console.error(`Student not found for userId: ${userId}`);
+            return null;
+          }
           return {
-            ...student,
-            seat_position: index + 1,
+            user_id: student.user_id,
+            booking_id: student.booking_id,
+            name: student.name,
+            email: student.email,
+            profile_picture: student.profile_picture,
+            hall: student.hall,
+            seat_position: seatId, // Use actual seat ID (F1, M1, etc.)
           };
-        }),
+        })
+        .filter((s): s is NonNullable<typeof s> => s !== null),
     }));
 
     try {

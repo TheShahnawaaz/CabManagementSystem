@@ -11,7 +11,7 @@ export interface AssignedStudent {
   email: string;
   profile_picture: string | null;
   hall: Hall;
-  seat_position: number; // 1-7
+  seat_position: string | number; // Seat ID (F1, M1, etc.) or position number
 }
 
 export interface CabAllocation {

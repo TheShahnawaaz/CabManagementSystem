@@ -1,10 +1,63 @@
+import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Lock, User } from "lucide-react";
 import type { StudentOption, SeatAssignments } from "@/types/allocation.types";
 
 const VIEWBOX = { w: 300, h: 420 };
+
+// Hall color mapping with subtle shades
+const HALL_COLORS = {
+  RK: {
+    bg: "bg-blue-500/20",
+    border: "border-blue-500/70",
+    ring: "ring-blue-500/15",
+    avatar: "bg-blue-500",
+    text: "text-blue-950 dark:text-blue-50",
+  },
+  VS: {
+    bg: "bg-purple-500/20",
+    border: "border-purple-500/70",
+    ring: "ring-purple-500/15",
+    avatar: "bg-purple-500",
+    text: "text-purple-950 dark:text-purple-50",
+  },
+  LBS: {
+    bg: "bg-green-500/20",
+    border: "border-green-500/70",
+    ring: "ring-green-500/15",
+    avatar: "bg-green-500",
+    text: "text-green-950 dark:text-green-50",
+  },
+  PAN: {
+    bg: "bg-orange-500/20",
+    border: "border-orange-500/70",
+    ring: "ring-orange-500/15",
+    avatar: "bg-orange-500",
+    text: "text-orange-950 dark:text-orange-50",
+  },
+  MS: {
+    bg: "bg-pink-500/20",
+    border: "border-pink-500/70",
+    ring: "ring-pink-500/15",
+    avatar: "bg-pink-500",
+    text: "text-pink-950 dark:text-pink-50",
+  },
+  HJB: {
+    bg: "bg-cyan-500/20",
+    border: "border-cyan-500/70",
+    ring: "ring-cyan-500/15",
+    avatar: "bg-cyan-500",
+    text: "text-cyan-950 dark:text-cyan-50",
+  },
+  LLR: {
+    bg: "bg-amber-500/20",
+    border: "border-amber-500/70",
+    ring: "ring-amber-500/15",
+    avatar: "bg-amber-500",
+    text: "text-amber-950 dark:text-amber-50",
+  },
+} as const;
 
 type SeatPosition = keyof SeatAssignments;
 
@@ -28,16 +81,18 @@ export function VehicleSeatSelector({
   availableStudents,
   onSeatChange,
 }: VehicleSeatSelectorProps) {
-  const driverSeat = { x: 192, y: 130, rot: 6 };
+  const [openSeat, setOpenSeat] = useState<SeatPosition | null>(null);
+
+  const driverSeat = { x: 192, y: 130, rot: 0 };
 
   const passengerSeats: SeatMeta[] = [
-    { id: "F1", label: "F1", x: 108, y: 130, rot: -6, size: "lg" },
-    { id: "M1", label: "M1", x: 112, y: 230, size: "sm" },
-    { id: "M2", label: "M2", x: 150, y: 230, size: "sm" },
-    { id: "M3", label: "M3", x: 188, y: 230, size: "sm" },
-    { id: "B1", label: "B1", x: 112, y: 290, size: "sm" },
-    { id: "B2", label: "B2", x: 150, y: 290, size: "sm" },
-    { id: "B3", label: "B3", x: 188, y: 290, size: "sm" },
+    { id: "F1", label: "F1", x: 108, y: 130, rot: 0, size: "lg" },
+    { id: "M1", label: "M1", x: 100, y: 240, size: "sm" },
+    { id: "M2", label: "M2", x: 150, y: 240, size: "sm" },
+    { id: "M3", label: "M3", x: 200, y: 240, size: "sm" },
+    { id: "B1", label: "B1", x: 100, y: 310, size: "sm" },
+    { id: "B2", label: "B2", x: 150, y: 310, size: "sm" },
+    { id: "B3", label: "B3", x: 200, y: 310, size: "sm" },
   ];
 
   const getAssignedStudent = (seatId: SeatPosition) => {
@@ -45,22 +100,18 @@ export function VehicleSeatSelector({
     return availableStudents.find((s) => s.user_id === userId);
   };
 
-  const assignedCount = Object.values(seats).filter(Boolean).length;
-  const totalPassengerSeats = passengerSeats.length;
+  const getAvailableStudentsForSeat = (currentSeatId: SeatPosition) => {
+    // Get all assigned user IDs except for the current seat
+    const assignedUserIds = Object.entries(seats)
+      .filter(([seatId, userId]) => seatId !== currentSeatId && userId !== null)
+      .map(([, userId]) => userId as string);
+
+    // Return only students that are not assigned to other seats
+    return availableStudents.filter((student) => !assignedUserIds.includes(student.user_id));
+  };
 
   return (
     <div className="w-full max-w-[520px] mx-auto">
-      {/* Stats Badge */}
-      <div className="flex justify-center gap-3 mb-4 flex-wrap">
-        <Badge variant="secondary" className="text-sm">
-          {assignedCount} / {totalPassengerSeats} seats assigned
-        </Badge>
-        <Badge variant="outline" className="text-sm flex items-center gap-1">
-          <Lock className="w-3.5 h-3.5" />
-          Driver locked
-        </Badge>
-      </div>
-
       {/* Vehicle container */}
       <div className="relative mx-auto w-full aspect-[300/420] rounded-2xl overflow-hidden border border-border/60 bg-gradient-to-b from-muted/10 to-background">
         <div className="absolute inset-0 opacity-60 pointer-events-none [background:radial-gradient(800px_420px_at_50%_18%,rgba(255,255,255,0.12),transparent_60%),radial-gradient(520px_320px_at_30%_70%,rgba(255,255,255,0.08),transparent_62%),repeating-linear-gradient(90deg,rgba(255,255,255,0.04)_0_10px,transparent_10px_20px)]" />
@@ -274,25 +325,15 @@ export function VehicleSeatSelector({
                 seatId={s.id}
                 label={s.label}
                 student={getAssignedStudent(s.id)}
-                availableStudents={availableStudents}
+                availableStudents={getAvailableStudentsForSeat(s.id)}
                 onSelect={(userId) => onSeatChange(s.id, userId)}
                 currentValue={seats[s.id]}
                 small={s.size === "sm"}
+                isOpen={openSeat === s.id}
+                onOpenChange={(open) => setOpenSeat(open ? s.id : null)}
               />
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mt-4">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-emerald-500/20 border-2 border-emerald-500" />
-          <span>Assigned</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-muted border-2 border-border" />
-          <span>Available</span>
         </div>
       </div>
     </div>
@@ -307,6 +348,8 @@ function SeatButton({
   onSelect,
   currentValue,
   small = false,
+  isOpen,
+  onOpenChange,
 }: {
   seatId: string;
   label: string;
@@ -315,17 +358,20 @@ function SeatButton({
   onSelect: (userId: string | null) => void;
   currentValue: string | null;
   small?: boolean;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const isAssigned = !!student;
-  const outer = small ? "w-[58px] h-[56px]" : "w-[66px] h-[64px]";
-  const back = small ? "w-[44px] h-[14px]" : "w-[50px] h-[16px]";
-  const head = small ? "w-[20px] h-[10px]" : "w-[22px] h-[12px]";
-  const avatar = small ? "w-6 h-6 text-[10px]" : "w-7 h-7 text-[11px]";
-  const text = small ? "text-[10px]" : "text-[11px]";
+  const outer = small ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]" : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
+  const avatar = small ? "w-4 h-4 text-[8px] md:w-6 md:h-6 md:text-[10px]" : "w-5 h-5 text-[9px] md:w-7 md:h-7 md:text-[11px]";
+  const text = small ? "text-[8px] md:text-[10px]" : "text-[9px] md:text-[11px]";
+
+  // Get hall colors if student is assigned
+  const hallColors = student?.hall ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS] : null;
 
   return (
-    <Select value={currentValue || "none"} onValueChange={onSelect}>
-      <SelectTrigger className="p-0 border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0">
+    <Select value={currentValue || "none"} onValueChange={onSelect} open={isOpen} onOpenChange={onOpenChange}>
+      <SelectTrigger className="p-0 border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
         <div
           className={[
             "relative",
@@ -334,30 +380,12 @@ function SeatButton({
             "shadow-xl",
             "bg-gradient-to-b from-muted/70 to-muted/35",
             "hover:scale-[1.04] active:scale-[0.98]",
-            isAssigned
-              ? "border-emerald-500/70 ring-2 ring-emerald-500/15"
+            isAssigned && hallColors
+              ? `${hallColors.border} ring-2 ${hallColors.ring}`
               : "border-border/70 hover:border-border",
           ].join(" ")}
           aria-label={`Seat ${seatId}`}
         >
-          {/* Backrest */}
-          <div
-            className={[
-              "absolute left-1/2 -top-3 -translate-x-1/2 rounded-full border shadow-md",
-              "bg-gradient-to-b from-muted/80 to-muted/35",
-              back,
-              isAssigned ? "border-emerald-500/50" : "border-border/60",
-            ].join(" ")}
-          />
-          {/* Headrest */}
-          <div
-            className={[
-              "absolute left-1/2 -top-6 -translate-x-1/2 rounded-full border shadow-sm",
-              "bg-gradient-to-b from-muted/90 to-muted/45",
-              head,
-              isAssigned ? "border-emerald-500/50" : "border-border/60",
-            ].join(" ")}
-          />
           {/* Cushion shine */}
           <div className="absolute inset-0 rounded-2xl pointer-events-none [background:radial-gradient(40px_24px_at_35%_25%,rgba(255,255,255,0.18),transparent_60%)]" />
 
@@ -366,8 +394,8 @@ function SeatButton({
             {isAssigned ? (
               <>
                 <Avatar className={avatar}>
-                  <AvatarImage src={student.profile_picture || undefined} />
-                  <AvatarFallback className="bg-emerald-500 text-emerald-950 font-extrabold text-xs">
+                  <AvatarImage src={student.profile_picture || undefined} loading="lazy" />
+                  <AvatarFallback className={`${hallColors?.avatar} ${hallColors?.text} font-extrabold text-xs`}>
                     {student.name
                       .split(" ")
                       .map((n: string) => n[0])
@@ -379,7 +407,7 @@ function SeatButton({
                 <span
                   className={[
                     text,
-                    "font-semibold text-foreground/90 max-w-[52px] truncate",
+                    "font-semibold text-foreground/90 max-w-[36px] md:max-w-[52px] truncate block",
                   ].join(" ")}
                 >
                   {student.name.split(" ")[0]}
@@ -409,29 +437,32 @@ function SeatButton({
         <SelectItem value="none">
           <span className="text-muted-foreground">Empty Seat</span>
         </SelectItem>
-        {availableStudents.map((availableStudent) => (
-          <SelectItem key={availableStudent.user_id} value={availableStudent.user_id}>
-            <div className="flex items-center gap-2">
-              <Avatar className="w-6 h-6">
-                <AvatarImage src={availableStudent.profile_picture || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
-                  {availableStudent.name
-                    .split(" ")
-                    .map((n: string) => n[0])
-                    .join("")
-                    .substring(0, 2)
-                    .toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm">{availableStudent.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {availableStudent.hall}
-                </span>
+        {availableStudents.map((availableStudent) => {
+          const studentHallColors = HALL_COLORS[availableStudent.hall as keyof typeof HALL_COLORS];
+          return (
+            <SelectItem key={availableStudent.user_id} value={availableStudent.user_id}>
+              <div className="flex items-center gap-2">
+                <Avatar className="w-6 h-6">
+                  <AvatarImage src={availableStudent.profile_picture || undefined} loading="lazy" />
+                  <AvatarFallback className={`${studentHallColors.avatar} ${studentHallColors.text} text-xs font-bold`}>
+                    {availableStudent.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm">{availableStudent.name}</span>
+                  <span className={`text-xs font-medium ${studentHallColors.avatar.replace('bg-', 'text-')}`}>
+                    {availableStudent.hall}
+                  </span>
+                </div>
               </div>
-            </div>
-          </SelectItem>
-        ))}
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );
@@ -439,8 +470,6 @@ function SeatButton({
 
 function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
   const outer = size === "sm" ? "w-[58px] h-[56px]" : "w-[66px] h-[64px]";
-  const back = size === "sm" ? "w-[44px] h-[14px]" : "w-[50px] h-[16px]";
-  const head = size === "sm" ? "w-[20px] h-[10px]" : "w-[22px] h-[12px]";
   const text = size === "sm" ? "text-[10px]" : "text-[11px]";
 
   return (
@@ -451,18 +480,6 @@ function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
         "rounded-2xl border border-border/60 bg-muted/40 shadow-xl opacity-90",
       ].join(" ")}
     >
-      <div
-        className={[
-          "absolute left-1/2 -top-3 -translate-x-1/2 rounded-full border border-border/60 bg-muted/50 shadow-md",
-          back,
-        ].join(" ")}
-      />
-      <div
-        className={[
-          "absolute left-1/2 -top-6 -translate-x-1/2 rounded-full border border-border/60 bg-muted/60 shadow-sm",
-          head,
-        ].join(" ")}
-      />
       <div className="absolute inset-0 rounded-2xl pointer-events-none [background:radial-gradient(40px_24px_at_35%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
       <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
         <div className="w-7 h-7 rounded-full bg-muted-foreground/20 flex items-center justify-center">
