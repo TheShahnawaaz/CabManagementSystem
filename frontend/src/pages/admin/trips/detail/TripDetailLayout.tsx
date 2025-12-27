@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, IndianRupee, Users } from 'lucide-react';
+import { Calendar, Clock, IndianRupee, Users, BarChart3, Navigation, Target } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -77,7 +77,6 @@ export default function TripDetailLayout() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Skeleton className="h-8 w-48 mb-6" />
         <Card className="p-6 mb-6">
           <Skeleton className="h-10 w-3/4 mb-4" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -115,19 +114,6 @@ export default function TripDetailLayout() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/admin/trips')}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Trips
-        </Button>
-      </div>
-
       {/* Trip Info Card */}
       <Card className="p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
@@ -138,12 +124,13 @@ export default function TripDetailLayout() {
         </div>
 
         {/* Trip Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Row 1 */}
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Trip Date</p>
-              <p className="font-medium">{format(new Date(trip.trip_date), 'MMM dd, yyyy')}</p>
+              <p className="font-medium">{format(new Date(trip.trip_date), 'dd MMM, yyyy')}</p>
             </div>
           </div>
 
@@ -163,34 +150,63 @@ export default function TripDetailLayout() {
             </div>
           </div>
 
+          {/* Row 2 */}
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Booking Window</p>
               <p className="font-medium text-sm">
-                {format(new Date(trip.booking_start_time), 'MMM dd, HH:mm')} -
-                {format(new Date(trip.booking_end_time), 'HH:mm')}
+                {format(new Date(trip.booking_start_time), 'dd MMM, HH:mm')} - {format(new Date(trip.booking_end_time), 'dd MMM, HH:mm')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">End Time</p>
+              <p className="font-medium text-sm">
+                {format(new Date(trip.end_time), 'dd MMM, HH:mm')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">Return Time</p>
+              <p className="font-medium text-sm">
+                {format(new Date(trip.return_time), 'dd MMM, HH:mm')}
               </p>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <Tabs value={currentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={currentTab}>
+          <TabsList className="grid grid-cols-3 w-fit">
             {canAccessTab('demand', status, trip) && (
               <TabsTrigger value="demand" asChild>
-                <Link to={`/admin/trips/${tripId}/demand`}>📊 Demand</Link>
+                <Link to={`/admin/trips/${tripId}/demand`} className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Demand
+                </Link>
               </TabsTrigger>
             )}
             {canAccessTab('journey', status, trip) && (
               <TabsTrigger value="journey" asChild>
-                <Link to={`/admin/trips/${tripId}/journey`}>🚗 Journey</Link>
+                <Link to={`/admin/trips/${tripId}/journey`} className="flex items-center gap-2">
+                  <Navigation className="w-4 h-4" />
+                  Journey
+                </Link>
               </TabsTrigger>
             )}
             {canAccessTab('allocation', status, trip) && (
               <TabsTrigger value="allocation" asChild>
-                <Link to={`/admin/trips/${tripId}/allocation`}>🎯 Allocation</Link>
+                <Link to={`/admin/trips/${tripId}/allocation`} className="flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  Allocation
+                </Link>
               </TabsTrigger>
             )}
           </TabsList>

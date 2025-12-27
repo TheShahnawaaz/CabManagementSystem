@@ -7,6 +7,7 @@ import {
   deleteTrip,
   getActiveTrips,
   getUpcomingTrips,
+  getTripDemand,
 } from '../controllers/trip.controller';
 import { authenticateUser, requireAdmin } from '../middleware/auth.middleware';
 import {
@@ -87,6 +88,18 @@ router.delete(
   requireAdmin,
   validateUUID,
   deleteTrip
+);
+
+/**
+ * @route   GET /api/admin/trips/:tripId/demand
+ * @desc    Get hall-wise student demand for a trip
+ * @access  Admin only
+ */
+router.get(
+  '/admin/trips/:tripId/demand',
+  authenticateUser,
+  requireAdmin,
+  getTripDemand
 );
 
 // ====================================

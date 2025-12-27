@@ -1,6 +1,6 @@
 import { apiClient } from '../lib/api';
 import type { ApiResponse } from '../types/api.types';
-import type { Trip, CreateTripData, UpdateTripData } from '../types/trip.types';
+import type { Trip, CreateTripData, UpdateTripData, HallDemand } from '../types/trip.types';
 
 // ====================================
 // TRIP API SERVICE
@@ -67,6 +67,14 @@ export const tripApi = {
    */
   async getUpcomingTrips(): Promise<ApiResponse<Trip[]>> {
     return apiClient.get('/trips/upcoming');
+  },
+
+  /**
+   * Get trip demand (admin only)
+   * Returns hall-wise student booking data
+   */
+  async getTripDemand(tripId: string): Promise<ApiResponse<HallDemand[]>> {
+    return apiClient.get(`/admin/trips/${tripId}/demand`);
   },
 };
 

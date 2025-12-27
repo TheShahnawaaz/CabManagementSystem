@@ -30,3 +30,22 @@ export interface CreateTripData {
 
 export type UpdateTripData = Partial<CreateTripData>;
 
+// ====================================
+// DEMAND TYPES
+// ====================================
+
+export interface StudentDemand {
+  id: string;
+  name: string;
+  email: string;
+  profile_picture: string | null;
+  booking_id: string;
+  created_at: string;
+}
+
+export interface HallDemand {
+  hall: string;
+  student_count: number;
+  students: StudentDemand[];
+}
+

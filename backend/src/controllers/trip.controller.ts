@@ -7,6 +7,71 @@ import pool from '../config/database';
  */
 
 // ====================================
+// GET TRIP DEMAND (Admin only)
+// ====================================
+export const getTripDemand = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { tripId } = req.params;
+
+    if (!tripId) {
+      res.status(400).json({
+        success: false,
+        error: 'Trip ID is required',
+      });
+      return;
+    }
+
+    // Check if trip exists
+    const tripCheck = await pool.query(
+      'SELECT id FROM trips WHERE id = $1',
+      [tripId]
+    );
+
+    if (tripCheck.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'Trip not found',
+      });
+      return;
+    }
+
+    // Get hall-wise demand with student details
+    const result = await pool.query(
+      `SELECT 
+        tu.hall,
+        COUNT(*)::int as student_count,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'id', u.id,
+            'name', u.name,
+            'email', u.email,
+            'profile_picture', u.profile_picture,
+            'booking_id', tu.id,
+            'created_at', tu.created_at
+          ) ORDER BY tu.created_at ASC
+        ) as students
+      FROM trip_users tu
+      JOIN users u ON tu.user_id = u.id
+      WHERE tu.trip_id = $1
+      GROUP BY tu.hall
+      ORDER BY tu.hall`,
+      [tripId]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result.rows,
+    });
+  } catch (error: any) {
+    console.error('Error fetching trip demand:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch trip demand',
+    });
+  }
+};
+
+// ====================================
 // CREATE TRIP
 // ====================================
 export const createTrip = async (req: Request, res: Response): Promise<void> => {
