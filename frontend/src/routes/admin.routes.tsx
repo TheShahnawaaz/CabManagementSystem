@@ -1,6 +1,6 @@
 import AdminDashboard from '@/pages/admin/Dashboard';
 import UserManagement from '@/pages/admin/Users';
-import TripManagement from '@/pages/admin/Trips';
+import TripManagement from '@/pages/admin/trips';
 import VehicleManagement from '@/pages/admin/Vehicles';
 import PaymentsManagement from '@/pages/admin/Payments';
 import ReportsPage from '@/pages/admin/Reports';

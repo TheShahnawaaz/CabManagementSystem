@@ -1,0 +1,32 @@
+// ====================================
+// TRIP TYPES
+// ====================================
+
+export interface Trip {
+  id: string;
+  trip_title: string;
+  trip_date: string;
+  booking_start_time: string;
+  booking_end_time: string;
+  return_time: string;
+  end_time: string;
+  amount_per_person: number;
+  booking_count?: number;
+  cab_count?: number;
+  allocation_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTripData {
+  trip_title: string;
+  trip_date: string;
+  booking_start_time: string;
+  booking_end_time: string;
+  return_time: string;
+  end_time: string;
+  amount_per_person: number;
+}
+
+export type UpdateTripData = Partial<CreateTripData>;
+
