@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { allocationApi } from '@/services/allocation.service';
 import { VehicleSeatSelector } from './allocation/VehicleSeatSelector';
-import type { CabAllocation, AssignedStudent, SeatPosition } from '@/types/allocation.types';
+import type { CabAllocation, AssignedStudent, SeatPosition, Hall } from '@/types/allocation.types';
 
 const HALLS = ['RK', 'VS', 'MS', 'HJB', 'LLR', 'LBS', 'PAN'] as const;
 
@@ -37,7 +37,7 @@ interface CabFormData {
   cab_type: string;
   driver_name: string;
   driver_phone: string;
-  pickup_region: string;
+  pickup_region: Hall;
   passkey: string;
   seats: {
     F1: string | null;
@@ -224,7 +224,7 @@ export default function AllocationEditPage() {
     // Convert to API format
     const apiCabs: CabAllocation[] = cabs.map(cab => ({
       temp_id: cab.temp_id,
-      pickup_region: cab.pickup_region as 'RK' | 'VS' | 'MS' | 'HJB' | 'LLR' | 'LBS' | 'PAN',
+      pickup_region: cab.pickup_region,
       capacity: 7,
       cab_number: cab.cab_number,
       cab_type: cab.cab_type,
