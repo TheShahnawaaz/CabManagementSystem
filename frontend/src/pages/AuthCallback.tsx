@@ -21,7 +21,8 @@ export default function AuthCallback() {
       
       // Redirect to home/dashboard
       // Force reload to trigger AuthProvider to fetch user profile
-      window.location.href = '/dashboard';
+      // window.location.href = '/dashboard';
+      navigate('/dashboard');
     } else {
       // No token, redirect to login
       navigate('/login');
