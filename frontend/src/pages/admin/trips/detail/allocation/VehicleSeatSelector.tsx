@@ -2,9 +2,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Lock, User } from "lucide-react";
-import { StudentOption, SeatAssignments } from "@/types/allocation.types";
+import type { StudentOption, SeatAssignments } from "@/types/allocation.types";
 
-const VIEWBOX = { w: 300, h: 520 };
+const VIEWBOX = { w: 300, h: 420 };
 
 type SeatPosition = keyof SeatAssignments;
 
@@ -28,16 +28,16 @@ export function VehicleSeatSelector({
   availableStudents,
   onSeatChange,
 }: VehicleSeatSelectorProps) {
-  const driverSeat = { x: 192, y: 165, rot: 6 };
+  const driverSeat = { x: 192, y: 130, rot: 6 };
 
   const passengerSeats: SeatMeta[] = [
-    { id: "F1", label: "F1", x: 108, y: 165, rot: -6, size: "lg" },
-    { id: "M1", label: "M1", x: 112, y: 285, size: "sm" },
-    { id: "M2", label: "M2", x: 150, y: 285, size: "sm" },
-    { id: "M3", label: "M3", x: 188, y: 285, size: "sm" },
-    { id: "B1", label: "B1", x: 112, y: 350, size: "sm" },
-    { id: "B2", label: "B2", x: 150, y: 350, size: "sm" },
-    { id: "B3", label: "B3", x: 188, y: 350, size: "sm" },
+    { id: "F1", label: "F1", x: 108, y: 130, rot: -6, size: "lg" },
+    { id: "M1", label: "M1", x: 112, y: 230, size: "sm" },
+    { id: "M2", label: "M2", x: 150, y: 230, size: "sm" },
+    { id: "M3", label: "M3", x: 188, y: 230, size: "sm" },
+    { id: "B1", label: "B1", x: 112, y: 290, size: "sm" },
+    { id: "B2", label: "B2", x: 150, y: 290, size: "sm" },
+    { id: "B3", label: "B3", x: 188, y: 290, size: "sm" },
   ];
 
   const getAssignedStudent = (seatId: SeatPosition) => {
@@ -62,11 +62,11 @@ export function VehicleSeatSelector({
       </div>
 
       {/* Vehicle container */}
-      <div className="relative mx-auto w-full aspect-[300/520] rounded-2xl overflow-hidden border border-border/60 bg-gradient-to-b from-muted/10 to-background">
+      <div className="relative mx-auto w-full aspect-[300/420] rounded-2xl overflow-hidden border border-border/60 bg-gradient-to-b from-muted/10 to-background">
         <div className="absolute inset-0 opacity-60 pointer-events-none [background:radial-gradient(800px_420px_at_50%_18%,rgba(255,255,255,0.12),transparent_60%),radial-gradient(520px_320px_at_30%_70%,rgba(255,255,255,0.08),transparent_62%),repeating-linear-gradient(90deg,rgba(255,255,255,0.04)_0_10px,transparent_10px_20px)]" />
 
         {/* Realistic Omni/Van SVG */}
-        <svg viewBox="0 0 300 520" className="w-full h-full drop-shadow-2xl">
+        <svg viewBox="0 0 300 420" className="w-full h-full drop-shadow-2xl">
           <defs>
             <linearGradient id="paint" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0" stopColor="#d8dde6" />
@@ -99,53 +99,53 @@ export function VehicleSeatSelector({
 
           {/* Wheels */}
           <g opacity="0.98">
-            <rect x="18" y="94" width="28" height="88" rx="14" fill="#0a0f1a" />
-            <rect x="21" y="103" width="22" height="70" rx="11" fill="#111827" />
-            <rect x="24" y="111" width="16" height="54" rx="8" fill="#1f2937" />
-            <rect x="254" y="94" width="28" height="88" rx="14" fill="#0a0f1a" />
-            <rect x="257" y="103" width="22" height="70" rx="11" fill="#111827" />
-            <rect x="260" y="111" width="16" height="54" rx="8" fill="#1f2937" />
-            <rect x="18" y="338" width="28" height="88" rx="14" fill="#0a0f1a" />
-            <rect x="21" y="347" width="22" height="70" rx="11" fill="#111827" />
-            <rect x="24" y="355" width="16" height="54" rx="8" fill="#1f2937" />
-            <rect x="254" y="338" width="28" height="88" rx="14" fill="#0a0f1a" />
-            <rect x="257" y="347" width="22" height="70" rx="11" fill="#111827" />
-            <rect x="260" y="355" width="16" height="54" rx="8" fill="#1f2937" />
+            <rect x="18" y="80" width="28" height="75" rx="14" fill="#0a0f1a" />
+            <rect x="21" y="88" width="22" height="59" rx="11" fill="#111827" />
+            <rect x="24" y="95" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect x="254" y="80" width="28" height="75" rx="14" fill="#0a0f1a" />
+            <rect x="257" y="88" width="22" height="59" rx="11" fill="#111827" />
+            <rect x="260" y="95" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect x="18" y="265" width="28" height="75" rx="14" fill="#0a0f1a" />
+            <rect x="21" y="273" width="22" height="59" rx="11" fill="#111827" />
+            <rect x="24" y="280" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect x="254" y="265" width="28" height="75" rx="14" fill="#0a0f1a" />
+            <rect x="257" y="273" width="22" height="59" rx="11" fill="#111827" />
+            <rect x="260" y="280" width="16" height="45" rx="8" fill="#1f2937" />
           </g>
 
           {/* Body */}
           <g filter="url(#outerShadow)">
             <path
-              d="M94,18
-                 Q150,6 206,18
-                 Q244,28 250,70
-                 L250,450
-                 Q244,492 206,502
-                 Q150,514 94,502
-                 Q56,492 50,450
-                 L50,70
-                 Q56,28 94,18 Z"
+              d="M94,15
+                 Q150,5 206,15
+                 Q244,23 250,60
+                 L250,360
+                 Q244,397 206,407
+                 Q150,417 94,407
+                 Q56,397 50,360
+                 L50,60
+                 Q56,23 94,15 Z"
               fill="url(#paint)"
             />
             <path
-              d="M94,18
-                 Q150,6 206,18
-                 Q244,28 250,70
-                 L250,450
-                 Q244,492 206,502
-                 Q150,514 94,502
-                 Q56,492 50,450
-                 L50,70
-                 Q56,28 94,18 Z"
+              d="M94,15
+                 Q150,5 206,15
+                 Q244,23 250,60
+                 L250,360
+                 Q244,397 206,407
+                 Q150,417 94,407
+                 Q56,397 50,360
+                 L50,60
+                 Q56,23 94,15 Z"
               fill="none"
               stroke="#e5e7eb"
               strokeOpacity="0.35"
             />
             <path
-              d="M76,60
-                 Q150,30 224,70
-                 L224,430
-                 Q150,480 76,442 Z"
+              d="M76,50
+                 Q150,25 224,55
+                 L224,350
+                 Q150,390 76,358 Z"
               fill="url(#paintHi)"
               opacity="0.55"
             />
@@ -153,23 +153,23 @@ export function VehicleSeatSelector({
 
           {/* Wheel arches */}
           <g opacity="0.25">
-            <path d="M52 110 Q66 95 86 98 L86 175 Q66 178 52 160 Z" fill="#0b1220" />
-            <path d="M248 110 Q234 95 214 98 L214 175 Q234 178 248 160 Z" fill="#0b1220" />
-            <path d="M52 350 Q66 335 86 338 L86 415 Q66 418 52 400 Z" fill="#0b1220" />
-            <path d="M248 350 Q234 335 214 338 L214 415 Q234 418 248 400 Z" fill="#0b1220" />
+            <path d="M52 92 Q66 80 86 83 L86 150 Q66 153 52 138 Z" fill="#0b1220" />
+            <path d="M248 92 Q234 80 214 83 L214 150 Q234 153 248 138 Z" fill="#0b1220" />
+            <path d="M52 277 Q66 265 86 268 L86 335 Q66 338 52 323 Z" fill="#0b1220" />
+            <path d="M248 277 Q234 265 214 268 L214 335 Q234 338 248 323 Z" fill="#0b1220" />
           </g>
 
           {/* Cabin floor */}
           <path
-            d="M92 120
-               Q150 96 208 120
-               Q224 128 226 148
-               L226 406
-               Q224 426 208 434
-               Q150 458 92 434
-               Q76 426 74 406
-               L74 148
-               Q76 128 92 120 Z"
+            d="M92 100
+               Q150 80 208 100
+               Q224 106 226 122
+               L226 328
+               Q224 344 208 352
+               Q150 372 92 352
+               Q76 344 74 328
+               L74 122
+               Q76 106 92 100 Z"
             fill="url(#floor)"
             opacity="0.9"
           />
@@ -177,19 +177,19 @@ export function VehicleSeatSelector({
           {/* Windshield */}
           <g>
             <path
-              d="M92 64
-                 Q150 34 208 64
-                 L214 134
-                 Q150 114 86 134 Z"
+              d="M92 52
+                 Q150 28 208 52
+                 L214 110
+                 Q150 94 86 110 Z"
               fill="url(#glass)"
               stroke="#cbd5e1"
               strokeOpacity="0.18"
             />
             <path
-              d="M102 70
-                 Q150 46 198 70
-                 L201 98
-                 Q150 82 99 98 Z"
+              d="M102 58
+                 Q150 38 198 58
+                 L201 80
+                 Q150 68 99 80 Z"
               fill="url(#glassRef)"
               opacity="0.8"
             />
@@ -198,20 +198,20 @@ export function VehicleSeatSelector({
           {/* Rear glass */}
           <g>
             <path
-              d="M104 404
-                 Q150 386 196 404
-                 L196 468
-                 Q150 486 104 468 Z"
+              d="M104 326
+                 Q150 312 196 326
+                 L196 380
+                 Q150 394 104 380 Z"
               fill="url(#glass)"
               opacity="0.92"
               stroke="#cbd5e1"
               strokeOpacity="0.16"
             />
             <path
-              d="M114 412
-                 Q150 398 186 412
-                 L186 424
-                 Q150 416 114 424 Z"
+              d="M114 332
+                 Q150 322 186 332
+                 L186 342
+                 Q150 336 114 342 Z"
               fill="url(#glassRef)"
               opacity="0.55"
             />
@@ -219,29 +219,29 @@ export function VehicleSeatSelector({
 
           {/* Door seams + handles */}
           <g opacity="0.30" stroke="#0b1220" strokeWidth="2">
-            <path d="M82 170 L82 380" />
-            <path d="M218 170 L218 380" />
-            <path d="M110 160 L190 160" />
-            <path d="M110 392 L190 392" />
+            <path d="M82 138 L82 308" />
+            <path d="M218 138 L218 308" />
+            <path d="M110 130 L190 130" />
+            <path d="M110 318 L190 318" />
           </g>
           <g opacity="0.55" fill="#111827">
-            <rect x="72" y="250" width="12" height="28" rx="6" />
-            <rect x="216" y="250" width="12" height="28" rx="6" />
+            <rect x="72" y="203" width="12" height="28" rx="6" />
+            <rect x="216" y="203" width="12" height="28" rx="6" />
           </g>
 
           {/* Lights */}
           <g opacity="0.9">
-            <rect x="78" y="28" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-            <rect x="188" y="28" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-            <rect x="78" y="488" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
-            <rect x="188" y="488" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
+            <rect x="78" y="23" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
+            <rect x="188" y="23" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
+            <rect x="78" y="395" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
+            <rect x="188" y="395" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
           </g>
 
           {/* Dashboard + steering */}
           <g>
-            <rect x="92" y="132" width="116" height="16" rx="8" fill="#0b1220" opacity="0.35" />
-            <circle cx="192" cy="154" r="11" fill="none" stroke="#0b1220" strokeWidth="3" opacity="0.85" />
-            <circle cx="192" cy="154" r="3" fill="#0b1220" opacity="0.85" />
+            <rect x="92" y="108" width="116" height="14" rx="7" fill="#0b1220" opacity="0.35" />
+            <circle cx="192" cy="120" r="10" fill="none" stroke="#0b1220" strokeWidth="3" opacity="0.85" />
+            <circle cx="192" cy="120" r="3" fill="#0b1220" opacity="0.85" />
           </g>
         </svg>
 
@@ -370,7 +370,7 @@ function SeatButton({
                   <AvatarFallback className="bg-emerald-500 text-emerald-950 font-extrabold text-xs">
                     {student.name
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")
                       .substring(0, 2)
                       .toUpperCase()}
@@ -417,7 +417,7 @@ function SeatButton({
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                   {availableStudent.name
                     .split(" ")
-                    .map((n) => n[0])
+                    .map((n: string) => n[0])
                     .join("")
                     .substring(0, 2)
                     .toUpperCase()}
