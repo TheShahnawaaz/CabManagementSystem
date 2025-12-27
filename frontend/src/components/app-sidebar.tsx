@@ -45,14 +45,14 @@ const userMenuItems = [
     icon: Home,
   },
   {
+    title: "Active Trips",
+    url: "/trips",
+    icon: MapPin,
+  },
+  {
     title: "My Bookings",
     url: "/bookings",
     icon: Calendar,
-  },
-  {
-    title: "Trip History",
-    url: "/trips",
-    icon: MapPin,
   },
   {
     title: "Profile",

@@ -57,8 +57,8 @@ export const userRoutes: CustomRouteObject[] = [
     element: <TripsPage />,
     meta: {
       requireAuth: true,
-      title: 'Trip History',
-      description: 'View your past trips',
+      title: 'Active Trips',
+      description: 'View active trips and book your seat',
     },
   },
   {

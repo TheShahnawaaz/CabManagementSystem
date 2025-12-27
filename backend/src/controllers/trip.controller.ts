@@ -115,12 +115,12 @@ export const getAllTrips = async (req: Request, res: Response): Promise<void> =>
 
     // Filter by status
     if (status === 'upcoming') {
-      whereClauses.push(`t.trip_date >= CURRENT_DATE`);
+      whereClauses.push(`t.booking_start_time > NOW()`);
     } else if (status === 'past') {
-      whereClauses.push(`t.trip_date < CURRENT_DATE`);
+      whereClauses.push(`t.end_time <= NOW()`);
     } else if (status === 'active') {
       whereClauses.push(
-        `t.booking_start_time <= NOW() AND t.booking_end_time >= NOW()`
+        `t.booking_start_time <= NOW() AND t.end_time > NOW()`
       );
     }
 
@@ -382,14 +382,16 @@ export const getActiveTrips = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Active trips = booking window is currently open
+    // Active trips = current time is between booking_start_time and end_time
+    // This means the trip lifecycle is active (from when booking opens until trip completes)
     const result = await pool.query(
       `SELECT 
         t.*,
-        (SELECT COUNT(*) FROM trip_users WHERE trip_id = t.id) as booking_count
+        (SELECT COUNT(*) FROM trip_users WHERE trip_id = t.id) as booking_count,
+        (SELECT COUNT(*) FROM cabs WHERE trip_id = t.id) as cab_count
       FROM trips t
       WHERE t.booking_start_time <= NOW() 
-        AND t.booking_end_time >= NOW()
+        AND t.end_time > NOW()
       ORDER BY t.trip_date ASC`
     );
 
