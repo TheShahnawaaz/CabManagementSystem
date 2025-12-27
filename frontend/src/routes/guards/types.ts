@@ -1,4 +1,5 @@
 import type { RouteObject } from 'react-router-dom';
+import type { BreadcrumbConfig } from '@/types/breadcrumb.types';
 
 /**
  * Route metadata configuration for access control and page settings
@@ -38,6 +39,11 @@ export interface RouteMeta {
    * If not specified, uses default redirect logic
    */
   redirectTo?: string;
+
+  /**
+   * Breadcrumb configuration for this route
+   */
+  breadcrumb?: BreadcrumbConfig;
 }
 
 /**

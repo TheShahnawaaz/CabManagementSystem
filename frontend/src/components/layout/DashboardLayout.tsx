@@ -2,14 +2,7 @@ import { Outlet } from "react-router-dom"
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import { Breadcrumb } from "@/components/Breadcrumb"
 import { ThemeToggle } from "./ThemeToggle"
 
 /**
@@ -18,8 +11,9 @@ import { ThemeToggle } from "./ThemeToggle"
  * Features:
  * - Collapsible sidebar (desktop: icons only, mobile: sheet)
  * - Sticky header with breadcrumbs
- * - Responsive breadcrumbs
- * - Theme toggle
+ * - Auto-generated breadcrumbs from URL
+ * - Breadcrumbs show entity names (not IDs)
+ * - Theme toggleimage.png
  * - Auto-collapses on mobile
  * - Persists state in cookies
  */
@@ -33,20 +27,8 @@ export default function DashboardLayout() {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           
-          {/* Breadcrumbs */}
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="/dashboard">
-                  Dashboard
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Current Page</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          {/* Smart Breadcrumbs - Auto-generated from route config */}
+          <Breadcrumb />
 
           {/* Right side controls */}
           <div className="ml-auto flex items-center gap-2">

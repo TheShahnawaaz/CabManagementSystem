@@ -10,6 +10,7 @@ import { guestRoutes } from './guest.routes';
 import { userRoutes } from './user.routes';
 import { adminRoutes } from './admin.routes';
 import { roughRoutes } from './rough.routes';
+import type { CustomRouteObject } from './guards';
 
 /**
  * Main Application Router
@@ -35,6 +36,14 @@ import { roughRoutes } from './rough.routes';
  * 
  * @see {@link https://reactrouter.com/en/main/routers/create-browser-router}
  */
+
+// Export all routes for breadcrumb generation
+export const allRoutes: CustomRouteObject[] = [
+  ...publicRoutes,
+  ...guestRoutes,
+  ...userRoutes,
+  ...adminRoutes,
+];
 
 // Validate route configurations in development
 if (import.meta.env.DEV) {

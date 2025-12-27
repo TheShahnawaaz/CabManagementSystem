@@ -1,3 +1,4 @@
+import { Home as HomeIcon, User, Calendar, MapPin, Settings } from 'lucide-react';
 import Home from '@/pages/Home';
 import ProfilePage from '@/pages/Profile';
 import BookingsPage from '@/pages/Bookings';
@@ -32,6 +33,10 @@ export const userRoutes: CustomRouteObject[] = [
       requireAuth: true,
       title: 'Dashboard',
       description: 'User dashboard for Friday Cab System',
+      breadcrumb: {
+        label: 'Dashboard',
+        icon: HomeIcon,
+      },
     },
   },
   {
@@ -41,6 +46,10 @@ export const userRoutes: CustomRouteObject[] = [
       requireAuth: true,
       title: 'Profile',
       description: 'Manage your profile',
+      breadcrumb: {
+        label: 'Profile',
+        icon: User,
+      },
     },
   },
   {
@@ -50,6 +59,10 @@ export const userRoutes: CustomRouteObject[] = [
       requireAuth: true,
       title: 'My Bookings',
       description: 'View and manage your bookings',
+      breadcrumb: {
+        label: 'My Bookings',
+        icon: Calendar,
+      },
     },
   },
   {
@@ -59,6 +72,10 @@ export const userRoutes: CustomRouteObject[] = [
       requireAuth: true,
       title: 'Active Trips',
       description: 'View active trips and book your seat',
+      breadcrumb: {
+        label: 'Active Trips',
+        icon: MapPin,
+      },
     },
   },
   {
@@ -68,16 +85,10 @@ export const userRoutes: CustomRouteObject[] = [
       requireAuth: true,
       title: 'Settings',
       description: 'Account settings',
+      breadcrumb: {
+        label: 'Settings',
+        icon: Settings,
+      },
     },
   },
-  // Add more user routes as needed:
-  // {
-  //   path: 'trips/:tripId',
-  //   element: <TripDetails />,
-  //   meta: {
-  //     requireAuth: true,
-  //     title: 'Trip Details'
-  //   }
-  // },
 ];
-

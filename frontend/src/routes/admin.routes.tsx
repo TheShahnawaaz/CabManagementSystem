@@ -1,4 +1,13 @@
 import { Navigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Car, 
+  DollarSign, 
+  FileText, 
+  Settings, 
+  MapPin 
+} from 'lucide-react';
 import AdminDashboard from '@/pages/admin/Dashboard';
 import UserManagement from '@/pages/admin/Users';
 import TripManagement from '@/pages/admin/trips';
@@ -11,6 +20,7 @@ import PaymentsManagement from '@/pages/admin/Payments';
 import ReportsPage from '@/pages/admin/Reports';
 import AdminSettings from '@/pages/admin/AdminSettings';
 import type { CustomRouteObject } from './guards';
+import { tripApi } from '@/services/trip.service';
 
 /**
  * Admin Routes Configuration
@@ -41,6 +51,10 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'Admin Dashboard',
       description: 'Administrative control panel',
+      breadcrumb: {
+        label: 'Admin Dashboard',
+        icon: LayoutDashboard,
+      },
     },
   },
   {
@@ -51,6 +65,10 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'User Management',
       description: 'Manage system users',
+      breadcrumb: {
+        label: 'User Management',
+        icon: Users,
+      },
     },
   },
   {
@@ -61,6 +79,10 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'Trip Management',
       description: 'Manage Friday cab trips',
+      breadcrumb: {
+        label: 'Trip Management',
+        icon: MapPin,
+      },
     },
   },
   {
@@ -71,6 +93,14 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'Trip Details',
       description: 'View trip details',
+      breadcrumb: {
+        dynamic: true,
+        entityType: 'trip',
+        fetchEntity: async (id: string) => {
+          const response = await tripApi.getTripById(id);
+          return response.data?.trip_title || 'Trip';
+        },
+      },
     },
     children: [
       {
@@ -84,6 +114,9 @@ export const adminRoutes: CustomRouteObject[] = [
           requireAuth: true,
           requireAdmin: true,
           title: 'Trip Demand',
+          breadcrumb: {
+            label: 'Demand',
+          },
         },
       },
       {
@@ -93,6 +126,9 @@ export const adminRoutes: CustomRouteObject[] = [
           requireAuth: true,
           requireAdmin: true,
           title: 'Trip Journey',
+          breadcrumb: {
+            label: 'Journey',
+          },
         },
       },
       {
@@ -102,6 +138,9 @@ export const adminRoutes: CustomRouteObject[] = [
           requireAuth: true,
           requireAdmin: true,
           title: 'Trip Allocation',
+          breadcrumb: {
+            label: 'Allocation',
+          },
         },
       },
     ],
@@ -114,6 +153,10 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'Vehicle Management',
       description: 'Manage vehicle fleet',
+      breadcrumb: {
+        label: 'Vehicles',
+        icon: Car,
+      },
     },
   },
   {
@@ -124,6 +167,10 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'Payments',
       description: 'Manage payments',
+      breadcrumb: {
+        label: 'Payments',
+        icon: DollarSign,
+      },
     },
   },
   {
@@ -134,6 +181,10 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'Reports',
       description: 'Analytics and reports',
+      breadcrumb: {
+        label: 'Reports',
+        icon: FileText,
+      },
     },
   },
   {
@@ -144,17 +195,10 @@ export const adminRoutes: CustomRouteObject[] = [
       requireAdmin: true,
       title: 'System Settings',
       description: 'Configure system settings',
+      breadcrumb: {
+        label: 'Settings',
+        icon: Settings,
+      },
     },
   },
-  // Add more admin routes as needed:
-  // {
-  //   path: 'admin/analytics',
-  //   element: <Analytics />,
-  //   meta: {
-  //     requireAuth: true,
-  //     requireAdmin: true,
-  //     title: 'Analytics'
-  //   }
-  // },
 ];
-
