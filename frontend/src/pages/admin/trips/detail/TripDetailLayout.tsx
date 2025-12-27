@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation, Outlet, Link } from 'react-router-
 import { Calendar, Clock, IndianRupee, Users, BarChart3, Navigation, Target } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

@@ -15,6 +15,7 @@ import TripDetailLayout from '@/pages/admin/trips/detail/TripDetailLayout';
 import DemandTab from '@/pages/admin/trips/detail/DemandTab';
 import JourneyTab from '@/pages/admin/trips/detail/JourneyTab';
 import AllocationTab from '@/pages/admin/trips/detail/AllocationTab';
+import AllocationEditPage from '@/pages/admin/trips/detail/AllocationEditPage';
 import VehicleManagement from '@/pages/admin/Vehicles';
 import PaymentsManagement from '@/pages/admin/Payments';
 import ReportsPage from '@/pages/admin/Reports';
@@ -140,6 +141,18 @@ export const adminRoutes: CustomRouteObject[] = [
           title: 'Trip Allocation',
           breadcrumb: {
             label: 'Allocation',
+          },
+        },
+      },
+      {
+        path: 'allocation/edit',
+        element: <AllocationEditPage />,
+        meta: {
+          requireAuth: true,
+          requireAdmin: true,
+          title: 'Edit Allocation',
+          breadcrumb: {
+            label: 'Edit',
           },
         },
       },
