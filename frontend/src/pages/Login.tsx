@@ -13,6 +13,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export default function Login() {
   const { signInWithGoogle } = useAuth();
 
+  // Debug: Log environment variables
+  console.log('🔍 Environment Check (Login Page):');
+  console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+  console.log('MODE:', import.meta.env.MODE);
+  console.log('---');
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <Card className="w-full max-w-md">
