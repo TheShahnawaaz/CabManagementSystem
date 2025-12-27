@@ -240,14 +240,56 @@ export const validateUUID = (
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-  if (!uuidRegex.test(id)) {
+  next();
+};
+
+// ====================================
+// BOOKING VALIDATION
+// ====================================
+
+export const validateBooking = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const { trip_id, hall } = req.body;
+
+  const errors: string[] = [];
+
+  // Validate trip_id
+  if (!trip_id) {
+    errors.push('trip_id is required');
+  } else {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(trip_id)) {
+      errors.push('Invalid trip_id format');
+    }
+  }
+
+  // Validate hall
+  if (!hall) {
+    errors.push('hall is required');
+  } else if (typeof hall !== 'string') {
+    errors.push('hall must be a string');
+  } else {
+    const validHalls = ['RK', 'PAN', 'LBS', 'VS'];
+    if (!validHalls.includes(hall)) {
+      errors.push(`hall must be one of: ${validHalls.join(', ')}`);
+    }
+  }
+
+  // Return errors if any
+  if (errors.length > 0) {
     res.status(400).json({
       success: false,
-      error: 'Invalid ID format',
+      error: 'Validation failed',
+      details: errors,
     });
     return;
   }
 
   next();
 };
+
 

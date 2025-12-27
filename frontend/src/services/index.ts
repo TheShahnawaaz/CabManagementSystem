@@ -3,4 +3,5 @@
 // ====================================
 
 export * from './trip.service';
+export * from './booking.service';
 

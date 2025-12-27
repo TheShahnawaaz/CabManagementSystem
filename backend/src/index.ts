@@ -9,6 +9,7 @@ import morgan from 'morgan';
 import passport from './config/passport';
 import authRoutes from './routes/auth.routes';
 import tripRoutes from './routes/trip.routes';
+import bookingRoutes from './routes/booking.routes';
 import { runMigrations } from './config/migrations';
 
 const app: Application = express();
@@ -67,6 +68,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', tripRoutes);
+app.use('/api', bookingRoutes);
 
 // Start server with migrations
 async function startServer() {

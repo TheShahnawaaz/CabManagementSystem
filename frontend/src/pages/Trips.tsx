@@ -1,17 +1,40 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, IndianRupee, Users, MapPin } from 'lucide-react';
+import { Calendar, Clock, IndianRupee, Users, MapPin, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { tripApi } from '@/services/trip.service';
+import { bookingApi } from '@/services/booking.service';
 import type { Trip } from '@/types/trip.types';
+import type { Hall } from '@/types/booking.types';
+import { HALLS } from '@/types/booking.types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [selectedHall, setSelectedHall] = useState<Hall>('RK');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchActiveTrips();
@@ -73,6 +96,64 @@ export default function TripsPage() {
     const now = new Date();
     const end = new Date(bookingEndTime);
     return now < end;
+  };
+
+  const handleBookNowClick = (trip: Trip) => {
+    setSelectedTrip(trip);
+    setSelectedHall('RK'); // Default hall
+    setIsBookingModalOpen(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedTrip) return;
+
+    try {
+      setSubmitting(true);
+      const response = await bookingApi.createBooking({
+        trip_id: selectedTrip.id,
+        hall: selectedHall,
+      });
+
+      if (response.success) {
+        toast.success('Booking confirmed!', {
+          description: `You have successfully booked ${selectedTrip.trip_title}. Check "My Bookings" for details.`,
+          duration: 5000,
+        });
+        setIsBookingModalOpen(false);
+        setSelectedTrip(null);
+        // Optionally refresh trips to update booking count
+        fetchActiveTrips();
+      }
+    } catch (error: unknown) {
+      console.error('Booking failed:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Handle specific errors
+      if (errorMessage.includes('already booked')) {
+        toast.error('Already Booked', {
+          description: 'You have already booked this trip.',
+          duration: 5000,
+        });
+      } else if (errorMessage.includes('booking window is closed')) {
+        toast.error('Booking Closed', {
+          description: 'The booking window for this trip has closed.',
+          duration: 5000,
+        });
+      } else {
+        toast.error('Booking Failed', {
+          description: errorMessage || 'Failed to create booking. Please try again.',
+          duration: 5000,
+        });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelBooking = () => {
+    setIsBookingModalOpen(false);
+    setSelectedTrip(null);
   };
 
   if (loading) {
@@ -187,6 +268,7 @@ export default function TripsPage() {
                 className="w-full" 
                 size="lg"
                 disabled={!isBookable}
+                onClick={() => handleBookNowClick(trip)}
               >
                 <Users className="w-4 h-4 mr-2" />
                 {isBookable ? 'Book Now' : 'Booking Closed'}
@@ -195,6 +277,95 @@ export default function TripsPage() {
           )})}
         </div>
       )}
+
+      {/* Booking Confirmation Modal */}
+      <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Booking</DialogTitle>
+            <DialogDescription>
+              Complete your booking for {selectedTrip?.trip_title}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Trip Details */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Trip Date:</span>
+                <span className="font-medium">
+                  {selectedTrip && formatDate(selectedTrip.trip_date)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Departure:</span>
+                <span className="font-medium">
+                  {selectedTrip && formatDateTime(selectedTrip.return_time)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Amount:</span>
+                <span className="font-medium text-lg">
+                  ₹{selectedTrip?.amount_per_person}
+                </span>
+              </div>
+            </div>
+
+            {/* Hall Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="hall">Select Your Hostel Hall *</Label>
+              <Select value={selectedHall} onValueChange={(value) => setSelectedHall(value as Hall)}>
+                <SelectTrigger id="hall">
+                  <SelectValue placeholder="Select your hall" />
+                </SelectTrigger>
+                <SelectContent>
+                  {HALLS.map((hall) => (
+                    <SelectItem key={hall.value} value={hall.value}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{hall.label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {hall.description}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Terms */}
+            <div className="rounded-md bg-muted p-3 text-sm">
+              <div className="flex items-start gap-2">
+                <Check className="w-4 h-4 mt-0.5 text-green-600" />
+                <div className="space-y-1">
+                  <p className="font-medium">Booking Confirmation</p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Payment will be processed instantly (mock mode)</li>
+                    <li>• You will receive cab details after allocation</li>
+                    <li>• Cancellation allowed before trip starts</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={handleCancelBooking}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmBooking}
+              disabled={submitting}
+            >
+              {submitting ? 'Processing...' : `Confirm Booking (₹${selectedTrip?.amount_per_person})`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Info Banner */}
       {trips.length > 0 && (
