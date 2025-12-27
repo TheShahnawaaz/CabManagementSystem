@@ -7,17 +7,6 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
-// Debug: Log environment variables (mask sensitive data)
-console.log('🔍 Environment Check:');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('DATABASE_URL:', process.env.DATABASE_URL ? 
-  `${process.env.DATABASE_URL.substring(0, 30)}...` : 
-  '❌ NOT SET');
-console.log('PORT:', process.env.PORT);
-console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ NOT SET');
-console.log('SESSION_SECRET:', process.env.SESSION_SECRET ? '✅ SET' : '❌ NOT SET');
-console.log('---');
-
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import session from 'express-session';

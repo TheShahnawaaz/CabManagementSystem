@@ -54,12 +54,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signInWithGoogle = () => {
     const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-    
-    // Debug logging
-    console.log('🚀 Sign in with Google initiated');
-    console.log('Backend URL:', backendUrl);
-    console.log('Full OAuth URL:', `${backendUrl}/auth/google`);
-    
     // Redirect to backend Google OAuth endpoint
     window.location.href = `${backendUrl}/auth/google`;
   };
