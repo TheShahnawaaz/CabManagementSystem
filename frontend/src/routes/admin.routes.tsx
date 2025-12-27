@@ -1,6 +1,11 @@
+import { Navigate } from 'react-router-dom';
 import AdminDashboard from '@/pages/admin/Dashboard';
 import UserManagement from '@/pages/admin/Users';
 import TripManagement from '@/pages/admin/trips';
+import TripDetailLayout from '@/pages/admin/trips/detail/TripDetailLayout';
+import DemandTab from '@/pages/admin/trips/detail/DemandTab';
+import JourneyTab from '@/pages/admin/trips/detail/JourneyTab';
+import AllocationTab from '@/pages/admin/trips/detail/AllocationTab';
 import VehicleManagement from '@/pages/admin/Vehicles';
 import PaymentsManagement from '@/pages/admin/Payments';
 import ReportsPage from '@/pages/admin/Reports';
@@ -57,6 +62,49 @@ export const adminRoutes: CustomRouteObject[] = [
       title: 'Trip Management',
       description: 'Manage Friday cab trips',
     },
+  },
+  {
+    path: 'admin/trips/:tripId',
+    element: <TripDetailLayout />,
+    meta: {
+      requireAuth: true,
+      requireAdmin: true,
+      title: 'Trip Details',
+      description: 'View trip details',
+    },
+    children: [
+      {
+        index: true,
+        element: <Navigate to="demand" replace />,
+      },
+      {
+        path: 'demand',
+        element: <DemandTab />,
+        meta: {
+          requireAuth: true,
+          requireAdmin: true,
+          title: 'Trip Demand',
+        },
+      },
+      {
+        path: 'journey',
+        element: <JourneyTab />,
+        meta: {
+          requireAuth: true,
+          requireAdmin: true,
+          title: 'Trip Journey',
+        },
+      },
+      {
+        path: 'allocation',
+        element: <AllocationTab />,
+        meta: {
+          requireAuth: true,
+          requireAdmin: true,
+          title: 'Trip Allocation',
+        },
+      },
+    ],
   },
   {
     path: 'admin/vehicles',

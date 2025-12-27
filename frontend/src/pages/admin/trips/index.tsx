@@ -1,4 +1,5 @@
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { TripStats } from './TripStats';
 import { TripStatsSkeleton } from './TripStatsSkeleton';
@@ -8,8 +9,10 @@ import { DeleteTripDialog } from './DeleteTripDialog';
 import { DataTable } from './DataTable';
 import { createColumns } from './columns';
 import { useTripManagement } from './useTripManagement';
+import type { Trip } from '@/types/trip.types';
 
 export default function TripManagement() {
+  const navigate = useNavigate();
   const {
     state,
     formState,
@@ -23,7 +26,11 @@ export default function TripManagement() {
     closeDeleteDialog,
   } = useTripManagement();
 
-  const columns = createColumns(openEditSheet, openDeleteDialog);
+  const handleViewDetails = (trip: Trip) => {
+    navigate(`/admin/trips/${trip.id}`);
+  };
+
+  const columns = createColumns(openEditSheet, openDeleteDialog, handleViewDetails);
 
   return (
     <div className="container mx-auto px-4 py-8">

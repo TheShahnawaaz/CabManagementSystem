@@ -1,7 +1,7 @@
 "use client"
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { Edit, MoreHorizontal, Trash2, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,8 @@ import { DataTableColumnHeader } from "./DataTableColumnHeader";
 
 export const createColumns = (
   onEdit: (trip: Trip) => void,
-  onDelete: (trip: Trip) => void
+  onDelete: (trip: Trip) => void,
+  onViewDetails: (trip: Trip) => void
 ): ColumnDef<Trip>[] => [
   {
     id: "select",
@@ -107,7 +108,7 @@ export const createColumns = (
       const bookingStart = new Date(trip.booking_start_time);
       const tripEnd = new Date(trip.end_time);
 
-      if (tripEnd < now) {
+      if (tripEnd <= now) {
         return <Badge variant="secondary">Completed</Badge>;
       } else if (now >= bookingStart && now < tripEnd) {
         return <Badge className="bg-green-500">Active</Badge>;
@@ -121,6 +122,11 @@ export const createColumns = (
     enableHiding: false,
     cell: ({ row }) => {
       const trip = row.original;
+      const now = new Date();
+      const bookingStart = new Date(trip.booking_start_time);
+      
+      // Check if trip is upcoming (can't view details)
+      const isUpcoming = now < bookingStart;
 
       return (
         <DropdownMenu>
@@ -132,6 +138,15 @@ export const createColumns = (
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            {!isUpcoming && (
+              <>
+                <DropdownMenuItem onClick={() => onViewDetails(trip)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={() => onEdit(trip)}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Trip
