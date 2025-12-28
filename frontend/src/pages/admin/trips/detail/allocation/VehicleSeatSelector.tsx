@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Lock, User } from "lucide-react";
 import type { StudentOption, SeatAssignments } from "@/types/allocation.types";
@@ -76,7 +81,6 @@ interface VehicleSeatSelectorProps {
   onSeatChange: (seatId: SeatPosition, userId: string | null) => void;
 }
 
-
 export function VehicleSeatSelector({
   seats,
   availableStudents,
@@ -108,7 +112,9 @@ export function VehicleSeatSelector({
       .map(([, userId]) => userId as string);
 
     // Return only students that are not assigned to other seats
-    return availableStudents.filter((student) => !assignedUserIds.includes(student.user_id));
+    return availableStudents.filter(
+      (student) => !assignedUserIds.includes(student.user_id)
+    );
   };
 
   return (
@@ -144,8 +150,19 @@ export function VehicleSeatSelector({
               <stop offset="0" stopColor="#111827" stopOpacity="0.35" />
               <stop offset="1" stopColor="#111827" stopOpacity="0.10" />
             </linearGradient>
-            <filter id="outerShadow" x="-25%" y="-25%" width="150%" height="150%">
-              <feDropShadow dx="0" dy="14" stdDeviation="12" floodOpacity="0.38" />
+            <filter
+              id="outerShadow"
+              x="-25%"
+              y="-25%"
+              width="150%"
+              height="150%"
+            >
+              <feDropShadow
+                dx="0"
+                dy="14"
+                stdDeviation="12"
+                floodOpacity="0.38"
+              />
             </filter>
           </defs>
 
@@ -154,15 +171,64 @@ export function VehicleSeatSelector({
             <rect x="18" y="80" width="28" height="75" rx="14" fill="#0a0f1a" />
             <rect x="21" y="88" width="22" height="59" rx="11" fill="#111827" />
             <rect x="24" y="95" width="16" height="45" rx="8" fill="#1f2937" />
-            <rect x="254" y="80" width="28" height="75" rx="14" fill="#0a0f1a" />
-            <rect x="257" y="88" width="22" height="59" rx="11" fill="#111827" />
+            <rect
+              x="254"
+              y="80"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="257"
+              y="88"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
             <rect x="260" y="95" width="16" height="45" rx="8" fill="#1f2937" />
-            <rect x="18" y="265" width="28" height="75" rx="14" fill="#0a0f1a" />
-            <rect x="21" y="273" width="22" height="59" rx="11" fill="#111827" />
+            <rect
+              x="18"
+              y="265"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="21"
+              y="273"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
             <rect x="24" y="280" width="16" height="45" rx="8" fill="#1f2937" />
-            <rect x="254" y="265" width="28" height="75" rx="14" fill="#0a0f1a" />
-            <rect x="257" y="273" width="22" height="59" rx="11" fill="#111827" />
-            <rect x="260" y="280" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect
+              x="254"
+              y="265"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="257"
+              y="273"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
+            <rect
+              x="260"
+              y="280"
+              width="16"
+              height="45"
+              rx="8"
+              fill="#1f2937"
+            />
           </g>
 
           {/* Body */}
@@ -205,10 +271,22 @@ export function VehicleSeatSelector({
 
           {/* Wheel arches */}
           <g opacity="0.25">
-            <path d="M52 92 Q66 80 86 83 L86 150 Q66 153 52 138 Z" fill="#0b1220" />
-            <path d="M248 92 Q234 80 214 83 L214 150 Q234 153 248 138 Z" fill="#0b1220" />
-            <path d="M52 277 Q66 265 86 268 L86 335 Q66 338 52 323 Z" fill="#0b1220" />
-            <path d="M248 277 Q234 265 214 268 L214 335 Q234 338 248 323 Z" fill="#0b1220" />
+            <path
+              d="M52 92 Q66 80 86 83 L86 150 Q66 153 52 138 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M248 92 Q234 80 214 83 L214 150 Q234 153 248 138 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M52 277 Q66 265 86 268 L86 335 Q66 338 52 323 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M248 277 Q234 265 214 268 L214 335 Q234 338 248 323 Z"
+              fill="#0b1220"
+            />
           </g>
 
           {/* Cabin floor */}
@@ -283,16 +361,64 @@ export function VehicleSeatSelector({
 
           {/* Lights */}
           <g opacity="0.9">
-            <rect x="78" y="23" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-            <rect x="188" y="23" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-            <rect x="78" y="395" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
-            <rect x="188" y="395" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
+            <rect
+              x="78"
+              y="23"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#e5e7eb"
+              opacity="0.65"
+            />
+            <rect
+              x="188"
+              y="23"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#e5e7eb"
+              opacity="0.65"
+            />
+            <rect
+              x="78"
+              y="395"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#fb7185"
+              opacity="0.65"
+            />
+            <rect
+              x="188"
+              y="395"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#fb7185"
+              opacity="0.65"
+            />
           </g>
 
           {/* Dashboard + steering */}
           <g>
-            <rect x="92" y="108" width="116" height="14" rx="7" fill="#0b1220" opacity="0.35" />
-            <circle cx="192" cy="120" r="10" fill="none" stroke="#0b1220" strokeWidth="3" opacity="0.85" />
+            <rect
+              x="92"
+              y="108"
+              width="116"
+              height="14"
+              rx="7"
+              fill="#0b1220"
+              opacity="0.35"
+            />
+            <circle
+              cx="192"
+              cy="120"
+              r="10"
+              fill="none"
+              stroke="#0b1220"
+              strokeWidth="3"
+              opacity="0.85"
+            />
             <circle cx="192" cy="120" r="3" fill="#0b1220" opacity="0.85" />
           </g>
         </svg>
@@ -363,15 +489,28 @@ function SeatButton({
   onOpenChange: (open: boolean) => void;
 }) {
   const isAssigned = !!student;
-  const outer = small ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]" : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
-  const avatar = small ? "w-4 h-4 text-[8px] md:w-6 md:h-6 md:text-[10px]" : "w-5 h-5 text-[9px] md:w-7 md:h-7 md:text-[11px]";
-  const text = small ? "text-[8px] md:text-[10px]" : "text-[9px] md:text-[11px]";
+  const outer = small
+    ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]"
+    : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
+  const avatar = small
+    ? "w-4 h-4 text-[8px] md:w-6 md:h-6 md:text-[10px]"
+    : "w-5 h-5 text-[9px] md:w-7 md:h-7 md:text-[11px]";
+  const text = small
+    ? "text-[8px] md:text-[10px]"
+    : "text-[9px] md:text-[11px]";
 
   // Get hall colors if student is assigned
-  const hallColors = student?.hall ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS] : null;
+  const hallColors = student?.hall
+    ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS]
+    : null;
 
   return (
-    <Select value={currentValue || "none"} onValueChange={onSelect} open={isOpen} onOpenChange={onOpenChange}>
+    <Select
+      value={currentValue || "none"}
+      onValueChange={onSelect}
+      open={isOpen}
+      onOpenChange={onOpenChange}
+    >
       <SelectTrigger className="p-0 border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
         <div
           className={[
@@ -395,8 +534,13 @@ function SeatButton({
             {isAssigned ? (
               <>
                 <Avatar className={avatar}>
-                  <AvatarImage src={student.profile_picture || undefined} loading="lazy" />
-                  <AvatarFallback className={`${hallColors?.avatar} ${hallColors?.text} font-extrabold text-xs`}>
+                  <AvatarImage
+                    src={student.profile_picture || undefined}
+                    loading="lazy"
+                  />
+                  <AvatarFallback
+                    className={`${hallColors?.avatar} ${hallColors?.text} font-extrabold text-xs`}
+                  >
                     {student.name
                       .split(" ")
                       .map((n: string) => n[0])
@@ -405,14 +549,14 @@ function SeatButton({
                       .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-            <span
-              className={[
-                text,
-                "font-semibold text-foreground/90 max-w-[36px] md:max-w-[52px] truncate block",
-              ].join(" ")}
-            >
-              {student.name.split(" ")[0]}
-            </span>
+                <span
+                  className={[
+                    text,
+                    "font-semibold text-foreground/90 max-w-[36px] md:max-w-[52px] truncate block",
+                  ].join(" ")}
+                >
+                  {student.name.split(" ")[0]}
+                </span>
               </>
             ) : (
               <>
@@ -439,13 +583,22 @@ function SeatButton({
           <span className="text-muted-foreground">Empty Seat</span>
         </SelectItem>
         {availableStudents.map((availableStudent) => {
-          const studentHallColors = HALL_COLORS[availableStudent.hall as keyof typeof HALL_COLORS];
+          const studentHallColors =
+            HALL_COLORS[availableStudent.hall as keyof typeof HALL_COLORS];
           return (
-            <SelectItem key={availableStudent.user_id} value={availableStudent.user_id}>
+            <SelectItem
+              key={availableStudent.user_id}
+              value={availableStudent.user_id}
+            >
               <div className="flex items-center gap-2">
                 <Avatar className="w-6 h-6">
-                  <AvatarImage src={availableStudent.profile_picture || undefined} loading="lazy" />
-                  <AvatarFallback className={`${studentHallColors.avatar} ${studentHallColors.text} text-xs font-bold`}>
+                  <AvatarImage
+                    src={availableStudent.profile_picture || undefined}
+                    loading="lazy"
+                  />
+                  <AvatarFallback
+                    className={`${studentHallColors.avatar} ${studentHallColors.text} text-xs font-bold`}
+                  >
                     {availableStudent.name
                       .split(" ")
                       .map((n: string) => n[0])
@@ -456,7 +609,9 @@ function SeatButton({
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-sm">{availableStudent.name}</span>
-                  <span className={`text-xs font-medium ${studentHallColors.avatar.replace('bg-', 'text-')}`}>
+                  <span
+                    className={`text-xs font-medium ${studentHallColors.avatar.replace("bg-", "text-")}`}
+                  >
                     {availableStudent.hall}
                   </span>
                 </div>
@@ -486,7 +641,9 @@ function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
         <div className="w-7 h-7 rounded-full bg-muted-foreground/20 flex items-center justify-center">
           <Lock className="w-4 h-4 text-muted-foreground" />
         </div>
-        <span className={[text, "font-semibold text-muted-foreground"].join(" ")}>
+        <span
+          className={[text, "font-semibold text-muted-foreground"].join(" ")}
+        >
           Driver
         </span>
       </div>

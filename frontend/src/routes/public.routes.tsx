@@ -1,11 +1,11 @@
-import type { CustomRouteObject } from './guards';
+import type { CustomRouteObject } from "./guards";
 
 /**
  * Public Routes Configuration
- * 
+ *
  * These routes are accessible to everyone, regardless of authentication status.
  * No authentication or authorization checks are performed.
- * 
+ *
  * Use cases:
  * - Landing pages
  * - About/Contact pages
@@ -26,11 +26,11 @@ const AboutPage = () => (
 
 export const publicRoutes: CustomRouteObject[] = [
   {
-    path: 'about',
+    path: "about",
     element: <AboutPage />,
     meta: {
-      title: 'About Us',
-      description: 'Learn more about Friday Cab System',
+      title: "About Us",
+      description: "Learn more about Friday Cab System",
     },
   },
   // Add more public routes as needed:
@@ -45,4 +45,3 @@ export const publicRoutes: CustomRouteObject[] = [
   //   meta: { title: 'Terms of Service' }
   // },
 ];
-

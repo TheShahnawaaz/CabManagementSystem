@@ -1,37 +1,44 @@
-import { useEffect, useState } from 'react';
-import { Phone, Mail, ShieldCheck, User as UserIcon, CalendarClock, Edit2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAuth } from '@/hooks';
-import { userApi } from '@/services';
-import { formatPhoneNumber } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import {
+  Phone,
+  Mail,
+  ShieldCheck,
+  User as UserIcon,
+  CalendarClock,
+  Edit2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks";
+import { userApi } from "@/services";
+import { formatPhoneNumber } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 export default function ProfilePage() {
   const { user, refetchUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name ?? '',
-    phone_number: user?.phone_number ?? '',
+    name: user?.name ?? "",
+    phone_number: user?.phone_number ?? "",
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name,
-        phone_number: user.phone_number ?? '',
+        phone_number: user.phone_number ?? "",
       });
     }
   }, [user]);
@@ -49,12 +56,13 @@ export default function ProfilePage() {
 
       const response = await userApi.updateProfile(payload);
       if (response.success) {
-        toast.success('Profile updated successfully');
+        toast.success("Profile updated successfully");
         await refetchUser();
         setIsEditing(false);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update profile';
+      const message =
+        error instanceof Error ? error.message : "Failed to update profile";
       toast.error(message);
     } finally {
       setSaving(false);
@@ -62,7 +70,7 @@ export default function ProfilePage() {
   };
 
   const handlePhoneChange = (value: string) => {
-    const digits = value.replace(/[^0-9]/g, '').slice(0, 10);
+    const digits = value.replace(/[^0-9]/g, "").slice(0, 10);
     setFormData((prev) => ({ ...prev, phone_number: digits }));
   };
 
@@ -95,7 +103,9 @@ export default function ProfilePage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
               <CardTitle>Profile Overview</CardTitle>
-              <CardDescription>Core details about your account.</CardDescription>
+              <CardDescription>
+                Core details about your account.
+              </CardDescription>
             </div>
             {user.profile_picture && (
               <Avatar className="h-14 w-14">
@@ -117,8 +127,8 @@ export default function ProfilePage() {
                   <ShieldCheck className="w-4 h-4" /> Role
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Badge variant={user.is_admin ? 'default' : 'secondary'}>
-                    {user.is_admin ? 'Administrator' : 'User'}
+                  <Badge variant={user.is_admin ? "default" : "secondary"}>
+                    {user.is_admin ? "Administrator" : "User"}
                   </Badge>
                 </div>
               </div>
@@ -134,12 +144,16 @@ export default function ProfilePage() {
                 <Label className="text-xs text-muted-foreground flex items-center gap-2">
                   <Phone className="w-4 h-4" /> Phone number
                 </Label>
-                <p className="text-sm font-medium">{formatPhoneNumber(user.phone_number)}</p>
+                <p className="text-sm font-medium">
+                  {formatPhoneNumber(user.phone_number)}
+                </p>
               </div>
             </div>
             <Separator />
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Display name</Label>
+              <Label className="text-xs text-muted-foreground">
+                Display name
+              </Label>
               <p className="text-lg font-semibold">{user.name}</p>
             </div>
           </CardContent>
@@ -148,7 +162,9 @@ export default function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>Profile Settings</CardTitle>
-            <CardDescription>Only your name and phone number can be edited.</CardDescription>
+            <CardDescription>
+              Only your name and phone number can be edited.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -159,7 +175,10 @@ export default function ProfilePage() {
                   name="name"
                   value={formData.name}
                   onChange={(event) =>
-                    setFormData((prev) => ({ ...prev, name: event.target.value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
                   }
                   disabled={!isEditing}
                   required
@@ -196,14 +215,14 @@ export default function ProfilePage() {
                       setIsEditing(false);
                       setFormData({
                         name: user.name,
-                        phone_number: user.phone_number ?? '',
+                        phone_number: user.phone_number ?? "",
                       });
                     }}
                   >
                     Cancel
                   </Button>
                   <Button type="submit" disabled={saving}>
-                    {saving ? 'Updating...' : 'Update Profile'}
+                    {saving ? "Updating..." : "Update Profile"}
                   </Button>
                 </div>
               )}

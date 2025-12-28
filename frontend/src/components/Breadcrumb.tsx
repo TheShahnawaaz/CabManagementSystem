@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import {
   Breadcrumb as ShadcnBreadcrumb,
   BreadcrumbItem as ShadcnBreadcrumbItem,
@@ -8,20 +8,20 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   BreadcrumbEllipsis,
-} from '@/components/ui/breadcrumb';
+} from "@/components/ui/breadcrumb";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useBreadcrumbs } from '@/hooks/useBreadcrumbs';
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
 /**
  * Smart Breadcrumb component that automatically generates breadcrumb trail
  * from the current URL and route configuration
- * 
+ *
  * Features:
  * - Auto-generates from URL
  * - Shows entity names (not IDs)
@@ -50,7 +50,7 @@ export function Breadcrumb() {
    */
   const truncate = (text: string, maxLength: number = 30): string => {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    return text.substring(0, maxLength) + "...";
   };
 
   /**
@@ -59,12 +59,12 @@ export function Breadcrumb() {
    */
   const shortenForMobile = (label: string): string => {
     const mobileShortcuts: Record<string, string> = {
-      'Trip Management': 'Trips',
-      'User Management': 'Users',
-      'Vehicle Management': 'Vehicles',
-      'Admin Dashboard': 'Admin',
-      'My Bookings': 'Bookings',
-      'Active Trips': 'Trips',
+      "Trip Management": "Trips",
+      "User Management": "Users",
+      "Vehicle Management": "Vehicles",
+      "Admin Dashboard": "Admin",
+      "My Bookings": "Bookings",
+      "Active Trips": "Trips",
     };
     return mobileShortcuts[label] || label;
   };
@@ -95,7 +95,10 @@ export function Breadcrumb() {
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
-                      <Link to={item.href} className="flex items-center gap-1.5">
+                      <Link
+                        to={item.href}
+                        className="flex items-center gap-1.5"
+                      >
                         {Icon && <Icon className="h-4 w-4" />}
                         <span>{label}</span>
                       </Link>
@@ -129,7 +132,10 @@ export function Breadcrumb() {
                       const label = truncate(item.label, 25);
                       return (
                         <DropdownMenuItem key={item.href} asChild>
-                          <Link to={item.href} className="flex items-center gap-2">
+                          <Link
+                            to={item.href}
+                            className="flex items-center gap-2"
+                          >
                             {Icon && <Icon className="h-4 w-4" />}
                             <span>{label}</span>
                           </Link>
@@ -156,13 +162,20 @@ export function Breadcrumb() {
                       {isLast ? (
                         <BreadcrumbPage className="flex items-center gap-1.5">
                           {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                          <span className="max-w-[100px] truncate">{label}</span>
+                          <span className="max-w-[100px] truncate">
+                            {label}
+                          </span>
                         </BreadcrumbPage>
                       ) : (
                         <BreadcrumbLink asChild>
-                          <Link to={item.href} className="flex items-center gap-1.5">
+                          <Link
+                            to={item.href}
+                            className="flex items-center gap-1.5"
+                          >
                             {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
-                            <span className="max-w-[100px] truncate">{label}</span>
+                            <span className="max-w-[100px] truncate">
+                              {label}
+                            </span>
                           </Link>
                         </BreadcrumbLink>
                       )}
@@ -194,7 +207,10 @@ export function Breadcrumb() {
                       </BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
-                        <Link to={item.href} className="flex items-center gap-1.5">
+                        <Link
+                          to={item.href}
+                          className="flex items-center gap-1.5"
+                        >
                           {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
                           <span className="max-w-[80px] truncate">{label}</span>
                         </Link>
@@ -216,4 +232,3 @@ export function Breadcrumb() {
     </ShadcnBreadcrumb>
   );
 }
-

@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Plus, Save, Trash2, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { Plus, Save, Trash2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,12 +24,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { allocationApi } from '@/services/allocation.service';
-import { VehicleSeatSelector } from './allocation/VehicleSeatSelector';
-import type { CabAllocation, AssignedStudent, SeatPosition, Hall } from '@/types/allocation.types';
+} from "@/components/ui/alert-dialog";
+import { allocationApi } from "@/services/allocation.service";
+import { VehicleSeatSelector } from "./allocation/VehicleSeatSelector";
+import type {
+  CabAllocation,
+  AssignedStudent,
+  SeatPosition,
+  Hall,
+} from "@/types/allocation.types";
 
-const HALLS = ['RK', 'VS', 'MS', 'HJB', 'LLR', 'LBS', 'PAN'] as const;
+const HALLS = ["RK", "VS", "MS", "HJB", "LLR", "LBS", "PAN"] as const;
 
 interface CabFormData {
   temp_id: string;
@@ -54,7 +59,7 @@ export default function AllocationEditPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [allStudents, setAllStudents] = useState<AssignedStudent[]>([]);
@@ -63,8 +68,10 @@ export default function AllocationEditPage() {
 
   useEffect(() => {
     // Check if we have suggested allocation from navigation state
-    const suggestedAllocation = (location.state as { suggestedAllocation?: { cabs: CabAllocation[] } })?.suggestedAllocation;
-    
+    const suggestedAllocation = (
+      location.state as { suggestedAllocation?: { cabs: CabAllocation[] } }
+    )?.suggestedAllocation;
+
     if (suggestedAllocation) {
       // Use suggested allocation
       convertToEditFormat(suggestedAllocation.cabs || []);
@@ -80,20 +87,20 @@ export default function AllocationEditPage() {
     try {
       setLoading(true);
       const response = await allocationApi.getAllocation(tripId!);
-      
+
       if (response.success && response.data) {
         if (response.data.has_allocation) {
           // Convert existing allocation to edit format
           convertToEditFormat(response.data.cabs || []);
         } else {
           // No allocation yet, redirect to run it first
-          toast.error('No allocation found. Please run allocation first.');
+          toast.error("No allocation found. Please run allocation first.");
           navigate(`/admin/trips/${tripId}/allocation`);
         }
       }
     } catch (error) {
-      console.error('Error loading allocation:', error);
-      toast.error('Failed to load allocation');
+      console.error("Error loading allocation:", error);
+      toast.error("Failed to load allocation");
       navigate(`/admin/trips/${tripId}/allocation`);
     } finally {
       setLoading(false);
@@ -103,9 +110,9 @@ export default function AllocationEditPage() {
   const convertToEditFormat = (cabData: CabAllocation[]) => {
     // Extract all unique students
     const students: AssignedStudent[] = [];
-    cabData.forEach(cab => {
-      cab.assigned_students.forEach(student => {
-        if (!students.find(s => s.user_id === student.user_id)) {
+    cabData.forEach((cab) => {
+      cab.assigned_students.forEach((student) => {
+        if (!students.find((s) => s.user_id === student.user_id)) {
           students.push(student);
         }
       });
@@ -134,7 +141,8 @@ export default function AllocationEditPage() {
 
       // Map assigned students to seats
       cab.assigned_students.forEach((student, idx) => {
-        const seatKeys: Array<'F1' | 'M1' | 'M2' | 'M3' | 'B1' | 'B2' | 'B3'> = ['F1', 'M1', 'M2', 'M3', 'B1', 'B2', 'B3'];
+        const seatKeys: Array<"F1" | "M1" | "M2" | "M3" | "B1" | "B2" | "B3"> =
+          ["F1", "M1", "M2", "M3", "B1", "B2", "B3"];
         if (idx < seatKeys.length) {
           seats[seatKeys[idx]] = student.user_id;
         }
@@ -143,9 +151,9 @@ export default function AllocationEditPage() {
       return {
         temp_id: cab.id || cab.temp_id || `cab_${index + 1}`,
         cab_number: cab.cab_number,
-        cab_type: cab.cab_type || 'Omni',
+        cab_type: cab.cab_type || "Omni",
         driver_name: cab.driver_name,
-        driver_phone: cab.driver_phone || '',
+        driver_phone: cab.driver_phone || "",
         pickup_region: cab.pickup_region,
         passkey: cab.passkey,
         seats,
@@ -158,71 +166,91 @@ export default function AllocationEditPage() {
   const handleAddCab = () => {
     const newCab: CabFormData = {
       temp_id: `cab_${Date.now()}`,
-      cab_number: '',
-      cab_type: 'omni',
-      driver_name: '',
-      driver_phone: '',
-      pickup_region: 'RK',
+      cab_number: "",
+      cab_type: "omni",
+      driver_name: "",
+      driver_phone: "",
+      pickup_region: "RK",
       passkey: Math.floor(1000 + Math.random() * 9000).toString(),
-      seats: { F1: null, M1: null, M2: null, M3: null, B1: null, B2: null, B3: null },
+      seats: {
+        F1: null,
+        M1: null,
+        M2: null,
+        M3: null,
+        B1: null,
+        B2: null,
+        B3: null,
+      },
     };
     setCabs([...cabs, newCab]);
-    toast.success('New cab added');
+    toast.success("New cab added");
   };
 
   const handleRemoveCab = (tempId: string) => {
-    setCabs(cabs.filter(c => c.temp_id !== tempId));
+    setCabs(cabs.filter((c) => c.temp_id !== tempId));
     setCabToDelete(null);
-    toast.success('Cab removed');
+    toast.success("Cab removed");
   };
 
-  const handleCabFieldChange = (tempId: string, field: keyof CabFormData, value: string) => {
-    setCabs(cabs.map(cab => 
-      cab.temp_id === tempId ? { ...cab, [field]: value } : cab
-    ));
+  const handleCabFieldChange = (
+    tempId: string,
+    field: keyof CabFormData,
+    value: string
+  ) => {
+    setCabs(
+      cabs.map((cab) =>
+        cab.temp_id === tempId ? { ...cab, [field]: value } : cab
+      )
+    );
   };
 
-  const handleSeatChange = (cabId: string, seatId: SeatPosition, userId: string | null) => {
-    setCabs(cabs.map(cab => 
-      cab.temp_id === cabId 
-        ? { ...cab, seats: { ...cab.seats, [seatId]: userId } }
-        : cab
-    ));
+  const handleSeatChange = (
+    cabId: string,
+    seatId: SeatPosition,
+    userId: string | null
+  ) => {
+    setCabs(
+      cabs.map((cab) =>
+        cab.temp_id === cabId
+          ? { ...cab, seats: { ...cab.seats, [seatId]: userId } }
+          : cab
+      )
+    );
   };
 
   const getAvailableStudentsForCab = (cabId: string): AssignedStudent[] => {
     // Get all students assigned in other cabs
     const assignedInOtherCabs = cabs
-      .filter(c => c.temp_id !== cabId)
-      .flatMap(c => Object.values(c.seats))
+      .filter((c) => c.temp_id !== cabId)
+      .flatMap((c) => Object.values(c.seats))
       .filter(Boolean) as string[];
 
-    return allStudents.filter(s => !assignedInOtherCabs.includes(s.user_id));
+    return allStudents.filter((s) => !assignedInOtherCabs.includes(s.user_id));
   };
 
   const handleSubmit = async () => {
     // Validation
     for (const cab of cabs) {
       if (!cab.cab_number.trim()) {
-        toast.error('All cabs must have a number');
+        toast.error("All cabs must have a number");
         return;
       }
       if (!cab.driver_name.trim()) {
-        toast.error('All cabs must have a driver name');
+        toast.error("All cabs must have a driver name");
         return;
       }
       if (!cab.driver_phone.trim()) {
-        toast.error('All cabs must have a driver phone number');
+        toast.error("All cabs must have a driver phone number");
         return;
       }
       if (!cab.cab_type.trim()) {
-        toast.error('All cabs must have a cab type');
+        toast.error("All cabs must have a cab type");
         return;
       }
     }
 
     // Convert to API format
-    const apiCabs: CabAllocation[] = cabs.map(cab => ({
+    const apiCabs: CabAllocation[] = cabs.map((cab) => ({
       temp_id: cab.temp_id,
       pickup_region: cab.pickup_region,
       capacity: 7,
@@ -234,7 +262,7 @@ export default function AllocationEditPage() {
       assigned_students: Object.entries(cab.seats)
         .filter(([, userId]) => userId !== null)
         .map(([seatId, userId]) => {
-          const student = allStudents.find(s => s.user_id === userId);
+          const student = allStudents.find((s) => s.user_id === userId);
           if (!student) {
             console.error(`Student not found for userId: ${userId}`);
             return null;
@@ -255,15 +283,18 @@ export default function AllocationEditPage() {
 
     try {
       setSubmitting(true);
-      const response = await allocationApi.submitAllocation(tripId!, { cabs: apiCabs });
-      
+      const response = await allocationApi.submitAllocation(tripId!, {
+        cabs: apiCabs,
+      });
+
       if (response.success) {
-        toast.success('Allocation saved successfully!');
+        toast.success("Allocation saved successfully!");
         navigate(`/admin/trips/${tripId}/allocation`);
       }
     } catch (error) {
-      console.error('Error submitting allocation:', error);
-      const message = error instanceof Error ? error.message : 'Failed to save allocation';
+      console.error("Error submitting allocation:", error);
+      const message =
+        error instanceof Error ? error.message : "Failed to save allocation";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -281,8 +312,9 @@ export default function AllocationEditPage() {
     );
   }
 
-  const assignedCount = cabs.reduce((sum, cab) => 
-    sum + Object.values(cab.seats).filter(Boolean).length, 0
+  const assignedCount = cabs.reduce(
+    (sum, cab) => sum + Object.values(cab.seats).filter(Boolean).length,
+    0
   );
 
   return (
@@ -301,7 +333,8 @@ export default function AllocationEditPage() {
           </Button>
           <h1 className="text-2xl sm:text-3xl font-bold">Edit Allocation</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {cabs.length} cabs • {assignedCount}/{allStudents.length} students assigned
+            {cabs.length} cabs • {assignedCount}/{allStudents.length} students
+            assigned
           </p>
         </div>
         <div className="flex gap-2">
@@ -321,7 +354,7 @@ export default function AllocationEditPage() {
             className="flex-1 sm:flex-none"
           >
             <Save className="w-4 h-4 mr-2" />
-            {submitting ? 'Saving...' : 'Save Allocation'}
+            {submitting ? "Saving..." : "Save Allocation"}
           </Button>
         </div>
       </div>
@@ -342,7 +375,8 @@ export default function AllocationEditPage() {
                   )}
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {Object.values(cab.seats).filter(Boolean).length}/7 seats filled
+                  {Object.values(cab.seats).filter(Boolean).length}/7 seats
+                  filled
                 </p>
               </div>
               <Button
@@ -361,25 +395,39 @@ export default function AllocationEditPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor={`cab_number_${cab.temp_id}`} className="text-sm font-medium">
+                      <Label
+                        htmlFor={`cab_number_${cab.temp_id}`}
+                        className="text-sm font-medium"
+                      >
                         Cab Number <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id={`cab_number_${cab.temp_id}`}
                         placeholder="WB-06-1234"
                         value={cab.cab_number}
-                        onChange={(e) => handleCabFieldChange(cab.temp_id, 'cab_number', e.target.value)}
+                        onChange={(e) =>
+                          handleCabFieldChange(
+                            cab.temp_id,
+                            "cab_number",
+                            e.target.value
+                          )
+                        }
                         className="font-mono"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`cab_type_${cab.temp_id}`} className="text-sm font-medium">
+                      <Label
+                        htmlFor={`cab_type_${cab.temp_id}`}
+                        className="text-sm font-medium"
+                      >
                         Cab Type
                       </Label>
                       <Select
                         value={cab.cab_type}
-                        onValueChange={(value) => handleCabFieldChange(cab.temp_id, 'cab_type', value)}
+                        onValueChange={(value) =>
+                          handleCabFieldChange(cab.temp_id, "cab_type", value)
+                        }
                       >
                         <SelectTrigger id={`cab_type_${cab.temp_id}`}>
                           <SelectValue placeholder="Select type" />
@@ -396,19 +444,31 @@ export default function AllocationEditPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`driver_name_${cab.temp_id}`} className="text-sm font-medium">
+                    <Label
+                      htmlFor={`driver_name_${cab.temp_id}`}
+                      className="text-sm font-medium"
+                    >
                       Driver Name <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id={`driver_name_${cab.temp_id}`}
                       placeholder="John Doe"
                       value={cab.driver_name}
-                      onChange={(e) => handleCabFieldChange(cab.temp_id, 'driver_name', e.target.value)}
+                      onChange={(e) =>
+                        handleCabFieldChange(
+                          cab.temp_id,
+                          "driver_name",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`driver_phone_${cab.temp_id}`} className="text-sm font-medium">
+                    <Label
+                      htmlFor={`driver_phone_${cab.temp_id}`}
+                      className="text-sm font-medium"
+                    >
                       Driver Phone
                     </Label>
                     <Input
@@ -416,32 +476,52 @@ export default function AllocationEditPage() {
                       type="tel"
                       placeholder="+91 98765 43210"
                       value={cab.driver_phone}
-                      onChange={(e) => handleCabFieldChange(cab.temp_id, 'driver_phone', e.target.value)}
+                      onChange={(e) =>
+                        handleCabFieldChange(
+                          cab.temp_id,
+                          "driver_phone",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor={`pickup_region_${cab.temp_id}`} className="text-sm font-medium">
+                      <Label
+                        htmlFor={`pickup_region_${cab.temp_id}`}
+                        className="text-sm font-medium"
+                      >
                         Pickup Region
                       </Label>
                       <Select
                         value={cab.pickup_region}
-                        onValueChange={(value) => handleCabFieldChange(cab.temp_id, 'pickup_region', value)}
+                        onValueChange={(value) =>
+                          handleCabFieldChange(
+                            cab.temp_id,
+                            "pickup_region",
+                            value
+                          )
+                        }
                       >
                         <SelectTrigger id={`pickup_region_${cab.temp_id}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {HALLS.map(hall => (
-                            <SelectItem key={hall} value={hall}>{hall}</SelectItem>
+                          {HALLS.map((hall) => (
+                            <SelectItem key={hall} value={hall}>
+                              {hall}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`passkey_${cab.temp_id}`} className="text-sm font-medium">
+                      <Label
+                        htmlFor={`passkey_${cab.temp_id}`}
+                        className="text-sm font-medium"
+                      >
                         Passkey
                       </Label>
                       <Input
@@ -467,7 +547,9 @@ export default function AllocationEditPage() {
                   <VehicleSeatSelector
                     seats={cab.seats}
                     availableStudents={getAvailableStudentsForCab(cab.temp_id)}
-                    onSeatChange={(seatId, userId) => handleSeatChange(cab.temp_id, seatId, userId)}
+                    onSeatChange={(seatId, userId) =>
+                      handleSeatChange(cab.temp_id, seatId, userId)
+                    }
                   />
                 </div>
               </div>
@@ -477,12 +559,16 @@ export default function AllocationEditPage() {
       </div>
 
       {/* Delete Cab Dialog */}
-      <AlertDialog open={!!cabToDelete} onOpenChange={() => setCabToDelete(null)}>
+      <AlertDialog
+        open={!!cabToDelete}
+        onOpenChange={() => setCabToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Cab?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will unassign all students from this cab. They can be reassigned to other cabs.
+              This will unassign all students from this cab. They can be
+              reassigned to other cabs.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

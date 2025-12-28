@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useLocation, matchPath } from 'react-router-dom';
-import { Home } from 'lucide-react';
-import type { BreadcrumbItem } from '@/types/breadcrumb.types';
-import { breadcrumbCache } from '@/lib/breadcrumbCache';
-import { allRoutes } from '@/routes';
+import { useState, useEffect } from "react";
+import { useLocation, matchPath } from "react-router-dom";
+import { Home } from "lucide-react";
+import type { BreadcrumbItem } from "@/types/breadcrumb.types";
+import { breadcrumbCache } from "@/lib/breadcrumbCache";
+import { allRoutes } from "@/routes";
 
 /**
  * Hook to generate breadcrumb trail from current URL
@@ -20,18 +20,18 @@ export function useBreadcrumbs() {
 
     // Always start with Home
     items.push({
-      label: 'Home',
-      href: '/dashboard',
-      isCurrent: location.pathname === '/dashboard',
+      label: "Home",
+      href: "/dashboard",
+      isCurrent: location.pathname === "/dashboard",
       icon: Home,
     });
 
     // Split pathname into segments
-    const segments = location.pathname.split('/').filter(Boolean);
-    
+    const segments = location.pathname.split("/").filter(Boolean);
+
     // Build path progressively
-    let currentPath = '';
-    
+    let currentPath = "";
+
     for (let i = 0; i < segments.length; i++) {
       const segment = segments[i];
       currentPath += `/${segment}`;
@@ -39,7 +39,7 @@ export function useBreadcrumbs() {
 
       // Find matching route for this path
       const matchedRoute = findMatchingRoute(currentPath);
-      
+
       if (!matchedRoute || matchedRoute.meta?.breadcrumb?.hide) {
         continue;
       }
@@ -49,7 +49,11 @@ export function useBreadcrumbs() {
       // Check if this segment is a dynamic parameter (UUID or ID)
       const isDynamic = breadcrumbConfig?.dynamic || isUUID(segment);
 
-      if (isDynamic && breadcrumbConfig?.fetchEntity && breadcrumbConfig?.entityType) {
+      if (
+        isDynamic &&
+        breadcrumbConfig?.fetchEntity &&
+        breadcrumbConfig?.entityType
+      ) {
         // Dynamic segment - fetch entity name
         const entityId = segment;
         const entityType = breadcrumbConfig.entityType;
@@ -64,8 +68,8 @@ export function useBreadcrumbs() {
             // Cache the result
             breadcrumbCache.set(entityType, entityId, entityName);
           } catch (error) {
-            console.error('Error fetching entity name for breadcrumb:', error);
-            entityName = breadcrumbConfig.label || 'Loading...';
+            console.error("Error fetching entity name for breadcrumb:", error);
+            entityName = breadcrumbConfig.label || "Loading...";
           }
         }
 
@@ -108,11 +112,11 @@ function findMatchingRoute(path: string) {
     if (match) {
       return route;
     }
-    
+
     // Check children
     if (route.children) {
       for (const child of route.children) {
-        const childPath = route.path + '/' + child.path;
+        const childPath = route.path + "/" + child.path;
         const childMatch = matchPath(childPath, path);
         if (childMatch) {
           return child;
@@ -127,7 +131,7 @@ function findMatchingRoute(path: string) {
  * Check if a string is a UUID
  */
 function isUUID(str: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
 }
-

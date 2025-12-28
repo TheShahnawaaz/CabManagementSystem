@@ -1,19 +1,30 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
+import { useMemo, useState } from "react";
 
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Check, Lock, User, Users } from "lucide-react"
-import { Link } from "react-router-dom"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Check, Lock, User, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type User = {
-  id: string
-  name: string
-  avatar: string
-}
+  id: string;
+  name: string;
+  avatar: string;
+};
 
 const availableUsers: User[] = [
   { id: "1", name: "John Smith", avatar: "JS" },
@@ -26,7 +37,7 @@ const availableUsers: User[] = [
   { id: "8", name: "Rachel Green", avatar: "RG" },
   { id: "9", name: "Tom Wilson", avatar: "TW" },
   { id: "10", name: "Anna Lee", avatar: "AL" },
-]
+];
 
 type PassengerSeatId =
   | "frontPassenger"
@@ -35,20 +46,20 @@ type PassengerSeatId =
   | "mid3"
   | "back1"
   | "back2"
-  | "back3"
+  | "back3";
 
-type SeatAssignment = Record<PassengerSeatId, string | null>
+type SeatAssignment = Record<PassengerSeatId, string | null>;
 
 type SeatMeta = {
-  id: PassengerSeatId
-  label: string
-  x: number // SVG coords 0..300
-  y: number // SVG coords 0..520
-  rot?: number
-  size?: "lg" | "sm"
-}
+  id: PassengerSeatId;
+  label: string;
+  x: number; // SVG coords 0..300
+  y: number; // SVG coords 0..520
+  rot?: number;
+  size?: "lg" | "sm";
+};
 
-const VIEWBOX = { w: 300, h: 520 }
+const VIEWBOX = { w: 300, h: 520 };
 
 export default function VehiclePage() {
   const [seatAssignments, setSeatAssignments] = useState<SeatAssignment>({
@@ -59,16 +70,23 @@ export default function VehiclePage() {
     back1: null,
     back2: null,
     back3: null,
-  })
+  });
 
   // Driver seat (fixed / locked)
-  const driverSeat = useMemo(() => ({ x: 192, y: 165, rot: 6 }), [])
+  const driverSeat = useMemo(() => ({ x: 192, y: 165, rot: 6 }), []);
 
   // Passenger layout: 1 + 3 + 3
   const passengerSeats: SeatMeta[] = useMemo(
     () => [
       // Front passenger (1)
-      { id: "frontPassenger", label: "Front", x: 108, y: 165, rot: -6, size: "lg" },
+      {
+        id: "frontPassenger",
+        label: "Front",
+        x: 108,
+        y: 165,
+        rot: -6,
+        size: "lg",
+      },
       // Middle row (3)
       { id: "mid1", label: "M1", x: 112, y: 285, size: "sm" },
       { id: "mid2", label: "M2", x: 150, y: 285, size: "sm" },
@@ -79,30 +97,30 @@ export default function VehiclePage() {
       { id: "back3", label: "B3", x: 188, y: 350, size: "sm" },
     ],
     []
-  )
+  );
 
   const handleSeatChange = (seatId: PassengerSeatId, userId: string | null) => {
     setSeatAssignments((prev) => ({
       ...prev,
       [seatId]: userId === "none" ? null : userId,
-    }))
-  }
+    }));
+  };
 
   const getAssignedUser = (seatId: PassengerSeatId) => {
-    const userId = seatAssignments[seatId]
-    return availableUsers.find((u) => u.id === userId)
-  }
+    const userId = seatAssignments[seatId];
+    return availableUsers.find((u) => u.id === userId);
+  };
 
   const getAvailableUsersForSeat = (currentSeatId: PassengerSeatId) => {
     const assignedUserIds = Object.entries(seatAssignments)
       .filter(([seatId, userId]) => seatId !== currentSeatId && userId !== null)
-      .map(([, userId]) => userId as string)
+      .map(([, userId]) => userId as string);
 
-    return availableUsers.filter((user) => !assignedUserIds.includes(user.id))
-  }
+    return availableUsers.filter((user) => !assignedUserIds.includes(user.id));
+  };
 
-  const assignedCount = Object.values(seatAssignments).filter(Boolean).length
-  const totalPassengerSeats = passengerSeats.length // 7
+  const assignedCount = Object.values(seatAssignments).filter(Boolean).length;
+  const totalPassengerSeats = passengerSeats.length; // 7
 
   return (
     <div className="min-h-screen p-8">
@@ -121,13 +139,17 @@ export default function VehiclePage() {
               Omni Vehicle Reservation
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Driver seat is fixed. Assign passengers to {totalPassengerSeats} seats (1 + 3 + 3).
+              Driver seat is fixed. Assign passengers to {totalPassengerSeats}{" "}
+              seats (1 + 3 + 3).
             </CardDescription>
             <div className="flex justify-center gap-3 mt-4 flex-wrap">
               <Badge variant="secondary" className="text-sm">
                 {assignedCount} / {totalPassengerSeats} passenger seats assigned
               </Badge>
-              <Badge variant="outline" className="text-sm flex items-center gap-1">
+              <Badge
+                variant="outline"
+                className="text-sm flex items-center gap-1"
+              >
                 <Lock className="w-3.5 h-3.5" />
                 Driver locked
               </Badge>
@@ -139,7 +161,10 @@ export default function VehiclePage() {
               <div className="absolute inset-0 opacity-60 pointer-events-none [background:radial-gradient(800px_420px_at_50%_18%,rgba(255,255,255,0.12),transparent_60%),radial-gradient(520px_320px_at_30%_70%,rgba(255,255,255,0.08),transparent_62%),repeating-linear-gradient(90deg,rgba(255,255,255,0.04)_0_10px,transparent_10px_20px)]" />
 
               {/* Realistic Omni/Van SVG */}
-              <svg viewBox="0 0 300 520" className="w-full h-full drop-shadow-2xl">
+              <svg
+                viewBox="0 0 300 520"
+                className="w-full h-full drop-shadow-2xl"
+              >
                 <defs>
                   <linearGradient id="paint" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0" stopColor="#d8dde6" />
@@ -149,7 +174,11 @@ export default function VehiclePage() {
                   </linearGradient>
                   <linearGradient id="paintHi" x1="0" x2="1" y1="0" y2="1">
                     <stop offset="0" stopColor="#ffffff" stopOpacity="0.55" />
-                    <stop offset="0.35" stopColor="#ffffff" stopOpacity="0.12" />
+                    <stop
+                      offset="0.35"
+                      stopColor="#ffffff"
+                      stopOpacity="0.12"
+                    />
                     <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
                   </linearGradient>
                   <linearGradient id="glass" x1="0" x2="0" y1="0" y2="1">
@@ -165,25 +194,120 @@ export default function VehiclePage() {
                     <stop offset="0" stopColor="#111827" stopOpacity="0.35" />
                     <stop offset="1" stopColor="#111827" stopOpacity="0.10" />
                   </linearGradient>
-                  <filter id="outerShadow" x="-25%" y="-25%" width="150%" height="150%">
-                    <feDropShadow dx="0" dy="14" stdDeviation="12" floodOpacity="0.38" />
+                  <filter
+                    id="outerShadow"
+                    x="-25%"
+                    y="-25%"
+                    width="150%"
+                    height="150%"
+                  >
+                    <feDropShadow
+                      dx="0"
+                      dy="14"
+                      stdDeviation="12"
+                      floodOpacity="0.38"
+                    />
                   </filter>
                 </defs>
 
                 {/* Wheels */}
                 <g opacity="0.98">
-                  <rect x="18" y="94" width="28" height="88" rx="14" fill="#0a0f1a" />
-                  <rect x="21" y="103" width="22" height="70" rx="11" fill="#111827" />
-                  <rect x="24" y="111" width="16" height="54" rx="8" fill="#1f2937" />
-                  <rect x="254" y="94" width="28" height="88" rx="14" fill="#0a0f1a" />
-                  <rect x="257" y="103" width="22" height="70" rx="11" fill="#111827" />
-                  <rect x="260" y="111" width="16" height="54" rx="8" fill="#1f2937" />
-                  <rect x="18" y="338" width="28" height="88" rx="14" fill="#0a0f1a" />
-                  <rect x="21" y="347" width="22" height="70" rx="11" fill="#111827" />
-                  <rect x="24" y="355" width="16" height="54" rx="8" fill="#1f2937" />
-                  <rect x="254" y="338" width="28" height="88" rx="14" fill="#0a0f1a" />
-                  <rect x="257" y="347" width="22" height="70" rx="11" fill="#111827" />
-                  <rect x="260" y="355" width="16" height="54" rx="8" fill="#1f2937" />
+                  <rect
+                    x="18"
+                    y="94"
+                    width="28"
+                    height="88"
+                    rx="14"
+                    fill="#0a0f1a"
+                  />
+                  <rect
+                    x="21"
+                    y="103"
+                    width="22"
+                    height="70"
+                    rx="11"
+                    fill="#111827"
+                  />
+                  <rect
+                    x="24"
+                    y="111"
+                    width="16"
+                    height="54"
+                    rx="8"
+                    fill="#1f2937"
+                  />
+                  <rect
+                    x="254"
+                    y="94"
+                    width="28"
+                    height="88"
+                    rx="14"
+                    fill="#0a0f1a"
+                  />
+                  <rect
+                    x="257"
+                    y="103"
+                    width="22"
+                    height="70"
+                    rx="11"
+                    fill="#111827"
+                  />
+                  <rect
+                    x="260"
+                    y="111"
+                    width="16"
+                    height="54"
+                    rx="8"
+                    fill="#1f2937"
+                  />
+                  <rect
+                    x="18"
+                    y="338"
+                    width="28"
+                    height="88"
+                    rx="14"
+                    fill="#0a0f1a"
+                  />
+                  <rect
+                    x="21"
+                    y="347"
+                    width="22"
+                    height="70"
+                    rx="11"
+                    fill="#111827"
+                  />
+                  <rect
+                    x="24"
+                    y="355"
+                    width="16"
+                    height="54"
+                    rx="8"
+                    fill="#1f2937"
+                  />
+                  <rect
+                    x="254"
+                    y="338"
+                    width="28"
+                    height="88"
+                    rx="14"
+                    fill="#0a0f1a"
+                  />
+                  <rect
+                    x="257"
+                    y="347"
+                    width="22"
+                    height="70"
+                    rx="11"
+                    fill="#111827"
+                  />
+                  <rect
+                    x="260"
+                    y="355"
+                    width="16"
+                    height="54"
+                    rx="8"
+                    fill="#1f2937"
+                  />
                 </g>
 
                 {/* Body */}
@@ -226,10 +350,22 @@ export default function VehiclePage() {
 
                 {/* Wheel arches */}
                 <g opacity="0.25">
-                  <path d="M52 110 Q66 95 86 98 L86 175 Q66 178 52 160 Z" fill="#0b1220" />
-                  <path d="M248 110 Q234 95 214 98 L214 175 Q234 178 248 160 Z" fill="#0b1220" />
-                  <path d="M52 350 Q66 335 86 338 L86 415 Q66 418 52 400 Z" fill="#0b1220" />
-                  <path d="M248 350 Q234 335 214 338 L214 415 Q234 418 248 400 Z" fill="#0b1220" />
+                  <path
+                    d="M52 110 Q66 95 86 98 L86 175 Q66 178 52 160 Z"
+                    fill="#0b1220"
+                  />
+                  <path
+                    d="M248 110 Q234 95 214 98 L214 175 Q234 178 248 160 Z"
+                    fill="#0b1220"
+                  />
+                  <path
+                    d="M52 350 Q66 335 86 338 L86 415 Q66 418 52 400 Z"
+                    fill="#0b1220"
+                  />
+                  <path
+                    d="M248 350 Q234 335 214 338 L214 415 Q234 418 248 400 Z"
+                    fill="#0b1220"
+                  />
                 </g>
 
                 {/* Cabin floor */}
@@ -304,17 +440,71 @@ export default function VehiclePage() {
 
                 {/* Lights */}
                 <g opacity="0.9">
-                  <rect x="78" y="28" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-                  <rect x="188" y="28" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-                  <rect x="78" y="488" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
-                  <rect x="188" y="488" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
+                  <rect
+                    x="78"
+                    y="28"
+                    width="34"
+                    height="10"
+                    rx="5"
+                    fill="#e5e7eb"
+                    opacity="0.65"
+                  />
+                  <rect
+                    x="188"
+                    y="28"
+                    width="34"
+                    height="10"
+                    rx="5"
+                    fill="#e5e7eb"
+                    opacity="0.65"
+                  />
+                  <rect
+                    x="78"
+                    y="488"
+                    width="34"
+                    height="10"
+                    rx="5"
+                    fill="#fb7185"
+                    opacity="0.65"
+                  />
+                  <rect
+                    x="188"
+                    y="488"
+                    width="34"
+                    height="10"
+                    rx="5"
+                    fill="#fb7185"
+                    opacity="0.65"
+                  />
                 </g>
 
                 {/* Dashboard + steering */}
                 <g>
-                  <rect x="92" y="132" width="116" height="16" rx="8" fill="#0b1220" opacity="0.35" />
-                  <circle cx="192" cy="154" r="11" fill="none" stroke="#0b1220" strokeWidth="3" opacity="0.85" />
-                  <circle cx="192" cy="154" r="3" fill="#0b1220" opacity="0.85" />
+                  <rect
+                    x="92"
+                    y="132"
+                    width="116"
+                    height="16"
+                    rx="8"
+                    fill="#0b1220"
+                    opacity="0.35"
+                  />
+                  <circle
+                    cx="192"
+                    cy="154"
+                    r="11"
+                    fill="none"
+                    stroke="#0b1220"
+                    strokeWidth="3"
+                    opacity="0.85"
+                  />
+                  <circle
+                    cx="192"
+                    cy="154"
+                    r="3"
+                    fill="#0b1220"
+                    opacity="0.85"
+                  />
                 </g>
               </svg>
 
@@ -382,7 +572,7 @@ export default function VehiclePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 function SeatButton({
@@ -394,20 +584,20 @@ function SeatButton({
   currentValue,
   small = false,
 }: {
-  seatId: string
-  label: string
-  user: User | undefined
-  availableUsers: User[]
-  onSelect: (userId: string | null) => void
-  currentValue: string | null
-  small?: boolean
+  seatId: string;
+  label: string;
+  user: User | undefined;
+  availableUsers: User[];
+  onSelect: (userId: string | null) => void;
+  currentValue: string | null;
+  small?: boolean;
 }) {
-  const isAssigned = !!user
-  const outer = small ? "w-[58px] h-[56px]" : "w-[66px] h-[64px]"
-  const back = small ? "w-[44px] h-[14px]" : "w-[50px] h-[16px]"
-  const head = small ? "w-[20px] h-[10px]" : "w-[22px] h-[12px]"
-  const avatar = small ? "w-6 h-6 text-[10px]" : "w-7 h-7 text-[11px]"
-  const text = small ? "text-[10px]" : "text-[11px]"
+  const isAssigned = !!user;
+  const outer = small ? "w-[58px] h-[56px]" : "w-[66px] h-[64px]";
+  const back = small ? "w-[44px] h-[14px]" : "w-[50px] h-[16px]";
+  const head = small ? "w-[20px] h-[10px]" : "w-[22px] h-[12px]";
+  const avatar = small ? "w-6 h-6 text-[10px]" : "w-7 h-7 text-[11px]";
+  const text = small ? "text-[10px]" : "text-[11px]";
 
   return (
     <Select value={currentValue || "none"} onValueChange={onSelect}>
@@ -420,7 +610,9 @@ function SeatButton({
             "shadow-xl",
             "bg-gradient-to-b from-muted/70 to-muted/35",
             "hover:scale-[1.04] active:scale-[0.98]",
-            isAssigned ? "border-emerald-500/70 ring-2 ring-emerald-500/15" : "border-border/70 hover:border-border",
+            isAssigned
+              ? "border-emerald-500/70 ring-2 ring-emerald-500/15"
+              : "border-border/70 hover:border-border",
           ].join(" ")}
           aria-label={`Seat ${seatId}`}
         >
@@ -449,17 +641,36 @@ function SeatButton({
           <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
             {isAssigned ? (
               <>
-                <div className={[avatar, "rounded-full bg-emerald-500 text-emerald-950 flex items-center justify-center font-extrabold shadow"].join(" ")}>
+                <div
+                  className={[
+                    avatar,
+                    "rounded-full bg-emerald-500 text-emerald-950 flex items-center justify-center font-extrabold shadow",
+                  ].join(" ")}
+                >
                   {user.avatar}
                 </div>
-                <span className={[text, "font-semibold text-foreground/90 max-w-[52px] truncate"].join(" ")}>
+                <span
+                  className={[
+                    text,
+                    "font-semibold text-foreground/90 max-w-[52px] truncate",
+                  ].join(" ")}
+                >
                   {user.name.split(" ")[0]}
                 </span>
               </>
             ) : (
               <>
-                <User className={[small ? "w-4 h-4" : "w-5 h-5", "text-muted-foreground"].join(" ")} />
-                <span className={[text, "font-medium text-muted-foreground"].join(" ")}>
+                <User
+                  className={[
+                    small ? "w-4 h-4" : "w-5 h-5",
+                    "text-muted-foreground",
+                  ].join(" ")}
+                />
+                <span
+                  className={[text, "font-medium text-muted-foreground"].join(
+                    " "
+                  )}
+                >
                   {label}
                 </span>
               </>
@@ -483,27 +694,46 @@ function SeatButton({
         ))}
       </SelectContent>
     </Select>
-  )
+  );
 }
 
 function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
-  const outer = size === "sm" ? "w-[58px] h-[56px]" : "w-[66px] h-[64px]"
-  const back = size === "sm" ? "w-[44px] h-[14px]" : "w-[50px] h-[16px]"
-  const head = size === "sm" ? "w-[20px] h-[10px]" : "w-[22px] h-[12px]"
-  const text = size === "sm" ? "text-[10px]" : "text-[11px]"
+  const outer = size === "sm" ? "w-[58px] h-[56px]" : "w-[66px] h-[64px]";
+  const back = size === "sm" ? "w-[44px] h-[14px]" : "w-[50px] h-[16px]";
+  const head = size === "sm" ? "w-[20px] h-[10px]" : "w-[22px] h-[12px]";
+  const text = size === "sm" ? "text-[10px]" : "text-[11px]";
 
   return (
-    <div className={["relative", outer, "rounded-2xl border border-border/60 bg-muted/40 shadow-xl opacity-90"].join(" ")}>
-      <div className={["absolute left-1/2 -top-3 -translate-x-1/2 rounded-full border border-border/60 bg-muted/50 shadow-md", back].join(" ")} />
-      <div className={["absolute left-1/2 -top-6 -translate-x-1/2 rounded-full border border-border/60 bg-muted/60 shadow-sm", head].join(" ")} />
+    <div
+      className={[
+        "relative",
+        outer,
+        "rounded-2xl border border-border/60 bg-muted/40 shadow-xl opacity-90",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "absolute left-1/2 -top-3 -translate-x-1/2 rounded-full border border-border/60 bg-muted/50 shadow-md",
+          back,
+        ].join(" ")}
+      />
+      <div
+        className={[
+          "absolute left-1/2 -top-6 -translate-x-1/2 rounded-full border border-border/60 bg-muted/60 shadow-sm",
+          head,
+        ].join(" ")}
+      />
       <div className="absolute inset-0 rounded-2xl pointer-events-none [background:radial-gradient(40px_24px_at_35%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
       <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
         <div className="w-7 h-7 rounded-full bg-muted-foreground/20 flex items-center justify-center">
           <Lock className="w-4 h-4 text-muted-foreground" />
         </div>
-        <span className={[text, "font-semibold text-muted-foreground"].join(" ")}>Driver</span>
+        <span
+          className={[text, "font-semibold text-muted-foreground"].join(" ")}
+        >
+          Driver
+        </span>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,4 +1,2 @@
-export { ThemeProvider, ThemeProviderContext } from './ThemeProvider'
-export { AuthProvider, useAuth } from './AuthProvider'
-
-
+export { ThemeProvider, ThemeProviderContext } from "./ThemeProvider";
+export { AuthProvider, useAuth } from "./AuthProvider";

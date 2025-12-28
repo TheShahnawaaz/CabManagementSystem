@@ -1,14 +1,14 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel"
-import { Link } from 'react-router-dom'
-import { FlaskConical } from 'lucide-react'
+} from "@/components/ui/carousel";
+import { Link } from "react-router-dom";
+import { FlaskConical } from "lucide-react";
 
 export default function Home() {
   return (
@@ -17,7 +17,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold">Friday Cab Project</h1>
         <p className="text-muted-foreground">Vite + React + shadcn/ui</p>
       </div>
-      
+
       {/* Carousel Demo */}
       <Carousel className="w-full max-w-xs">
         <CarouselContent>
@@ -36,7 +36,7 @@ export default function Home() {
         <CarouselPrevious />
         <CarouselNext />
       </Carousel>
-      
+
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-2">
           <Button variant="default">Default</Button>
@@ -55,11 +55,10 @@ export default function Home() {
           </Button>
         </Link>
       </div>
-      
+
       <p className="text-sm text-muted-foreground">
         shadcn/ui is successfully integrated! ✨
       </p>
     </div>
-  )
+  );
 }
-

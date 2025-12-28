@@ -6,6 +6,5 @@ export default function VehicleManagement() {
         Manage the vehicle fleet and assignments.
       </p>
     </div>
-  )
+  );
 }
-

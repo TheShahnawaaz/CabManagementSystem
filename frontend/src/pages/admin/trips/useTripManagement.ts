@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { tripApi } from '@/services/trip.service';
-import type { Trip } from '@/types/trip.types';
-import type { TripManagementState, TripFormState } from './types';
-import { formDataToCreateData, getInitialFormData } from './utils';
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { tripApi } from "@/services/trip.service";
+import type { Trip } from "@/types/trip.types";
+import type { TripManagementState, TripFormState } from "./types";
+import { formDataToCreateData, getInitialFormData } from "./utils";
 
 export function useTripManagement() {
   const [state, setState] = useState<TripManagementState>({
@@ -33,12 +33,12 @@ export function useTripManagement() {
   const fetchTrips = async () => {
     try {
       setState((prev) => ({ ...prev, loading: true }));
-      const response = await tripApi.getTrips({ sort: 'desc' });
+      const response = await tripApi.getTrips({ sort: "desc" });
       if (response.success && response.data) {
         setState((prev) => ({ ...prev, trips: response.data || [] }));
       }
     } catch (error) {
-      toast.error('Failed to load trips');
+      toast.error("Failed to load trips");
       console.error(error);
     } finally {
       setState((prev) => ({ ...prev, loading: false }));
@@ -51,49 +51,53 @@ export function useTripManagement() {
       const formData = formDataToCreateData(formState);
 
       if (state.editingTrip) {
-        const response = await tripApi.updateTrip(state.editingTrip.id, formData);
+        const response = await tripApi.updateTrip(
+          state.editingTrip.id,
+          formData
+        );
         if (response.success) {
-          toast.success('Trip updated successfully!');
+          toast.success("Trip updated successfully!");
           closeSheet();
           fetchTrips();
         }
       } else {
         const response = await tripApi.createTrip(formData);
         if (response.success) {
-          toast.success('Trip created successfully!');
+          toast.success("Trip created successfully!");
           closeSheet();
           fetchTrips();
         }
       }
     } catch (error) {
       // Extract detailed error message
-      const message = error instanceof Error ? error.message : 'Operation failed';
-      
+      const message =
+        error instanceof Error ? error.message : "Operation failed";
+
       // If the error message contains multiple lines (validation errors), show separate toasts
-      if (message.includes('\n')) {
-        const errors = message.split('\n').filter(err => err.trim());
-        
+      if (message.includes("\n")) {
+        const errors = message.split("\n").filter((err) => err.trim());
+
         // Show main validation failed toast
-        toast.error('Validation Failed', {
+        toast.error("Validation Failed", {
           description: `${errors.length} error(s) found. Please check the form.`,
         });
-        
+
         // Show each validation error as a separate toast
         errors.forEach((err, index) => {
           setTimeout(() => {
-            toast.error('Validation Error', {
+            toast.error("Validation Error", {
               description: err,
               duration: 5000,
             });
           }, index * 100); // Stagger toasts by 100ms
         });
       } else {
-        toast.error('Operation Failed', {
+        toast.error("Operation Failed", {
           description: message,
         });
       }
-      
-      console.error('Trip operation error:', error);
+
+      console.error("Trip operation error:", error);
     } finally {
       setState((prev) => ({ ...prev, submitting: false }));
     }
@@ -107,7 +111,7 @@ export function useTripManagement() {
       const response = await tripApi.deleteTrip(state.deletingTrip.id);
 
       if (response.success) {
-        toast.success('Trip deleted successfully!');
+        toast.success("Trip deleted successfully!");
         setState((prev) => ({
           ...prev,
           isDeleteDialogOpen: false,
@@ -117,33 +121,34 @@ export function useTripManagement() {
       }
     } catch (error) {
       // Extract detailed error message
-      const message = error instanceof Error ? error.message : 'Failed to delete trip';
-      
+      const message =
+        error instanceof Error ? error.message : "Failed to delete trip";
+
       // If the error message contains multiple lines, show separate toasts
-      if (message.includes('\n')) {
-        const errors = message.split('\n').filter(err => err.trim());
-        
+      if (message.includes("\n")) {
+        const errors = message.split("\n").filter((err) => err.trim());
+
         // Show main error toast
-        toast.error('Delete Failed', {
+        toast.error("Delete Failed", {
           description: `${errors.length} error(s) occurred.`,
         });
-        
+
         // Show each error as a separate toast
         errors.forEach((err, index) => {
           setTimeout(() => {
-            toast.error('Error', {
+            toast.error("Error", {
               description: err,
               duration: 5000,
             });
           }, index * 100);
         });
       } else {
-        toast.error('Delete Failed', {
+        toast.error("Delete Failed", {
           description: message,
         });
       }
-      
-      console.error('Delete trip error:', error);
+
+      console.error("Delete trip error:", error);
     } finally {
       setState((prev) => ({ ...prev, submitting: false }));
     }
@@ -167,13 +172,13 @@ export function useTripManagement() {
       amount: trip.amount_per_person,
       tripDate: new Date(trip.trip_date),
       bookingStartDate: bStart,
-      bookingStartTime: format(bStart, 'HH:mm'),
+      bookingStartTime: format(bStart, "HH:mm"),
       bookingEndDate: bEnd,
-      bookingEndTime: format(bEnd, 'HH:mm'),
+      bookingEndTime: format(bEnd, "HH:mm"),
       returnDate: rTime,
-      returnTime: format(rTime, 'HH:mm'),
+      returnTime: format(rTime, "HH:mm"),
       endDate: eTime,
-      endTime: format(eTime, 'HH:mm'),
+      endTime: format(eTime, "HH:mm"),
       tripDateOpen: false,
       bookingStartOpen: false,
       bookingEndOpen: false,
@@ -183,7 +188,11 @@ export function useTripManagement() {
   };
 
   const openDeleteDialog = (trip: Trip) => {
-    setState((prev) => ({ ...prev, deletingTrip: trip, isDeleteDialogOpen: true }));
+    setState((prev) => ({
+      ...prev,
+      deletingTrip: trip,
+      isDeleteDialogOpen: true,
+    }));
   };
 
   const closeSheet = () => {
@@ -192,7 +201,11 @@ export function useTripManagement() {
   };
 
   const closeDeleteDialog = () => {
-    setState((prev) => ({ ...prev, isDeleteDialogOpen: false, deletingTrip: null }));
+    setState((prev) => ({
+      ...prev,
+      isDeleteDialogOpen: false,
+      deletingTrip: null,
+    }));
   };
 
   const resetForm = () => {
@@ -223,4 +236,3 @@ export function useTripManagement() {
     closeDeleteDialog,
   };
 }
-

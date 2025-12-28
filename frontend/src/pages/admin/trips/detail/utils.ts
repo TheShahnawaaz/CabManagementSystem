@@ -1,9 +1,13 @@
-import type { Trip } from '@/types/trip.types';
+import type { Trip } from "@/types/trip.types";
 
 /**
  * Trip status for detail page access control
  */
-export type TripDetailStatus = 'upcoming' | 'active-booking-open' | 'active-booking-closed' | 'completed';
+export type TripDetailStatus =
+  | "upcoming"
+  | "active-booking-open"
+  | "active-booking-closed"
+  | "completed";
 
 /**
  * Get detailed trip status for access control
@@ -16,46 +20,49 @@ export const getTripDetailStatus = (trip: Trip): TripDetailStatus => {
 
   // Completed: trip has ended (inclusive of exact end time)
   if (tripEnd <= now) {
-    return 'completed';
+    return "completed";
   }
 
   // Active - Booking Closed: trip is active but booking window closed
   if (now >= bookingStart && now < tripEnd && now > bookingEnd) {
-    return 'active-booking-closed';
+    return "active-booking-closed";
   }
 
   // Active - Booking Open: trip is active and booking window open
   if (now >= bookingStart && now < tripEnd && now <= bookingEnd) {
-    return 'active-booking-open';
+    return "active-booking-open";
   }
 
   // Upcoming: trip hasn't started yet
-  return 'upcoming';
+  return "upcoming";
 };
 
 /**
  * Check if a specific tab is accessible for a trip
  */
 export const canAccessTab = (
-  tab: 'demand' | 'journey' | 'allocation',
+  tab: "demand" | "journey" | "allocation",
   status: TripDetailStatus,
   trip: Trip
 ): boolean => {
   const hasAllocations = !!(trip.allocation_count && trip.allocation_count > 0);
 
   switch (tab) {
-    case 'demand':
+    case "demand":
       // Demand tab: Available for all except upcoming
-      return status !== 'upcoming';
+      return status !== "upcoming";
 
-    case 'journey':
+    case "journey":
       // Journey tab: Available only when allocations exist (QR scans require allocations)
       // Can be viewed during active trip or after completion
-      return hasAllocations && (status === 'active-booking-closed' || status === 'completed');
+      return (
+        hasAllocations &&
+        (status === "active-booking-closed" || status === "completed")
+      );
 
-    case 'allocation':
+    case "allocation":
       // Allocation tab: Available when booking closed but not completed
-      return status === 'active-booking-closed';
+      return status === "active-booking-closed";
 
     default:
       return false;
@@ -66,15 +73,14 @@ export const canAccessTab = (
  * Get the default accessible tab for a trip status
  */
 export const getDefaultTab = (status: TripDetailStatus, trip: Trip): string => {
-  if (canAccessTab('demand', status, trip)) {
-    return 'demand';
+  if (canAccessTab("demand", status, trip)) {
+    return "demand";
   }
-  if (canAccessTab('allocation', status, trip)) {
-    return 'allocation';
+  if (canAccessTab("allocation", status, trip)) {
+    return "allocation";
   }
-  if (canAccessTab('journey', status, trip)) {
-    return 'journey';
+  if (canAccessTab("journey", status, trip)) {
+    return "journey";
   }
-  return 'demand'; // Fallback
+  return "demand"; // Fallback
 };
-

@@ -1,5 +1,5 @@
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TripStatsSkeleton() {
   return (
@@ -18,4 +18,3 @@ export function TripStatsSkeleton() {
     </div>
   );
 }
-

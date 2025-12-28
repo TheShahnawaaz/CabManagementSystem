@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Phone, Users } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { formatPhoneNumber } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Phone, Users } from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { formatPhoneNumber } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Item,
   ItemContent,
@@ -17,9 +17,9 @@ import {
   ItemMedia,
   ItemSeparator,
   ItemTitle,
-} from '@/components/ui/item';
-import { tripApi } from '@/services/trip.service';
-import type { HallDemand } from '@/types/trip.types';
+} from "@/components/ui/item";
+import { tripApi } from "@/services/trip.service";
+import type { HallDemand } from "@/types/trip.types";
 
 export default function DemandTab() {
   const { tripId } = useParams<{ tripId: string }>();
@@ -34,8 +34,8 @@ export default function DemandTab() {
         setDemands(response.data);
       }
     } catch (error) {
-      console.error('Error fetching demand:', error);
-      toast.error('Failed to load demand data');
+      console.error("Error fetching demand:", error);
+      toast.error("Failed to load demand data");
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,9 @@ export default function DemandTab() {
                   <Item className="p-4">
                     <ItemMedia>
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={student.profile_picture || undefined} />
+                        <AvatarImage
+                          src={student.profile_picture || undefined}
+                        />
                         <AvatarFallback className="text-lg">
                           {student.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
@@ -129,7 +131,11 @@ export default function DemandTab() {
                         <span>{formatPhoneNumber(student.phone_number)}</span>
                       </ItemDescription>
                       <ItemDescription className="text-xs mt-1 text-muted-foreground">
-                        Booked: {format(new Date(student.created_at), 'dd MMM yyyy, HH:mm')}
+                        Booked:{" "}
+                        {format(
+                          new Date(student.created_at),
+                          "dd MMM yyyy, HH:mm"
+                        )}
                       </ItemDescription>
                     </ItemContent>
                     <ItemContent className="flex-none items-end">

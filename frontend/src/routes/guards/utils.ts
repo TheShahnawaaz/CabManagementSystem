@@ -1,18 +1,18 @@
-import type { RouteObject } from 'react-router-dom';
-import React from 'react';
-import { RouteGuard } from './RouteGuard';
-import type { CustomRouteObject } from './types';
+import type { RouteObject } from "react-router-dom";
+import React from "react";
+import { RouteGuard } from "./RouteGuard";
+import type { CustomRouteObject } from "./types";
 
 /**
  * Recursively processes custom route objects and wraps elements with RouteGuard
  * based on their metadata configuration.
- * 
+ *
  * This utility automatically applies authentication and authorization logic
  * to routes without manual wrapping, making route management cleaner and more maintainable.
- * 
+ *
  * @param routes - Array of custom route objects with optional metadata
  * @returns Array of standard React Router route objects with guards applied
- * 
+ *
  * @example
  * const routes: CustomRouteObject[] = [
  *   {
@@ -21,7 +21,7 @@ import type { CustomRouteObject } from './types';
  *     meta: { requireAuth: true }
  *   }
  * ];
- * 
+ *
  * const processedRoutes = processRoutes(routes);
  * // Output: Routes with RouteGuard wrapper applied automatically
  */
@@ -32,9 +32,10 @@ export function processRoutes(routes: CustomRouteObject[]): RouteObject[] {
     // Process the element:
     // - If meta exists, wrap element in RouteGuard using React.createElement
     // - If no meta, element is public (no guard needed)
-    const processedElement = meta && element 
-      ? React.createElement(RouteGuard, { meta, children: element })
-      : element;
+    const processedElement =
+      meta && element
+        ? React.createElement(RouteGuard, { meta, children: element })
+        : element;
 
     // Recursively process child routes
     const processedChildren = children ? processRoutes(children) : undefined;
@@ -49,7 +50,7 @@ export function processRoutes(routes: CustomRouteObject[]): RouteObject[] {
 
 /**
  * Validates route metadata to catch configuration errors early
- * 
+ *
  * @param routes - Array of custom route objects to validate
  * @throws Error if invalid configuration is detected
  */
@@ -86,4 +87,3 @@ export function validateRouteConfig(routes: CustomRouteObject[]): void {
     }
   });
 }
-

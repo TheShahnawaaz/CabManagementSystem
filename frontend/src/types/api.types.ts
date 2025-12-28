@@ -20,4 +20,3 @@ export interface ApiError {
   details?: string | string[];
   statusCode?: number;
 }
-

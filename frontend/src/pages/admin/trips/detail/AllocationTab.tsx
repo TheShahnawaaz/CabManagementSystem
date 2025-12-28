@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useOutletContext, useParams, useNavigate } from 'react-router-dom';
-import { Car, Wand2, Trash2, Edit } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import { useOutletContext, useParams, useNavigate } from "react-router-dom";
+import { Car, Wand2, Trash2, Edit } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,15 +14,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { allocationApi } from '@/services/allocation.service';
-import { DemandSummaryCards } from './allocation/DemandSummaryCards';
-import { VehicleSeatViewer } from './allocation/VehicleSeatViewer';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import type { Trip } from '@/types/trip.types';
-import type { TripDetailStatus } from './utils';
-import type { CabAllocation, DemandSummary, AssignedStudent, SeatAssignments } from '@/types/allocation.types';
+} from "@/components/ui/alert-dialog";
+import { allocationApi } from "@/services/allocation.service";
+import { DemandSummaryCards } from "./allocation/DemandSummaryCards";
+import { VehicleSeatViewer } from "./allocation/VehicleSeatViewer";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import type { Trip } from "@/types/trip.types";
+import type { TripDetailStatus } from "./utils";
+import type {
+  CabAllocation,
+  DemandSummary,
+  AssignedStudent,
+  SeatAssignments,
+} from "@/types/allocation.types";
 
 interface AllocationTabContext {
   trip: Trip;
@@ -34,27 +39,29 @@ export default function AllocationTab() {
   const { tripId } = useParams<{ tripId: string }>();
   const { refreshTrip } = useOutletContext<AllocationTabContext>();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
-  
+
   // State
   const [hasAllocation, setHasAllocation] = useState(false);
   const [demandSummary, setDemandSummary] = useState<DemandSummary[]>([]);
   const [cabs, setCabs] = useState<CabAllocation[]>([]);
   const [totalStudents, setTotalStudents] = useState(0);
   const [allStudents, setAllStudents] = useState<AssignedStudent[]>([]);
-  const [formattedCabs, setFormattedCabs] = useState<{
-    id: string;
-    cab_number: string;
-    cab_type: string;
-    driver_name: string;
-    driver_phone: string;
-    pickup_region: string;
-    passkey: string;
-    seats: SeatAssignments;
-  }[]>([]);
-  
+  const [formattedCabs, setFormattedCabs] = useState<
+    {
+      id: string;
+      cab_number: string;
+      cab_type: string;
+      driver_name: string;
+      driver_phone: string;
+      pickup_region: string;
+      passkey: string;
+      seats: SeatAssignments;
+    }[]
+  >([]);
+
   // Dialogs
   const [showClearDialog, setShowClearDialog] = useState(false);
 
@@ -67,20 +74,20 @@ export default function AllocationTab() {
     try {
       setLoading(true);
       const response = await allocationApi.getAllocation(tripId!);
-      
+
       if (response.success && response.data) {
         setHasAllocation(response.data.has_allocation);
-        
+
         if (response.data.has_allocation) {
           const cabData = response.data.cabs || [];
           setCabs(cabData);
           setTotalStudents(response.data.total_students || 0);
-          
+
           // Extract all unique students
           const students: AssignedStudent[] = [];
-          cabData.forEach(cab => {
-            cab.assigned_students.forEach(student => {
-              if (!students.find(s => s.user_id === student.user_id)) {
+          cabData.forEach((cab) => {
+            cab.assigned_students.forEach((student) => {
+              if (!students.find((s) => s.user_id === student.user_id)) {
                 students.push(student);
               }
             });
@@ -101,18 +108,26 @@ export default function AllocationTab() {
 
             // Map assigned students to seats
             cab.assigned_students.forEach((student, idx) => {
-              const seatKeys: Array<keyof SeatAssignments> = ['F1', 'M1', 'M2', 'M3', 'B1', 'B2', 'B3'];
+              const seatKeys: Array<keyof SeatAssignments> = [
+                "F1",
+                "M1",
+                "M2",
+                "M3",
+                "B1",
+                "B2",
+                "B3",
+              ];
               if (idx < seatKeys.length) {
                 seats[seatKeys[idx]] = student.user_id;
               }
             });
 
             return {
-              id: cab.id || cab.temp_id || '',
+              id: cab.id || cab.temp_id || "",
               cab_number: cab.cab_number,
-              cab_type: cab.cab_type || 'Omni',
+              cab_type: cab.cab_type || "Omni",
               driver_name: cab.driver_name,
-              driver_phone: cab.driver_phone || '',
+              driver_phone: cab.driver_phone || "",
               pickup_region: cab.pickup_region,
               passkey: cab.passkey,
               seats,
@@ -124,8 +139,8 @@ export default function AllocationTab() {
         }
       }
     } catch (error) {
-      console.error('Error fetching allocation:', error);
-      toast.error('Failed to load allocation data');
+      console.error("Error fetching allocation:", error);
+      toast.error("Failed to load allocation data");
     } finally {
       setLoading(false);
     }
@@ -135,17 +150,19 @@ export default function AllocationTab() {
     try {
       setRunning(true);
       const response = await allocationApi.runAllocation(tripId!);
-      
+
       if (response.success && response.data) {
-        toast.success(`Allocation generated: ${response.data.total_cabs} cabs for ${response.data.total_students} students`);
+        toast.success(
+          `Allocation generated: ${response.data.total_cabs} cabs for ${response.data.total_students} students`
+        );
         // Redirect to edit page with suggested data
         navigate(`/admin/trips/${tripId}/allocation/edit`, {
           state: { suggestedAllocation: response.data },
         });
       }
     } catch (error) {
-      console.error('Error running allocation:', error);
-      toast.error('Failed to run allocation algorithm');
+      console.error("Error running allocation:", error);
+      toast.error("Failed to run allocation algorithm");
     } finally {
       setRunning(false);
     }
@@ -154,17 +171,17 @@ export default function AllocationTab() {
   const handleClearAllocation = async () => {
     try {
       const response = await allocationApi.clearAllocation(tripId!);
-      
+
       if (response.success) {
-        toast.success('Allocation cleared successfully');
+        toast.success("Allocation cleared successfully");
         setHasAllocation(false);
         setCabs([]);
         refreshTrip();
         fetchAllocationData();
       }
     } catch (error) {
-      console.error('Error clearing allocation:', error);
-      toast.error('Failed to clear allocation');
+      console.error("Error clearing allocation:", error);
+      toast.error("Failed to clear allocation");
     } finally {
       setShowClearDialog(false);
     }
@@ -190,7 +207,7 @@ export default function AllocationTab() {
     return (
       <div className="space-y-4 sm:space-y-6">
         <DemandSummaryCards demandSummary={demandSummary} />
-        
+
         <Card className="p-8 sm:p-12">
           <div className="text-center max-w-md mx-auto">
             <Car className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
@@ -198,8 +215,8 @@ export default function AllocationTab() {
               No Allocation Yet
             </h3>
             <p className="text-sm sm:text-base text-muted-foreground mb-6">
-              Run the allocation algorithm to automatically assign students to cabs
-              based on their halls and optimize pickup routes.
+              Run the allocation algorithm to automatically assign students to
+              cabs based on their halls and optimize pickup routes.
             </p>
             <Button
               size="lg"
@@ -208,7 +225,7 @@ export default function AllocationTab() {
               className="w-full sm:w-auto"
             >
               <Wand2 className="w-4 h-4 mr-2" />
-              {running ? 'Running Algorithm...' : 'Run Allocation Model'}
+              {running ? "Running Algorithm..." : "Run Allocation Model"}
             </Button>
           </div>
         </Card>
@@ -217,7 +234,10 @@ export default function AllocationTab() {
   }
 
   // State 2 & 3: Suggested/Saved Allocation
-  const assignedCount = cabs.reduce((sum, cab) => sum + cab.assigned_students.length, 0);
+  const assignedCount = cabs.reduce(
+    (sum, cab) => sum + cab.assigned_students.length,
+    0
+  );
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -227,7 +247,8 @@ export default function AllocationTab() {
           <div>
             <h2 className="text-xl sm:text-2xl font-bold">Cab Allocation</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {cabs.length} cabs • {assignedCount}/{totalStudents} students assigned
+              {cabs.length} cabs • {assignedCount}/{totalStudents} students
+              assigned
             </p>
           </div>
           <div className="flex gap-2">
@@ -291,7 +312,8 @@ export default function AllocationTab() {
                   </span>
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {Object.values(cab.seats).filter(Boolean).length}/7 seats filled
+                  {Object.values(cab.seats).filter(Boolean).length}/7 seats
+                  filled
                 </p>
               </div>
             </div>
@@ -332,7 +354,9 @@ export default function AllocationTab() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Pickup Region</Label>
+                      <Label className="text-sm font-medium">
+                        Pickup Region
+                      </Label>
                       <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
                         {cab.pickup_region}
                       </div>
@@ -359,7 +383,7 @@ export default function AllocationTab() {
                 <div className="flex items-center justify-center lg:justify-start">
                   <VehicleSeatViewer
                     seats={cab.seats}
-                    availableStudents={allStudents.filter(s => 
+                    availableStudents={allStudents.filter((s) =>
                       Object.values(cab.seats).includes(s.user_id)
                     )}
                   />
@@ -376,12 +400,16 @@ export default function AllocationTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Clear Allocation?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete all cab assignments for this trip. This action cannot be undone.
+              This will delete all cab assignments for this trip. This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearAllocation} className="bg-destructive">
+            <AlertDialogAction
+              onClick={handleClearAllocation}
+              className="bg-destructive"
+            >
               Clear Allocation
             </AlertDialogAction>
           </AlertDialogFooter>

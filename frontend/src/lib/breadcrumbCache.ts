@@ -58,4 +58,3 @@ class BreadcrumbCache {
 
 // Export singleton instance
 export const breadcrumbCache = new BreadcrumbCache();
-

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Car, MapPin, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Car, MapPin, CheckCircle, XCircle, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface JourneyLog {
   student_name: string;
@@ -42,27 +42,52 @@ export default function JourneyTab() {
       setTimeout(() => {
         setJourneys([
           {
-            cab_id: '1',
-            cab_number: 'WB-06-1234',
-            pickup_region: 'RK',
+            cab_id: "1",
+            cab_number: "WB-06-1234",
+            pickup_region: "RK",
             capacity: 7,
             allocated_count: 7,
             outbound_logs: [
-              { student_name: 'John Doe', student_email: 'john@example.com', scan_time: new Date().toISOString(), scanned: true },
-              { student_name: 'Jane Smith', student_email: 'jane@example.com', scan_time: new Date().toISOString(), scanned: true },
-              { student_name: 'Mike Johnson', student_email: 'mike@example.com', scan_time: null, scanned: false },
+              {
+                student_name: "John Doe",
+                student_email: "john@example.com",
+                scan_time: new Date().toISOString(),
+                scanned: true,
+              },
+              {
+                student_name: "Jane Smith",
+                student_email: "jane@example.com",
+                scan_time: new Date().toISOString(),
+                scanned: true,
+              },
+              {
+                student_name: "Mike Johnson",
+                student_email: "mike@example.com",
+                scan_time: null,
+                scanned: false,
+              },
             ],
             return_logs: [
-              { student_name: 'John Doe', student_email: 'john@example.com', scan_time: new Date().toISOString(), scanned: true },
-              { student_name: 'Jane Smith', student_email: 'jane@example.com', scan_time: null, scanned: false },
+              {
+                student_name: "John Doe",
+                student_email: "john@example.com",
+                scan_time: new Date().toISOString(),
+                scanned: true,
+              },
+              {
+                student_name: "Jane Smith",
+                student_email: "jane@example.com",
+                scan_time: null,
+                scanned: false,
+              },
             ],
           },
         ]);
         setLoading(false);
       }, 500);
     } catch (error) {
-      console.error('Error fetching journeys:', error);
-      toast.error('Failed to load journey data');
+      console.error("Error fetching journeys:", error);
+      toast.error("Failed to load journey data");
       setLoading(false);
     }
   };
@@ -153,7 +178,7 @@ export default function JourneyTab() {
                     </div>
                     {log.scan_time ? (
                       <span className="text-xs text-muted-foreground">
-                        {format(new Date(log.scan_time), 'HH:mm')}
+                        {format(new Date(log.scan_time), "HH:mm")}
                       </span>
                     ) : (
                       <span className="text-xs text-red-500">No scan</span>
@@ -186,7 +211,7 @@ export default function JourneyTab() {
                       </div>
                       {log.scan_time ? (
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(log.scan_time), 'HH:mm')}
+                          {format(new Date(log.scan_time), "HH:mm")}
                         </span>
                       ) : (
                         <span className="text-xs text-red-500">No scan</span>
@@ -207,4 +232,3 @@ export default function JourneyTab() {
     </div>
   );
 }
-

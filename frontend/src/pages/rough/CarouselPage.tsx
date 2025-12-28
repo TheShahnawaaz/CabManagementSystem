@@ -1,20 +1,22 @@
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel"
-import { Button } from "@/components/ui/button"
-import { Link } from "react-router-dom"
+} from "@/components/ui/carousel";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export default function CarouselPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-8 p-8">
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold">Carousel Demo</h1>
-        <p className="text-muted-foreground">Testing carousel component variations</p>
+        <p className="text-muted-foreground">
+          Testing carousel component variations
+        </p>
       </div>
 
       {/* Basic Carousel */}
@@ -27,7 +29,9 @@ export default function CarouselPage() {
                 <div className="p-1">
                   <Card>
                     <CardContent className="flex aspect-square items-center justify-center p-6">
-                      <span className="text-4xl font-semibold">{index + 1}</span>
+                      <span className="text-4xl font-semibold">
+                        {index + 1}
+                      </span>
                     </CardContent>
                   </Card>
                 </div>
@@ -72,9 +76,5 @@ export default function CarouselPage() {
         </Link>
       </div>
     </div>
-  )
+  );
 }
-
-
-
-

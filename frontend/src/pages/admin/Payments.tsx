@@ -6,6 +6,5 @@ export default function PaymentsManagement() {
         Manage payments and transactions.
       </p>
     </div>
-  )
+  );
 }
-

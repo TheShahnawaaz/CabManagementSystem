@@ -1,6 +1,6 @@
-import { CalendarIcon, Clock, Users } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import type { Trip } from '@/types/trip.types';
+import { CalendarIcon, Clock, Users } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import type { Trip } from "@/types/trip.types";
 
 interface TripStatsProps {
   trips: Trip[];
@@ -14,9 +14,14 @@ export function TripStats({ trips }: TripStatsProps) {
     return now >= bookingStart && now < tripEnd;
   }).length;
 
-  const upcomingCount = trips.filter((t) => new Date(t.trip_date) > new Date()).length;
+  const upcomingCount = trips.filter(
+    (t) => new Date(t.trip_date) > new Date()
+  ).length;
 
-  const totalBookings = trips.reduce((sum, t) => sum + (t.booking_count || 0), 0);
+  const totalBookings = trips.reduce(
+    (sum, t) => sum + (t.booking_count || 0),
+    0
+  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -62,4 +67,3 @@ export function TripStats({ trips }: TripStatsProps) {
     </div>
   );
 }
-

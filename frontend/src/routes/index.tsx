@@ -1,39 +1,39 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import RootLayout from '@/components/layout/RootLayout';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProtectedLayout from '@/components/layout/ProtectedLayout';
-import AuthCallback from '@/pages/AuthCallback';
-import NotFoundPage from '@/pages/NotFound';
-import { processRoutes, validateRouteConfig } from './guards';
-import { publicRoutes } from './public.routes';
-import { guestRoutes } from './guest.routes';
-import { userRoutes } from './user.routes';
-import { adminRoutes } from './admin.routes';
-import { roughRoutes } from './rough.routes';
-import type { CustomRouteObject } from './guards';
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import RootLayout from "@/components/layout/RootLayout";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import ProtectedLayout from "@/components/layout/ProtectedLayout";
+import AuthCallback from "@/pages/AuthCallback";
+import NotFoundPage from "@/pages/NotFound";
+import { processRoutes, validateRouteConfig } from "./guards";
+import { publicRoutes } from "./public.routes";
+import { guestRoutes } from "./guest.routes";
+import { userRoutes } from "./user.routes";
+import { adminRoutes } from "./admin.routes";
+import { roughRoutes } from "./rough.routes";
+import type { CustomRouteObject } from "./guards";
 
 /**
  * Main Application Router
- * 
+ *
  * Architecture:
  * - Declarative permission-based routing
  * - Routes organized by access level (public/guest/user/admin)
  * - Automatic guard application via processRoutes()
  * - Type-safe route configuration
  * - Easy to add/modify/remove routes
- * 
+ *
  * Route Types:
  * 1. Public Routes     - No authentication required
  * 2. Guest Routes      - Only for non-authenticated users
  * 3. User Routes       - Requires authentication
  * 4. Admin Routes      - Requires authentication + admin role
  * 5. Special Routes    - Auth callback, 404, etc.
- * 
+ *
  * Adding New Routes:
  * 1. Add route to appropriate file (public/guest/user/admin.routes.tsx)
  * 2. Set meta.requireAuth and/or meta.requireAdmin as needed
  * 3. Route guards are automatically applied
- * 
+ *
  * @see {@link https://reactrouter.com/en/main/routers/create-browser-router}
  */
 
@@ -52,9 +52,9 @@ if (import.meta.env.DEV) {
     validateRouteConfig(guestRoutes);
     validateRouteConfig(userRoutes);
     validateRouteConfig(adminRoutes);
-    console.log('✅ Route configuration validation passed');
+    console.log("✅ Route configuration validation passed");
   } catch (error) {
-    console.error('❌ Route configuration error:', error);
+    console.error("❌ Route configuration error:", error);
     throw error;
   }
 }
@@ -64,7 +64,7 @@ export const router = createBrowserRouter([
   // SPECIAL ROUTES (No Layout)
   // ==========================================
   {
-    path: '/auth/callback',
+    path: "/auth/callback",
     element: <AuthCallback />,
   },
 
@@ -72,7 +72,7 @@ export const router = createBrowserRouter([
   // GUEST ROUTES (RootLayout - No Sidebar)
   // ==========================================
   {
-    path: '/',
+    path: "/",
     element: <RootLayout />,
     children: [
       // Root path - redirect to login
@@ -95,7 +95,7 @@ export const router = createBrowserRouter([
   // AUTHENTICATED ROUTES (Dashboard Layout with Sidebar)
   // ==========================================
   {
-    path: '/',
+    path: "/",
     element: <ProtectedLayout />, // Auth check BEFORE layout renders
     children: [
       {
@@ -117,7 +117,7 @@ export const router = createBrowserRouter([
   // ROUGH/TESTING ROUTES (Original Layout)
   // ==========================================
   {
-    path: '/',
+    path: "/",
     element: <RootLayout />,
     children: [
       // ROUGH/TESTING ROUTES
@@ -127,7 +127,7 @@ export const router = createBrowserRouter([
       // 404 HANDLER
       // Catches all unmatched routes
       {
-        path: '*',
+        path: "*",
         element: <NotFoundPage />,
       },
     ],
@@ -136,20 +136,20 @@ export const router = createBrowserRouter([
 
 /**
  * Route Organization Summary:
- * 
+ *
  * Public (No Auth Required):
  * - /about
- * 
+ *
  * Guest Only (Not Logged In):
  * - /login
- * 
+ *
  * Authenticated Users (Fullscreen loading → then DashboardLayout):
  * - /dashboard
  * - /profile
  * - /bookings
  * - /trips
  * - /settings
- * 
+ *
  * Admin Only (Fullscreen loading → then DashboardLayout):
  * - /admin
  * - /admin/users
@@ -158,12 +158,12 @@ export const router = createBrowserRouter([
  * - /admin/payments
  * - /admin/reports
  * - /admin/settings
- * 
+ *
  * Special:
  * - /auth/callback (OAuth callback)
  * - /rough/* (Testing routes)
  * - * (404 Not Found)
- * 
+ *
  * Auth Flow:
  * 1. User visits protected route (e.g., /dashboard)
  * 2. ProtectedLayout checks auth → shows FULLSCREEN loading

@@ -6,6 +6,5 @@ export default function UserManagement() {
         View and manage all users in the system.
       </p>
     </div>
-  )
+  );
 }
-

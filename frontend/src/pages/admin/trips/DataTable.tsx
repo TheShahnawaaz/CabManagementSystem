@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import * as React from "react";
 import {
@@ -66,7 +66,9 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center">
         <Input
           placeholder="Filter trips by title..."
-          value={(table.getColumn("trip_title")?.getFilterValue() as string) ?? ""}
+          value={
+            (table.getColumn("trip_title")?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
             table.getColumn("trip_title")?.setFilterValue(event.target.value)
           }
@@ -128,4 +130,3 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
-

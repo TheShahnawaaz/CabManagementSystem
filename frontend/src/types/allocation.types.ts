@@ -3,7 +3,7 @@
 // ====================================
 
 // Note: Hall type is defined in booking.types.ts
-import type { Hall } from './booking.types';
+import type { Hall } from "./booking.types";
 export type { Hall };
 
 export interface AssignedStudent {
@@ -65,7 +65,7 @@ export interface StudentOption {
 }
 
 // Seat assignments for vehicle UI
-export type SeatPosition = 'F1' | 'M1' | 'M2' | 'M3' | 'B1' | 'B2' | 'B3';
+export type SeatPosition = "F1" | "M1" | "M2" | "M3" | "B1" | "B2" | "B3";
 export type SeatAssignments = Record<SeatPosition, string | null>;
 
 // Cab form data for edit page

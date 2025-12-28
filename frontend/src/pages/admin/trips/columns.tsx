@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { Edit, MoreHorizontal, Trash2, Eye } from "lucide-react";
@@ -124,7 +124,7 @@ export const createColumns = (
       const trip = row.original;
       const now = new Date();
       const bookingStart = new Date(trip.booking_start_time);
-      
+
       // Check if trip is upcoming (can't view details)
       const isUpcoming = now < bookingStart;
 
@@ -165,4 +165,3 @@ export const createColumns = (
     },
   },
 ];
-

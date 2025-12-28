@@ -1,15 +1,15 @@
-import { Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { TripStats } from './TripStats';
-import { TripStatsSkeleton } from './TripStatsSkeleton';
-import { TripTableSkeleton } from './TripTableSkeleton';
-import { TripFormSheet } from './TripFormSheet';
-import { DeleteTripDialog } from './DeleteTripDialog';
-import { DataTable } from './DataTable';
-import { createColumns } from './columns';
-import { useTripManagement } from './useTripManagement';
-import type { Trip } from '@/types/trip.types';
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { TripStats } from "./TripStats";
+import { TripStatsSkeleton } from "./TripStatsSkeleton";
+import { TripTableSkeleton } from "./TripTableSkeleton";
+import { TripFormSheet } from "./TripFormSheet";
+import { DeleteTripDialog } from "./DeleteTripDialog";
+import { DataTable } from "./DataTable";
+import { createColumns } from "./columns";
+import { useTripManagement } from "./useTripManagement";
+import type { Trip } from "@/types/trip.types";
 
 export default function TripManagement() {
   const navigate = useNavigate();
@@ -30,7 +30,11 @@ export default function TripManagement() {
     navigate(`/admin/trips/${trip.id}`);
   };
 
-  const columns = createColumns(openEditSheet, openDeleteDialog, handleViewDetails);
+  const columns = createColumns(
+    openEditSheet,
+    openDeleteDialog,
+    handleViewDetails
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -84,4 +88,3 @@ export default function TripManagement() {
     </div>
   );
 }
-

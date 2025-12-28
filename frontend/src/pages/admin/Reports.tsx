@@ -6,6 +6,5 @@ export default function ReportsPage() {
         View analytics and generate reports.
       </p>
     </div>
-  )
+  );
 }
-

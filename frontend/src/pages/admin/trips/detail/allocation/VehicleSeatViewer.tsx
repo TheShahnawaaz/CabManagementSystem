@@ -127,8 +127,19 @@ export function VehicleSeatViewer({
               <stop offset="0" stopColor="#111827" stopOpacity="0.35" />
               <stop offset="1" stopColor="#111827" stopOpacity="0.10" />
             </linearGradient>
-            <filter id="outerShadow-view" x="-25%" y="-25%" width="150%" height="150%">
-              <feDropShadow dx="0" dy="14" stdDeviation="12" floodOpacity="0.38" />
+            <filter
+              id="outerShadow-view"
+              x="-25%"
+              y="-25%"
+              width="150%"
+              height="150%"
+            >
+              <feDropShadow
+                dx="0"
+                dy="14"
+                stdDeviation="12"
+                floodOpacity="0.38"
+              />
             </filter>
           </defs>
 
@@ -137,15 +148,64 @@ export function VehicleSeatViewer({
             <rect x="18" y="80" width="28" height="75" rx="14" fill="#0a0f1a" />
             <rect x="21" y="88" width="22" height="59" rx="11" fill="#111827" />
             <rect x="24" y="95" width="16" height="45" rx="8" fill="#1f2937" />
-            <rect x="254" y="80" width="28" height="75" rx="14" fill="#0a0f1a" />
-            <rect x="257" y="88" width="22" height="59" rx="11" fill="#111827" />
+            <rect
+              x="254"
+              y="80"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="257"
+              y="88"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
             <rect x="260" y="95" width="16" height="45" rx="8" fill="#1f2937" />
-            <rect x="18" y="265" width="28" height="75" rx="14" fill="#0a0f1a" />
-            <rect x="21" y="273" width="22" height="59" rx="11" fill="#111827" />
+            <rect
+              x="18"
+              y="265"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="21"
+              y="273"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
             <rect x="24" y="280" width="16" height="45" rx="8" fill="#1f2937" />
-            <rect x="254" y="265" width="28" height="75" rx="14" fill="#0a0f1a" />
-            <rect x="257" y="273" width="22" height="59" rx="11" fill="#111827" />
-            <rect x="260" y="280" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect
+              x="254"
+              y="265"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="257"
+              y="273"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
+            <rect
+              x="260"
+              y="280"
+              width="16"
+              height="45"
+              rx="8"
+              fill="#1f2937"
+            />
           </g>
 
           {/* Body */}
@@ -188,10 +248,22 @@ export function VehicleSeatViewer({
 
           {/* Wheel arches */}
           <g opacity="0.25">
-            <path d="M52 92 Q66 80 86 83 L86 150 Q66 153 52 138 Z" fill="#0b1220" />
-            <path d="M248 92 Q234 80 214 83 L214 150 Q234 153 248 138 Z" fill="#0b1220" />
-            <path d="M52 277 Q66 265 86 268 L86 335 Q66 338 52 323 Z" fill="#0b1220" />
-            <path d="M248 277 Q234 265 214 268 L214 335 Q234 338 248 323 Z" fill="#0b1220" />
+            <path
+              d="M52 92 Q66 80 86 83 L86 150 Q66 153 52 138 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M248 92 Q234 80 214 83 L214 150 Q234 153 248 138 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M52 277 Q66 265 86 268 L86 335 Q66 338 52 323 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M248 277 Q234 265 214 268 L214 335 Q234 338 248 323 Z"
+              fill="#0b1220"
+            />
           </g>
 
           {/* Cabin floor */}
@@ -266,16 +338,64 @@ export function VehicleSeatViewer({
 
           {/* Lights */}
           <g opacity="0.9">
-            <rect x="78" y="23" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-            <rect x="188" y="23" width="34" height="10" rx="5" fill="#e5e7eb" opacity="0.65" />
-            <rect x="78" y="395" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
-            <rect x="188" y="395" width="34" height="10" rx="5" fill="#fb7185" opacity="0.65" />
+            <rect
+              x="78"
+              y="23"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#e5e7eb"
+              opacity="0.65"
+            />
+            <rect
+              x="188"
+              y="23"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#e5e7eb"
+              opacity="0.65"
+            />
+            <rect
+              x="78"
+              y="395"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#fb7185"
+              opacity="0.65"
+            />
+            <rect
+              x="188"
+              y="395"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#fb7185"
+              opacity="0.65"
+            />
           </g>
 
           {/* Dashboard + steering */}
           <g>
-            <rect x="92" y="108" width="116" height="14" rx="7" fill="#0b1220" opacity="0.35" />
-            <circle cx="192" cy="120" r="10" fill="none" stroke="#0b1220" strokeWidth="3" opacity="0.85" />
+            <rect
+              x="92"
+              y="108"
+              width="116"
+              height="14"
+              rx="7"
+              fill="#0b1220"
+              opacity="0.35"
+            />
+            <circle
+              cx="192"
+              cy="120"
+              r="10"
+              fill="none"
+              stroke="#0b1220"
+              strokeWidth="3"
+              opacity="0.85"
+            />
             <circle cx="192" cy="120" r="3" fill="#0b1220" opacity="0.85" />
           </g>
         </svg>
@@ -331,12 +451,20 @@ function SeatDisplay({
   small?: boolean;
 }) {
   const isAssigned = !!student;
-  const outer = small ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]" : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
-  const avatar = small ? "w-4 h-4 text-[8px] md:w-6 md:h-6 md:text-[10px]" : "w-5 h-5 text-[9px] md:w-7 md:h-7 md:text-[11px]";
-  const text = small ? "text-[8px] md:text-[10px]" : "text-[9px] md:text-[11px]";
+  const outer = small
+    ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]"
+    : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
+  const avatar = small
+    ? "w-4 h-4 text-[8px] md:w-6 md:h-6 md:text-[10px]"
+    : "w-5 h-5 text-[9px] md:w-7 md:h-7 md:text-[11px]";
+  const text = small
+    ? "text-[8px] md:text-[10px]"
+    : "text-[9px] md:text-[11px]";
 
   // Get hall colors if student is assigned
-  const hallColors = student?.hall ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS] : null;
+  const hallColors = student?.hall
+    ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS]
+    : null;
 
   return (
     <div
@@ -360,8 +488,13 @@ function SeatDisplay({
         {isAssigned ? (
           <>
             <Avatar className={avatar}>
-              <AvatarImage src={student.profile_picture || undefined} loading="lazy" />
-              <AvatarFallback className={`${hallColors?.avatar} ${hallColors?.text} font-extrabold text-xs`}>
+              <AvatarImage
+                src={student.profile_picture || undefined}
+                loading="lazy"
+              />
+              <AvatarFallback
+                className={`${hallColors?.avatar} ${hallColors?.text} font-extrabold text-xs`}
+              >
                 {student.name
                   .split(" ")
                   .map((n: string) => n[0])
@@ -382,7 +515,9 @@ function SeatDisplay({
         ) : (
           <>
             <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-muted-foreground/10" />
-            <span className={[text, "font-medium text-muted-foreground"].join(" ")}>
+            <span
+              className={[text, "font-medium text-muted-foreground"].join(" ")}
+            >
               {label}
             </span>
           </>
@@ -393,8 +528,12 @@ function SeatDisplay({
 }
 
 function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
-  const outer = size === "sm" ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]" : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
-  const text = size === "sm" ? "text-[8px] md:text-[10px]" : "text-[9px] md:text-[11px]";
+  const outer =
+    size === "sm"
+      ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]"
+      : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
+  const text =
+    size === "sm" ? "text-[8px] md:text-[10px]" : "text-[9px] md:text-[11px]";
 
   return (
     <div
@@ -409,7 +548,9 @@ function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
         <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-muted-foreground/20 flex items-center justify-center">
           <Lock className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground" />
         </div>
-        <span className={[text, "font-semibold text-muted-foreground"].join(" ")}>
+        <span
+          className={[text, "font-semibold text-muted-foreground"].join(" ")}
+        >
           Driver
         </span>
       </div>

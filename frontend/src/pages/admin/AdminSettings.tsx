@@ -6,6 +6,5 @@ export default function AdminSettings() {
         Configure system-wide settings and preferences.
       </p>
     </div>
-  )
+  );
 }
-

@@ -1,7 +1,7 @@
-import { Users } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { DemandSummary } from '@/types/allocation.types';
+import { Users } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { DemandSummary } from "@/types/allocation.types";
 
 interface DemandSummaryCardsProps {
   demandSummary: DemandSummary[];
@@ -47,7 +47,9 @@ export function DemandSummaryCards({ demandSummary }: DemandSummaryCardsProps) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Cabs:</span>
-                <span className="font-medium">{Math.ceil(demand.count / 7)}</span>
+                <span className="font-medium">
+                  {Math.ceil(demand.count / 7)}
+                </span>
               </div>
             </div>
           </Card>
@@ -56,4 +58,3 @@ export function DemandSummaryCards({ demandSummary }: DemandSummaryCardsProps) {
     </Card>
   );
 }
-

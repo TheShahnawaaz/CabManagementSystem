@@ -1,6 +1,6 @@
-import { FileQuestionIcon, HomeIcon } from "lucide-react"
-import { Link } from "react-router-dom"
-import { Button } from "@/components/ui/button"
+import { FileQuestionIcon, HomeIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -8,11 +8,11 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
+} from "@/components/ui/empty";
 
 /**
  * 404 Not Found Page
- * 
+ *
  * Displayed when user navigates to a non-existent route
  * Uses shadcn/ui Empty component for professional design
  */
@@ -26,8 +26,8 @@ export default function NotFoundPage() {
           </EmptyMedia>
           <EmptyTitle>404 - Page Not Found</EmptyTitle>
           <EmptyDescription>
-            The page you're looking for doesn't exist or has been moved.
-            Try going back to the dashboard or contact support if you need help.
+            The page you're looking for doesn't exist or has been moved. Try
+            going back to the dashboard or contact support if you need help.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -38,11 +38,13 @@ export default function NotFoundPage() {
             </Button>
           </Link>
           <EmptyDescription>
-            Need help? <Link to="/about" className="text-primary hover:underline">Contact support</Link>
+            Need help?{" "}
+            <Link to="/about" className="text-primary hover:underline">
+              Contact support
+            </Link>
           </EmptyDescription>
         </EmptyContent>
       </Empty>
     </div>
   );
 }
-

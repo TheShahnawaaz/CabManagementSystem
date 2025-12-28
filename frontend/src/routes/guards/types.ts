@@ -1,5 +1,5 @@
-import type { RouteObject } from 'react-router-dom';
-import type { BreadcrumbConfig } from '@/types/breadcrumb.types';
+import type { RouteObject } from "react-router-dom";
+import type { BreadcrumbConfig } from "@/types/breadcrumb.types";
 
 /**
  * Route metadata configuration for access control and page settings
@@ -49,7 +49,7 @@ export interface RouteMeta {
 /**
  * Extended RouteObject with metadata support
  */
-export interface CustomRouteObject extends Omit<RouteObject, 'children'> {
+export interface CustomRouteObject extends Omit<RouteObject, "children"> {
   /**
    * Route metadata for permissions and configuration
    */
@@ -65,11 +65,11 @@ export interface CustomRouteObject extends Omit<RouteObject, 'children'> {
  * Route permission levels for easy identification
  */
 export const RoutePermission = {
-  PUBLIC: 'public',
-  GUEST_ONLY: 'guest_only',
-  AUTHENTICATED: 'authenticated',
-  ADMIN_ONLY: 'admin_only',
+  PUBLIC: "public",
+  GUEST_ONLY: "guest_only",
+  AUTHENTICATED: "authenticated",
+  ADMIN_ONLY: "admin_only",
 } as const;
 
-export type RoutePermission = typeof RoutePermission[keyof typeof RoutePermission];
-
+export type RoutePermission =
+  (typeof RoutePermission)[keyof typeof RoutePermission];

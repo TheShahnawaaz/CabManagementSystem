@@ -1,4 +1,4 @@
-import type { Trip } from '@/types/trip.types';
+import type { Trip } from "@/types/trip.types";
 
 export interface TripFormData {
   tripTitle: string;
@@ -31,4 +31,3 @@ export interface TripManagementState {
   deletingTrip: Trip | null;
   submitting: boolean;
 }
-

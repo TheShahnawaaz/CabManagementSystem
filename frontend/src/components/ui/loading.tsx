@@ -1,10 +1,14 @@
-import { Spinner } from "./spinner"
+import { Spinner } from "./spinner";
 
 /**
  * Professional loading screen component
  * Used during authentication checks and route transitions
  */
-export function LoadingScreen({ message = 'Loading...' }: { message?: string }) {
+export function LoadingScreen({
+  message = "Loading...",
+}: {
+  message?: string;
+}) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="text-center space-y-4">
@@ -12,7 +16,7 @@ export function LoadingScreen({ message = 'Loading...' }: { message?: string }) 
         <div className="flex justify-center">
           <Spinner className="size-16 text-blue-600 dark:text-blue-400" />
         </div>
-        
+
         {/* Message */}
         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
           {message}
@@ -25,11 +29,11 @@ export function LoadingScreen({ message = 'Loading...' }: { message?: string }) 
 /**
  * Inline loader for smaller sections
  */
-export function InlineLoader({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+export function InlineLoader({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const sizes = {
-    sm: 'size-4',
-    md: 'size-8',
-    lg: 'size-12',
+    sm: "size-4",
+    md: "size-8",
+    lg: "size-12",
   };
 
   return (
@@ -38,4 +42,3 @@ export function InlineLoader({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
     </div>
   );
 }
-

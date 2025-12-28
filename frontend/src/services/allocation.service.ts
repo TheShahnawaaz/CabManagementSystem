@@ -1,10 +1,10 @@
-import { apiClient } from '../lib/api';
-import type { ApiResponse } from '../types/api.types';
+import { apiClient } from "../lib/api";
+import type { ApiResponse } from "../types/api.types";
 import type {
   AllocationSuggestion,
   AllocationState,
   SubmitAllocationData,
-} from '../types/allocation.types';
+} from "../types/allocation.types";
 
 // ====================================
 // ALLOCATION API SERVICE
@@ -15,7 +15,9 @@ export const allocationApi = {
    * Run allocation algorithm (admin only)
    * Returns suggested cab assignments (not saved to DB)
    */
-  async runAllocation(tripId: string): Promise<ApiResponse<AllocationSuggestion>> {
+  async runAllocation(
+    tripId: string
+  ): Promise<ApiResponse<AllocationSuggestion>> {
     return apiClient.post(`/admin/trips/${tripId}/allocation/run`, {});
   },
 
@@ -39,8 +41,9 @@ export const allocationApi = {
   /**
    * Clear all allocation data (admin only)
    */
-  async clearAllocation(tripId: string): Promise<ApiResponse<{ message: string }>> {
+  async clearAllocation(
+    tripId: string
+  ): Promise<ApiResponse<{ message: string }>> {
     return apiClient.delete(`/admin/trips/${tripId}/allocation`);
   },
 };
-

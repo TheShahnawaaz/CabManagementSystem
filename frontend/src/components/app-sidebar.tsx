@@ -10,7 +10,7 @@ import {
   LogOut,
   ChevronUp,
   User2,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -24,18 +24,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/hooks"
-import { Link } from "react-router-dom"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks";
+import { Link } from "react-router-dom";
 
 // Menu items for regular users
 const userMenuItems = [
@@ -64,7 +64,7 @@ const userMenuItems = [
     url: "/settings",
     icon: Settings,
   },
-]
+];
 
 // Menu items for admin users
 const adminMenuItems = [
@@ -103,13 +103,13 @@ const adminMenuItems = [
     url: "/admin/settings",
     icon: Settings,
   },
-]
+];
 
 const formatPhoneNumber = (phone?: string | null) =>
-  phone ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : "Phone not added"
+  phone ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : "Phone not added";
 
 export function AppSidebar() {
-  const { user, isAdmin, signOut } = useAuth()
+  const { user, isAdmin, signOut } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -280,5 +280,5 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

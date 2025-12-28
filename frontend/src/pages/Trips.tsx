@@ -1,16 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Clock, IndianRupee, Users, MapPin, Check } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { tripApi } from '@/services/trip.service';
-import { bookingApi } from '@/services/booking.service';
-import type { Trip } from '@/types/trip.types';
-import type { Hall } from '@/types/booking.types';
-import { HALLS } from '@/types/booking.types';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from "react";
+import {
+  Calendar,
+  Clock,
+  IndianRupee,
+  Users,
+  MapPin,
+  Check,
+} from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { tripApi } from "@/services/trip.service";
+import { bookingApi } from "@/services/booking.service";
+import type { Trip } from "@/types/trip.types";
+import type { Hall } from "@/types/booking.types";
+import { HALLS } from "@/types/booking.types";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -18,22 +25,22 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 export default function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [selectedHall, setSelectedHall] = useState<Hall>('RK');
+  const [selectedHall, setSelectedHall] = useState<Hall>("RK");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -48,8 +55,8 @@ export default function TripsPage() {
         setTrips(response.data);
       }
     } catch (error) {
-      console.error('Error fetching trips:', error);
-      toast.error('Failed to load trips');
+      console.error("Error fetching trips:", error);
+      toast.error("Failed to load trips");
     } finally {
       setLoading(false);
     }
@@ -57,7 +64,7 @@ export default function TripsPage() {
 
   const formatDateTime = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'MMM dd, yyyy • HH:mm');
+      return format(new Date(dateString), "MMM dd, yyyy • HH:mm");
     } catch {
       return dateString;
     }
@@ -65,7 +72,7 @@ export default function TripsPage() {
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'EEEE, MMMM do, yyyy');
+      return format(new Date(dateString), "EEEE, MMMM do, yyyy");
     } catch {
       return dateString;
     }
@@ -75,21 +82,27 @@ export default function TripsPage() {
     const now = new Date();
     const end = new Date(bookingEndTime);
     const diff = end.getTime() - now.getTime();
-    
+
     if (diff <= 0) {
-      return { text: 'Booking closed', color: 'bg-gray-500' };
+      return { text: "Booking closed", color: "bg-gray-500" };
     }
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
-    
+
     if (days > 0) {
-      return { text: `${days} day${days > 1 ? 's' : ''} left`, color: 'bg-green-500' };
+      return {
+        text: `${days} day${days > 1 ? "s" : ""} left`,
+        color: "bg-green-500",
+      };
     }
     if (hours > 0) {
-      return { text: `${hours} hour${hours > 1 ? 's' : ''} left`, color: 'bg-yellow-500' };
+      return {
+        text: `${hours} hour${hours > 1 ? "s" : ""} left`,
+        color: "bg-yellow-500",
+      };
     }
-    return { text: 'Closing soon', color: 'bg-orange-500' };
+    return { text: "Closing soon", color: "bg-orange-500" };
   };
 
   const canBook = (bookingEndTime: string) => {
@@ -100,7 +113,7 @@ export default function TripsPage() {
 
   const handleBookNowClick = (trip: Trip) => {
     setSelectedTrip(trip);
-    setSelectedHall('RK'); // Default hall
+    setSelectedHall("RK"); // Default hall
     setIsBookingModalOpen(true);
   };
 
@@ -115,7 +128,7 @@ export default function TripsPage() {
       });
 
       if (response.success) {
-        toast.success('Booking confirmed!', {
+        toast.success("Booking confirmed!", {
           description: `You have successfully booked ${selectedTrip.trip_title}. Check "My Bookings" for details.`,
           duration: 5000,
         });
@@ -125,24 +138,26 @@ export default function TripsPage() {
         fetchActiveTrips();
       }
     } catch (error: unknown) {
-      console.error('Booking failed:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+      console.error("Booking failed:", error);
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
       // Handle specific errors
-      if (errorMessage.includes('already booked')) {
-        toast.error('Already Booked', {
-          description: 'You have already booked this trip.',
+      if (errorMessage.includes("already booked")) {
+        toast.error("Already Booked", {
+          description: "You have already booked this trip.",
           duration: 5000,
         });
-      } else if (errorMessage.includes('booking window is closed')) {
-        toast.error('Booking Closed', {
-          description: 'The booking window for this trip has closed.',
+      } else if (errorMessage.includes("booking window is closed")) {
+        toast.error("Booking Closed", {
+          description: "The booking window for this trip has closed.",
           duration: 5000,
         });
       } else {
-        toast.error('Booking Failed', {
-          description: errorMessage || 'Failed to create booking. Please try again.',
+        toast.error("Booking Failed", {
+          description:
+            errorMessage || "Failed to create booking. Please try again.",
           duration: 5000,
         });
       }
@@ -187,7 +202,8 @@ export default function TripsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Active Trips</h1>
         <p className="text-muted-foreground">
-          View active trips and book your seat for upcoming Friday prayer journeys
+          View active trips and book your seat for upcoming Friday prayer
+          journeys
         </p>
       </div>
 
@@ -198,7 +214,8 @@ export default function TripsPage() {
             <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Active Trips</h3>
             <p className="text-muted-foreground mb-4">
-              There are currently no trips available for booking. Please check back later.
+              There are currently no trips available for booking. Please check
+              back later.
             </p>
             <p className="text-sm text-muted-foreground">
               Booking windows open a few days before the trip date.
@@ -210,71 +227,81 @@ export default function TripsPage() {
           {trips.map((trip) => {
             const bookingStatus = getBookingStatus(trip.booking_end_time);
             const isBookable = canBook(trip.booking_end_time);
-            
+
             return (
-            <Card key={trip.id} className="p-6 hover:shadow-lg transition-shadow">
-              {/* Trip Badge */}
-              <div className="flex items-center justify-between mb-4">
-                <Badge className={bookingStatus.color}>
-                  {bookingStatus.text}
-                </Badge>
-                <Badge variant="outline">
-                  {trip.booking_count || 0} booked
-                </Badge>
-              </div>
-
-              {/* Trip Title */}
-              <h3 className="text-xl font-bold mb-2">{trip.trip_title}</h3>
-
-              {/* Trip Date */}
-              <div className="flex items-start gap-2 mb-3 text-sm">
-                <Calendar className="w-4 h-4 mt-0.5 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  {formatDate(trip.trip_date)}
-                </span>
-              </div>
-
-              {/* Booking Window */}
-              <div className="flex items-start gap-2 mb-3 text-sm">
-                <Clock className="w-4 h-4 mt-0.5 text-muted-foreground" />
-                <div className="text-muted-foreground">
-                  {isBookable ? (
-                    <div>Book until: {formatDateTime(trip.booking_end_time)}</div>
-                  ) : (
-                    <div className="text-orange-600 dark:text-orange-400 font-medium">
-                      Booking closed
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Return Time */}
-              <div className="flex items-start gap-2 mb-3 text-sm">
-                <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground" />
-                <div className="text-muted-foreground">
-                  <div>Departs: {formatDateTime(trip.return_time)}</div>
-                </div>
-              </div>
-
-              {/* Amount */}
-              <div className="flex items-center gap-2 mb-6">
-                <IndianRupee className="w-5 h-5 text-primary" />
-                <span className="text-2xl font-bold">₹{trip.amount_per_person}</span>
-                <span className="text-sm text-muted-foreground">per person</span>
-              </div>
-
-              {/* Book Button */}
-              <Button 
-                className="w-full" 
-                size="lg"
-                disabled={!isBookable}
-                onClick={() => handleBookNowClick(trip)}
+              <Card
+                key={trip.id}
+                className="p-6 hover:shadow-lg transition-shadow"
               >
-                <Users className="w-4 h-4 mr-2" />
-                {isBookable ? 'Book Now' : 'Booking Closed'}
-              </Button>
-            </Card>
-          )})}
+                {/* Trip Badge */}
+                <div className="flex items-center justify-between mb-4">
+                  <Badge className={bookingStatus.color}>
+                    {bookingStatus.text}
+                  </Badge>
+                  <Badge variant="outline">
+                    {trip.booking_count || 0} booked
+                  </Badge>
+                </div>
+
+                {/* Trip Title */}
+                <h3 className="text-xl font-bold mb-2">{trip.trip_title}</h3>
+
+                {/* Trip Date */}
+                <div className="flex items-start gap-2 mb-3 text-sm">
+                  <Calendar className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                  <span className="text-muted-foreground">
+                    {formatDate(trip.trip_date)}
+                  </span>
+                </div>
+
+                {/* Booking Window */}
+                <div className="flex items-start gap-2 mb-3 text-sm">
+                  <Clock className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                  <div className="text-muted-foreground">
+                    {isBookable ? (
+                      <div>
+                        Book until: {formatDateTime(trip.booking_end_time)}
+                      </div>
+                    ) : (
+                      <div className="text-orange-600 dark:text-orange-400 font-medium">
+                        Booking closed
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Return Time */}
+                <div className="flex items-start gap-2 mb-3 text-sm">
+                  <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                  <div className="text-muted-foreground">
+                    <div>Departs: {formatDateTime(trip.return_time)}</div>
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div className="flex items-center gap-2 mb-6">
+                  <IndianRupee className="w-5 h-5 text-primary" />
+                  <span className="text-2xl font-bold">
+                    ₹{trip.amount_per_person}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    per person
+                  </span>
+                </div>
+
+                {/* Book Button */}
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={!isBookable}
+                  onClick={() => handleBookNowClick(trip)}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  {isBookable ? "Book Now" : "Booking Closed"}
+                </Button>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -314,7 +341,10 @@ export default function TripsPage() {
             {/* Hall Selection */}
             <div className="space-y-2">
               <Label htmlFor="hall">Select Your Hostel Hall *</Label>
-              <Select value={selectedHall} onValueChange={(value) => setSelectedHall(value as Hall)}>
+              <Select
+                value={selectedHall}
+                onValueChange={(value) => setSelectedHall(value as Hall)}
+              >
                 <SelectTrigger id="hall">
                   <SelectValue placeholder="Select your hall" />
                 </SelectTrigger>
@@ -357,11 +387,10 @@ export default function TripsPage() {
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleConfirmBooking}
-              disabled={submitting}
-            >
-              {submitting ? 'Processing...' : `Confirm Booking (₹${selectedTrip?.amount_per_person})`}
+            <Button onClick={handleConfirmBooking} disabled={submitting}>
+              {submitting
+                ? "Processing..."
+                : `Confirm Booking (₹${selectedTrip?.amount_per_person})`}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,15 +1,29 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
-import { Calendar, Clock, IndianRupee, Users, BarChart3, Navigation, Target } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { tripApi } from '@/services/trip.service';
-import type { Trip } from '@/types/trip.types';
-import { getTripDetailStatus, canAccessTab, getDefaultTab } from './utils';
+import { useEffect, useState } from "react";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+  Outlet,
+  Link,
+} from "react-router-dom";
+import {
+  Calendar,
+  Clock,
+  IndianRupee,
+  Users,
+  BarChart3,
+  Navigation,
+  Target,
+} from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { tripApi } from "@/services/trip.service";
+import type { Trip } from "@/types/trip.types";
+import { getTripDetailStatus, canAccessTab, getDefaultTab } from "./utils";
 
 export default function TripDetailLayout() {
   const { tripId } = useParams<{ tripId: string }>();
@@ -19,13 +33,15 @@ export default function TripDetailLayout() {
   const [loading, setLoading] = useState(true);
 
   // Determine current tab from URL
-  const currentPath = location.pathname.split('/').pop() || 'demand';
-  const currentTab = ['demand', 'journey', 'allocation'].includes(currentPath) ? currentPath : 'demand';
+  const currentPath = location.pathname.split("/").pop() || "demand";
+  const currentTab = ["demand", "journey", "allocation"].includes(currentPath)
+    ? currentPath
+    : "demand";
 
   useEffect(() => {
     if (!tripId) {
-      toast.error('Invalid trip ID');
-      navigate('/admin/trips');
+      toast.error("Invalid trip ID");
+      navigate("/admin/trips");
       return;
     }
 
@@ -39,13 +55,13 @@ export default function TripDetailLayout() {
       if (response.success && response.data) {
         setTrip(response.data);
       } else {
-        toast.error('Failed to load trip details');
-        navigate('/admin/trips');
+        toast.error("Failed to load trip details");
+        navigate("/admin/trips");
       }
     } catch (error: any) {
-      console.error('Error fetching trip:', error);
-      toast.error('Failed to load trip details');
-      navigate('/admin/trips');
+      console.error("Error fetching trip:", error);
+      toast.error("Failed to load trip details");
+      navigate("/admin/trips");
     } finally {
       setLoading(false);
     }
@@ -56,11 +72,11 @@ export default function TripDetailLayout() {
     if (!trip || loading) return;
 
     const status = getTripDetailStatus(trip);
-    
+
     // If trip is upcoming, redirect back to trips page
-    if (status === 'upcoming') {
-      toast.error('Upcoming trips cannot be viewed in detail');
-      navigate('/admin/trips');
+    if (status === "upcoming") {
+      toast.error("Upcoming trips cannot be viewed in detail");
+      navigate("/admin/trips");
       return;
     }
 
@@ -100,13 +116,13 @@ export default function TripDetailLayout() {
   const status = getTripDetailStatus(trip);
   const getStatusBadge = () => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <Badge variant="secondary">Completed</Badge>;
-      case 'active-booking-closed':
+      case "active-booking-closed":
         return <Badge className="bg-yellow-500">Active • Booking Closed</Badge>;
-      case 'active-booking-open':
+      case "active-booking-open":
         return <Badge className="bg-green-500">Active • Booking Open</Badge>;
-      case 'upcoming':
+      case "upcoming":
         return <Badge className="bg-blue-500">Upcoming</Badge>;
     }
   };
@@ -129,7 +145,9 @@ export default function TripDetailLayout() {
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Trip Date</p>
-              <p className="font-medium">{format(new Date(trip.trip_date), 'dd MMM, yyyy')}</p>
+              <p className="font-medium">
+                {format(new Date(trip.trip_date), "dd MMM, yyyy")}
+              </p>
             </div>
           </div>
 
@@ -155,7 +173,8 @@ export default function TripDetailLayout() {
             <div>
               <p className="text-sm text-muted-foreground">Booking Window</p>
               <p className="font-medium text-sm">
-                {format(new Date(trip.booking_start_time), 'dd MMM, HH:mm')} - {format(new Date(trip.booking_end_time), 'dd MMM, HH:mm')}
+                {format(new Date(trip.booking_start_time), "dd MMM, HH:mm")} -{" "}
+                {format(new Date(trip.booking_end_time), "dd MMM, HH:mm")}
               </p>
             </div>
           </div>
@@ -165,7 +184,7 @@ export default function TripDetailLayout() {
             <div>
               <p className="text-sm text-muted-foreground">End Time</p>
               <p className="font-medium text-sm">
-                {format(new Date(trip.end_time), 'dd MMM, HH:mm')}
+                {format(new Date(trip.end_time), "dd MMM, HH:mm")}
               </p>
             </div>
           </div>
@@ -175,7 +194,7 @@ export default function TripDetailLayout() {
             <div>
               <p className="text-sm text-muted-foreground">Return Time</p>
               <p className="font-medium text-sm">
-                {format(new Date(trip.return_time), 'dd MMM, HH:mm')}
+                {format(new Date(trip.return_time), "dd MMM, HH:mm")}
               </p>
             </div>
           </div>
@@ -184,25 +203,34 @@ export default function TripDetailLayout() {
         {/* Tabs */}
         <Tabs value={currentTab}>
           <TabsList className="grid grid-cols-3 w-fit">
-            {canAccessTab('demand', status, trip) && (
+            {canAccessTab("demand", status, trip) && (
               <TabsTrigger value="demand" asChild>
-                <Link to={`/admin/trips/${tripId}/demand`} className="flex items-center gap-2">
+                <Link
+                  to={`/admin/trips/${tripId}/demand`}
+                  className="flex items-center gap-2"
+                >
                   <BarChart3 className="w-4 h-4" />
                   Demand
                 </Link>
               </TabsTrigger>
             )}
-            {canAccessTab('journey', status, trip) && (
+            {canAccessTab("journey", status, trip) && (
               <TabsTrigger value="journey" asChild>
-                <Link to={`/admin/trips/${tripId}/journey`} className="flex items-center gap-2">
+                <Link
+                  to={`/admin/trips/${tripId}/journey`}
+                  className="flex items-center gap-2"
+                >
                   <Navigation className="w-4 h-4" />
                   Journey
                 </Link>
               </TabsTrigger>
             )}
-            {canAccessTab('allocation', status, trip) && (
+            {canAccessTab("allocation", status, trip) && (
               <TabsTrigger value="allocation" asChild>
-                <Link to={`/admin/trips/${tripId}/allocation`} className="flex items-center gap-2">
+                <Link
+                  to={`/admin/trips/${tripId}/allocation`}
+                  className="flex items-center gap-2"
+                >
                   <Target className="w-4 h-4" />
                   Allocation
                 </Link>
@@ -217,4 +245,3 @@ export default function TripDetailLayout() {
     </div>
   );
 }
-
