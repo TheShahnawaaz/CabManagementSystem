@@ -1,17 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  profile_picture?: string;
-  is_admin: boolean;
-  created_at: string;
-}
+import type { UserProfile } from '@/types';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => void;
   signOut: () => void;
@@ -22,7 +14,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch user profile from backend
@@ -35,7 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      const userData = await apiClient.get('/auth/me');
+      const userData = await apiClient.get('/auth/me') as UserProfile;
       setUser(userData);
     } catch (error) {
       console.error('Failed to fetch user profile:', error);

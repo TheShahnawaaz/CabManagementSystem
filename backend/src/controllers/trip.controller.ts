@@ -45,6 +45,7 @@ export const getTripDemand = async (req: Request, res: Response): Promise<void> 
             'id', u.id,
             'name', u.name,
             'email', u.email,
+            'phone_number', u.phone_number,
             'profile_picture', u.profile_picture,
             'booking_id', tu.id,
             'created_at', tu.created_at
@@ -506,4 +507,3 @@ export const getUpcomingTrips = async (
     });
   }
 };
-

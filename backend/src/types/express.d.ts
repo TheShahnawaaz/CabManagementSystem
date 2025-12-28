@@ -7,6 +7,7 @@ declare global {
       id: string;
       email: string;
       name: string;
+      phone_number?: string | null;
       profile_picture?: string;
       is_admin: boolean;
       isAdmin: boolean; // Add this for consistency
@@ -19,4 +20,3 @@ declare global {
 export interface AuthRequest extends Request {
   user?: Express.User;
 }
-

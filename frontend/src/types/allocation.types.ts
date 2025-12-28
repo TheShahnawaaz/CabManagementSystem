@@ -11,6 +11,7 @@ export interface AssignedStudent {
   booking_id: string;
   name: string;
   email: string;
+  phone_number: string | null;
   profile_picture: string | null;
   hall: Hall;
   seat_position: string | number; // Seat ID (F1, M1, etc.) or position number
@@ -58,6 +59,7 @@ export interface StudentOption {
   user_id: string;
   name: string;
   email: string;
+  phone_number: string | null;
   profile_picture: string | null;
   hall: Hall;
 }

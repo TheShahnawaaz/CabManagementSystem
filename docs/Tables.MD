@@ -5,6 +5,7 @@ User Table: (data from google login)
 - id
 - name
 - email
+- phone_number (10-digit, stored without +91)
 - profile_picture
 - created_at
 - updated_at
@@ -85,4 +86,3 @@ Journey Table: (Entry on QR code scan)
 - journey_date_time (date and time of the journey pickup or dropoff)
 - created_at
 - updated_at
-
