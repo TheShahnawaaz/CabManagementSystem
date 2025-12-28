@@ -47,6 +47,7 @@ This document defines the complete database schema for the Friday Cab Allocation
 | `id`             | BIGINT         | PRIMARY KEY, AUTO_INCREMENT    | Unique user identifier                |
 | `name`           | VARCHAR(255)   | NOT NULL                       | Full name from Google profile         |
 | `email`          | VARCHAR(255)   | UNIQUE, NOT NULL               | Google email (unique identifier)      |
+| `phone_number`   | VARCHAR(10)    | NULL                           | 10-digit Indian mobile (without +91)  |
 | `profile_picture`| TEXT           | NULL                           | Google profile picture URL            |
 | `created_at`     | TIMESTAMP      | DEFAULT CURRENT_TIMESTAMP      | Account creation timestamp            |
 | `updated_at`     | TIMESTAMP      | ON UPDATE CURRENT_TIMESTAMP    | Last profile update timestamp         |
@@ -522,6 +523,5 @@ VALUES ('Friday Prayer - Dec 19', '2025-12-19', '2025-12-15 00:00:00', '2025-12-
 ---
 
 **Document End**
-
 
 

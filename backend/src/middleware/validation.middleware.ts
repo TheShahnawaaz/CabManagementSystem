@@ -252,6 +252,61 @@ export const validateUUID = (
 };
 
 // ====================================
+// USER PROFILE VALIDATION
+// ====================================
+
+export const validateProfileUpdate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const { name, phone_number } = req.body;
+  const errors: string[] = [];
+
+  if (name === undefined && phone_number === undefined) {
+    res.status(400).json({
+      success: false,
+      error: 'At least one field (name or phone_number) is required'
+    });
+    return;
+  }
+
+  if (name !== undefined) {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      errors.push('Name must be a non-empty string');
+    } else if (name.trim().length > 255) {
+      errors.push('Name must not exceed 255 characters');
+    } else {
+      req.body.name = name.trim();
+    }
+  }
+
+  if (phone_number !== undefined) {
+    if (phone_number === null || phone_number === '') {
+      req.body.phone_number = null;
+    } else {
+      const normalizedPhone = String(phone_number).replace(/[^0-9]/g, '');
+      if (normalizedPhone.length !== 10) {
+        errors.push('Phone number must be exactly 10 digits (without +91)');
+      } else {
+        req.body.phone_number = normalizedPhone;
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors,
+    });
+    return;
+  }
+
+  next();
+};
+
+// ====================================
 // BOOKING VALIDATION
 // ====================================
 

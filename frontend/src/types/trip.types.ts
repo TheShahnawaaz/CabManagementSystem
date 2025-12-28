@@ -38,6 +38,7 @@ export interface StudentDemand {
   id: string;
   name: string;
   email: string;
+  phone_number: string | null;
   profile_picture: string | null;
   booking_id: string;
   created_at: string;
@@ -48,4 +49,3 @@ export interface HallDemand {
   student_count: number;
   students: StudentDemand[];
 }
-

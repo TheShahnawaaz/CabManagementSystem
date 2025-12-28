@@ -416,4 +416,3 @@ function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
     </div>
   );
 }
-

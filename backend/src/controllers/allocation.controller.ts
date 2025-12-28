@@ -87,6 +87,7 @@ export const runAllocation = async (req: Request, res: Response): Promise<void> 
         tu.hall,
         u.name,
         u.email,
+        u.phone_number,
         u.profile_picture
       FROM trip_users tu
       JOIN users u ON tu.user_id = u.id
@@ -141,6 +142,7 @@ export const runAllocation = async (req: Request, res: Response): Promise<void> 
             booking_id: student.booking_id,
             name: student.name,
             email: student.email,
+            phone_number: student.phone_number,
             profile_picture: student.profile_picture,
             hall: student.hall,
             seat_position: idx + 1,
@@ -234,6 +236,7 @@ export const getAllocation = async (req: Request, res: Response): Promise<void> 
             ca.id as booking_id,
             u.name,
             u.email,
+            u.phone_number,
             u.profile_picture,
             tu.hall,
             1 as seat_position
@@ -256,6 +259,7 @@ export const getAllocation = async (req: Request, res: Response): Promise<void> 
           passkey: cab.passkey,
           assigned_students: studentsResult.rows.map((s: any, idx: number) => ({
             ...s,
+            phone_number: s.phone_number,
             seat_position: idx + 1,
           })),
         };
@@ -459,4 +463,3 @@ export const clearAllocation = async (req: Request, res: Response): Promise<void
     client.release();
   }
 };
-

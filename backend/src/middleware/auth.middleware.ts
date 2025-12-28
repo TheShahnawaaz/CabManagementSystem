@@ -26,7 +26,7 @@ export const authenticateUser = async (
 
     // Fetch user details from database to ensure user still exists
     const result = await db.query(
-      'SELECT id, email, name, is_admin FROM users WHERE id = $1',
+      'SELECT id, email, name, phone_number, is_admin FROM users WHERE id = $1',
       [decoded.id]
     );
 
@@ -40,6 +40,7 @@ export const authenticateUser = async (
       id: userData.id,
       email: userData.email,
       name: userData.name,
+      phone_number: userData.phone_number,
       is_admin: userData.is_admin,
       isAdmin: userData.is_admin // Set both for compatibility
     };
@@ -61,4 +62,3 @@ export const requireAdmin = (
   }
   next();
 };
-

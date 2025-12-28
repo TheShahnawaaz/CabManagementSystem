@@ -105,6 +105,9 @@ const adminMenuItems = [
   },
 ]
 
+const formatPhoneNumber = (phone?: string | null) =>
+  phone ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : "Phone not added"
+
 export function AppSidebar() {
   const { user, isAdmin, signOut } = useAuth()
 
@@ -210,8 +213,8 @@ export function AppSidebar() {
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage
-                      src={user?.profile_picture}
-                      alt={user?.name}
+                      src={user?.profile_picture || undefined}
+                      alt={user?.name || "User avatar"}
                     />
                     <AvatarFallback className="rounded-lg">
                       {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -233,8 +236,8 @@ export function AppSidebar() {
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage
-                      src={user?.profile_picture}
-                      alt={user?.name}
+                      src={user?.profile_picture || undefined}
+                      alt={user?.name || "User avatar"}
                     />
                     <AvatarFallback className="rounded-lg">
                       {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -243,6 +246,9 @@ export function AppSidebar() {
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{user?.name}</span>
                     <span className="truncate text-xs">{user?.email}</span>
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {formatPhoneNumber(user?.phone_number)}
+                    </span>
                   </div>
                   {isAdmin && (
                     <Badge variant="default" className="ml-auto">
@@ -276,4 +282,3 @@ export function AppSidebar() {
     </Sidebar>
   )
 }
-

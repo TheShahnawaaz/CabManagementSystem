@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Users } from 'lucide-react';
+import { Phone, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { formatPhoneNumber } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -123,6 +124,10 @@ export default function DemandTab() {
                       <ItemDescription className="text-sm">
                         {student.email}
                       </ItemDescription>
+                      <ItemDescription className="text-sm flex items-center gap-2">
+                        <Phone className="w-3 h-3 text-muted-foreground" />
+                        <span>{formatPhoneNumber(student.phone_number)}</span>
+                      </ItemDescription>
                       <ItemDescription className="text-xs mt-1 text-muted-foreground">
                         Booked: {format(new Date(student.created_at), 'dd MMM yyyy, HH:mm')}
                       </ItemDescription>
@@ -143,4 +148,3 @@ export default function DemandTab() {
     </div>
   );
 }
-

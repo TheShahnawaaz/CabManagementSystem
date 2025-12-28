@@ -244,6 +244,7 @@ export default function AllocationEditPage() {
             booking_id: student.booking_id,
             name: student.name,
             email: student.email,
+            phone_number: student.phone_number,
             profile_picture: student.profile_picture,
             hall: student.hall,
             seat_position: seatId, // Use actual seat ID (F1, M1, etc.)
@@ -498,4 +499,3 @@ export default function AllocationEditPage() {
     </div>
   );
 }
-

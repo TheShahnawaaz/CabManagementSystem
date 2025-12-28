@@ -76,6 +76,7 @@ interface VehicleSeatSelectorProps {
   onSeatChange: (seatId: SeatPosition, userId: string | null) => void;
 }
 
+
 export function VehicleSeatSelector({
   seats,
   availableStudents,
@@ -404,14 +405,14 @@ function SeatButton({
                       .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span
-                  className={[
-                    text,
-                    "font-semibold text-foreground/90 max-w-[36px] md:max-w-[52px] truncate block",
-                  ].join(" ")}
-                >
-                  {student.name.split(" ")[0]}
-                </span>
+            <span
+              className={[
+                text,
+                "font-semibold text-foreground/90 max-w-[36px] md:max-w-[52px] truncate block",
+              ].join(" ")}
+            >
+              {student.name.split(" ")[0]}
+            </span>
               </>
             ) : (
               <>
