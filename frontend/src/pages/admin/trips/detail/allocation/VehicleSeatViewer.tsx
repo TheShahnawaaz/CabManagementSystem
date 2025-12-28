@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/item";
 import { Lock, Mail, Phone, Armchair } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/utils";
+import { useState } from "react";
 import type { AssignedStudent, SeatPosition } from "@/types/allocation.types";
 
 const VIEWBOX = { w: 300, h: 420 };
@@ -453,6 +454,11 @@ function SeatDisplay({
   student: AssignedStudent | undefined;
   small?: boolean;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
   const isAssigned = !!student;
   // Mobile stays same, desktop increased by ~30%
   const outer = small
@@ -469,6 +475,23 @@ function SeatDisplay({
   const hallColors = student?.hall
     ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS]
     : null;
+
+  // Handle hover with delay
+  const handleMouseEnter = () => {
+    if (hoverTimeout) clearTimeout(hoverTimeout);
+    const timeout = setTimeout(() => {
+      setIsOpen(true);
+    }, 200); // 200ms delay before opening
+    setHoverTimeout(timeout);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setIsOpen(false);
+  };
 
   const seatContent = (
     <div
@@ -548,9 +571,24 @@ function SeatDisplay({
 
   // If student assigned, wrap with popover (works on both desktop hover & mobile click)
   return (
-    <Popover>
-      <PopoverTrigger asChild>{seatContent}</PopoverTrigger>
-      <PopoverContent className="w-80 p-0" side="top" align="center">
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger
+        asChild
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {seatContent}
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-80 p-0"
+        side="top"
+        align="center"
+        onMouseEnter={() => {
+          if (hoverTimeout) clearTimeout(hoverTimeout);
+          setIsOpen(true);
+        }}
+        onMouseLeave={handleMouseLeave}
+      >
         <Item variant="outline" className="border-0">
           <ItemMedia>
             <Avatar className="h-14 w-14">
