@@ -73,9 +73,6 @@ interface VehicleSeatViewerProps {
   availableStudents: StudentOption[];
 }
 
-const formatPhone = (phone?: string | null) =>
-  phone ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : 'Phone not provided';
-
 export function VehicleSeatViewer({
   seats,
   availableStudents,
@@ -380,9 +377,6 @@ function SeatDisplay({
               ].join(" ")}
             >
               {student.name.split(" ")[0]}
-            </span>
-            <span className="text-[9px] md:text-[10px] text-muted-foreground text-center leading-tight max-w-[56px]">
-              {formatPhone(student.phone_number)}
             </span>
           </>
         ) : (
