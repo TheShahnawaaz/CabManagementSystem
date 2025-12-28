@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Phone, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { formatPhoneNumber } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,8 +25,6 @@ export default function DemandTab() {
   const { tripId } = useParams<{ tripId: string }>();
   const [demands, setDemands] = useState<HallDemand[]>([]);
   const [loading, setLoading] = useState(true);
-  const formatPhone = (phone?: string | null) =>
-    phone ? `+91 ${phone.slice(0, 5)} ${phone.slice(5)}` : 'Not provided';
 
   const fetchDemand = async () => {
     try {
@@ -127,7 +126,7 @@ export default function DemandTab() {
                       </ItemDescription>
                       <ItemDescription className="text-sm flex items-center gap-2">
                         <Phone className="w-3 h-3 text-muted-foreground" />
-                        <span>{formatPhone(student.phone_number)}</span>
+                        <span>{formatPhoneNumber(student.phone_number)}</span>
                       </ItemDescription>
                       <ItemDescription className="text-xs mt-1 text-muted-foreground">
                         Booked: {format(new Date(student.created_at), 'dd MMM yyyy, HH:mm')}

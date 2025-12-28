@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Phone, Mail, ShieldCheck, User as UserIcon, CalendarClock, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 import { userApi } from '@/services';
+import { formatPhoneNumber } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -34,12 +35,6 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
-
-  const formattedPhone = useMemo(() => {
-    if (!user?.phone_number) return 'Not provided';
-    const digits = user.phone_number;
-    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
-  }, [user?.phone_number]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -139,10 +134,7 @@ export default function ProfilePage() {
                 <Label className="text-xs text-muted-foreground flex items-center gap-2">
                   <Phone className="w-4 h-4" /> Phone number
                 </Label>
-                <p className="text-sm font-medium">{formattedPhone}</p>
-                <p className="text-xs text-muted-foreground">
-                  Stored without the +91 prefix. We only keep 10 digits.
-                </p>
+                <p className="text-sm font-medium">{formatPhoneNumber(user.phone_number)}</p>
               </div>
             </div>
             <Separator />
@@ -191,7 +183,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  We store only the 10-digit number. Keep this empty if you don&apos;t want to add it yet.
+                  Keep this empty if you don&apos;t want to add it yet.
                 </p>
               </div>
 
