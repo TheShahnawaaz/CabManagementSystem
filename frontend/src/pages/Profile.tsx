@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Phone,
   Mail,
-  ShieldCheck,
   User as UserIcon,
   CalendarClock,
   Edit2,
@@ -14,13 +13,7 @@ import { formatPhoneNumber } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -90,145 +83,194 @@ export default function ProfilePage() {
             View your account details and update your contact number.
           </p>
         </div>
-        {!isEditing && (
-          <Button onClick={() => setIsEditing(true)} variant="default">
-            <Edit2 className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
-        )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div>
-              <CardTitle>Profile Overview</CardTitle>
-              <CardDescription>
-                Core details about your account.
-              </CardDescription>
-            </div>
-            {user.profile_picture && (
-              <Avatar className="h-14 w-14">
-                <AvatarImage src={user.profile_picture} alt={user.name} />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                  <Mail className="w-4 h-4" /> Email
-                </Label>
-                <p className="text-sm font-medium break-words">{user.email}</p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4" /> Role
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Badge variant={user.is_admin ? "default" : "secondary"}>
-                    {user.is_admin ? "Administrator" : "User"}
-                  </Badge>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                  <CalendarClock className="w-4 h-4" /> Member since
-                </Label>
-                <p className="text-sm font-medium">
-                  {new Date(user.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                  <Phone className="w-4 h-4" /> Phone number
-                </Label>
-                <p className="text-sm font-medium">
-                  {formatPhoneNumber(user.phone_number)}
-                </p>
-              </div>
-            </div>
-            <Separator />
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">
-                Display name
-              </Label>
-              <p className="text-lg font-semibold">{user.name}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Settings</CardTitle>
-            <CardDescription>
-              Only your name and phone number can be edited.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <Label htmlFor="name">Full name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={(event) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      name: event.target.value,
-                    }))
-                  }
-                  disabled={!isEditing}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone number</Label>
-                <div className="flex items-center gap-2">
-                  <div className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
-                    +91
+      <div className="w-full">
+        <div
+          className="relative w-full"
+          style={{ perspective: "1500px", minHeight: "450px" }}
+        >
+          <div
+            className="relative w-full"
+            style={{
+              transformStyle: "preserve-3d",
+              transform: isEditing ? "rotateY(180deg)" : "rotateY(0deg)",
+              transition: "transform 0.9s ease-in-out",
+            }}
+          >
+            {/* Front Side - Profile Overview */}
+            <div
+              className="w-full"
+              style={{
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+              }}
+            >
+              <Card className="border-2">
+                <CardContent className="p-8">
+                  <div className="flex items-start justify-between gap-6 mb-8 flex-wrap">
+                    <div className="flex items-center gap-6">
+                      <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                        <AvatarImage
+                          src={user.profile_picture ?? undefined}
+                          alt={user.name}
+                        />
+                        <AvatarFallback className="text-2xl font-bold">
+                          {user.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-2">
+                        <h2 className="text-3xl font-bold tracking-tight">
+                          {user.name}
+                        </h2>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={user.is_admin ? "default" : "secondary"}
+                            className="text-sm px-3 py-1"
+                          >
+                            {user.is_admin ? "Administrator" : "User"}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => setIsEditing(true)}
+                      variant="default"
+                      size="lg"
+                    >
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
                   </div>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="Enter 10 digits"
-                    value={formData.phone_number}
-                    onChange={(event) => handlePhoneChange(event.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Keep this empty if you don&apos;t want to add it yet.
-                </p>
-              </div>
 
-              {isEditing && (
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setFormData({
-                        name: user.name,
-                        phone_number: user.phone_number ?? "",
-                      });
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Updating..." : "Update Profile"}
-                  </Button>
-                </div>
-              )}
-            </form>
-          </CardContent>
-        </Card>
+                  <Separator className="mb-8" />
+
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/50">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Mail className="w-5 h-5" /> Email Address
+                      </Label>
+                      <p className="text-base font-semibold break-words">
+                        {user.email}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/50">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Phone className="w-5 h-5" /> Phone Number
+                      </Label>
+                      <p className="text-base font-semibold">
+                        {formatPhoneNumber(user.phone_number)}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/50">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <CalendarClock className="w-5 h-5" /> Member Since
+                      </Label>
+                      <p className="text-base font-semibold">
+                        {new Date(user.created_at).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Back Side - Edit Form */}
+            <div
+              className="absolute top-0 left-0 w-full"
+              style={{
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+                transform: "rotateY(180deg)",
+              }}
+            >
+              <Card className="border-2">
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold tracking-tight">
+                      Edit Profile
+                    </h2>
+                    <p className="text-muted-foreground mt-1">
+                      Update your name and phone number below.
+                    </p>
+                  </div>
+
+                  <form className="space-y-6" onSubmit={handleSubmit}>
+                    <div className="space-y-3">
+                      <Label htmlFor="name" className="text-base font-medium">
+                        Full name
+                      </Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={(event) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            name: event.target.value,
+                          }))
+                        }
+                        required
+                        className="h-12 text-base"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label htmlFor="phone" className="text-base font-medium">
+                        Phone number
+                      </Label>
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-md border bg-muted px-4 py-3 text-base font-medium text-muted-foreground">
+                          +91
+                        </div>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          placeholder="Enter 10 digits"
+                          value={formData.phone_number}
+                          onChange={(event) =>
+                            handlePhoneChange(event.target.value)
+                          }
+                          className="h-12 text-base"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Keep this empty if you don&apos;t want to add it yet.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setFormData({
+                            name: user.name,
+                            phone_number: user.phone_number ?? "",
+                          });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={saving} size="lg">
+                        {saving ? "Updating..." : "Update Profile"}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
