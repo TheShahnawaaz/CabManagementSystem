@@ -1,6 +1,20 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Lock } from "lucide-react";
-import type { StudentOption, SeatAssignments } from "@/types/allocation.types";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
+import { Lock, Mail, Phone, Armchair } from "lucide-react";
+import { formatPhoneNumber } from "@/lib/utils";
+import type { AssignedStudent, SeatPosition } from "@/types/allocation.types";
 
 const VIEWBOX = { w: 300, h: 420 };
 
@@ -57,8 +71,6 @@ const HALL_COLORS = {
   },
 } as const;
 
-type SeatPosition = keyof SeatAssignments;
-
 type SeatMeta = {
   id: SeatPosition;
   label: string;
@@ -69,14 +81,10 @@ type SeatMeta = {
 };
 
 interface VehicleSeatViewerProps {
-  seats: SeatAssignments;
-  availableStudents: StudentOption[];
+  students: Partial<Record<SeatPosition, AssignedStudent>>;
 }
 
-export function VehicleSeatViewer({
-  seats,
-  availableStudents,
-}: VehicleSeatViewerProps) {
+export function VehicleSeatViewer({ students }: VehicleSeatViewerProps) {
   const driverSeat = { x: 192, y: 130, rot: 0 };
 
   const passengerSeats: SeatMeta[] = [
@@ -88,11 +96,6 @@ export function VehicleSeatViewer({
     { id: "B2", label: "B2", x: 150, y: 310, size: "sm" },
     { id: "B3", label: "B3", x: 200, y: 310, size: "sm" },
   ];
-
-  const getAssignedStudent = (seatId: SeatPosition) => {
-    const userId = seats[seatId];
-    return availableStudents.find((s) => s.user_id === userId);
-  };
 
   return (
     <div className="w-full max-w-[520px] mx-auto">
@@ -418,7 +421,7 @@ export function VehicleSeatViewer({
           {passengerSeats.map((s) => (
             <div
               key={s.id}
-              className="absolute"
+              className="absolute pointer-events-auto"
               style={{
                 left: `${(s.x / VIEWBOX.w) * 100}%`,
                 top: `${(s.y / VIEWBOX.h) * 100}%`,
@@ -428,7 +431,7 @@ export function VehicleSeatViewer({
               <SeatDisplay
                 seatId={s.id}
                 label={s.label}
-                student={getAssignedStudent(s.id)}
+                student={students[s.id]}
                 small={s.size === "sm"}
               />
             </div>
@@ -447,16 +450,17 @@ function SeatDisplay({
 }: {
   seatId: string;
   label: string;
-  student: StudentOption | undefined;
+  student: AssignedStudent | undefined;
   small?: boolean;
 }) {
   const isAssigned = !!student;
+  // Mobile stays same, desktop increased by ~30%
   const outer = small
-    ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]"
-    : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
+    ? "w-[48px] h-[46px] md:w-[72px] md:h-[70px]"
+    : "w-[50px] h-[48px] md:w-[84px] md:h-[82px]";
   const avatar = small
-    ? "w-4 h-4 text-[8px] md:w-6 md:h-6 md:text-[10px]"
-    : "w-5 h-5 text-[9px] md:w-7 md:h-7 md:text-[11px]";
+    ? "w-4 h-4 text-[8px] md:w-8 md:h-8 md:text-xs"
+    : "w-5 h-5 text-[9px] md:w-9 md:h-9 md:text-sm";
   const text = small
     ? "text-[8px] md:text-[10px]"
     : "text-[9px] md:text-[11px]";
@@ -466,22 +470,33 @@ function SeatDisplay({
     ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS]
     : null;
 
-  return (
+  const seatContent = (
     <div
       className={[
         "relative",
         outer,
-        "rounded-2xl border",
+        "border",
         "shadow-xl",
         "bg-gradient-to-b from-muted/70 to-muted/35",
         isAssigned && hallColors
           ? `${hallColors.border} ring-2 ${hallColors.ring}`
           : "border-border/70",
+        isAssigned ? "cursor-pointer" : "",
       ].join(" ")}
+      style={{
+        borderRadius: small ? "18%" : "16%", // Percentage-based for proportional rounding
+      }}
       aria-label={`Seat ${seatId}`}
     >
       {/* Cushion shine */}
-      <div className="absolute inset-0 rounded-2xl pointer-events-none [background:radial-gradient(40px_24px_at_35%_25%,rgba(255,255,255,0.18),transparent_60%)]" />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          borderRadius: small ? "18%" : "16%",
+          background:
+            "radial-gradient(40px 24px at 35% 25%, rgba(255,255,255,0.18), transparent 60%)",
+        }}
+      />
 
       {/* Content */}
       <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
@@ -525,28 +540,107 @@ function SeatDisplay({
       </div>
     </div>
   );
+
+  // If no student assigned, return seat without popover
+  if (!isAssigned) {
+    return seatContent;
+  }
+
+  // If student assigned, wrap with popover (works on both desktop hover & mobile click)
+  return (
+    <Popover>
+      <PopoverTrigger asChild>{seatContent}</PopoverTrigger>
+      <PopoverContent className="w-80 p-0" side="top" align="center">
+        <Item variant="outline" className="border-0">
+          <ItemMedia>
+            <Avatar className="h-14 w-14">
+              <AvatarImage
+                src={student.profile_picture || undefined}
+                alt={student.name}
+              />
+              <AvatarFallback
+                className={`${hallColors?.avatar} ${hallColors?.text} text-base font-bold`}
+              >
+                {student.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .substring(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </ItemMedia>
+
+          <ItemContent>
+            <ItemTitle className="line-clamp-1 flex items-center gap-2">
+              {student.name}
+              <Badge
+                variant="secondary"
+                className={`${hallColors?.avatar.replace("bg-", "text-")} text-xs font-semibold`}
+              >
+                {student.hall}
+              </Badge>
+            </ItemTitle>
+            <ItemDescription className="space-y-1 mt-1">
+              <div className="flex items-center gap-1.5 text-xs">
+                <Mail className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{student.email}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs">
+                <Phone className="w-3 h-3 flex-shrink-0" />
+                <span>{formatPhoneNumber(student.phone_number)}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs">
+                <Armchair className="w-3 h-3 flex-shrink-0" />
+                <span className="font-mono font-semibold">Seat {seatId}</span>
+              </div>
+            </ItemDescription>
+          </ItemContent>
+        </Item>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
+  // Mobile stays same, desktop increased by ~30%
   const outer =
     size === "sm"
-      ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]"
-      : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
+      ? "w-[48px] h-[46px] md:w-[72px] md:h-[70px]"
+      : "w-[50px] h-[48px] md:w-[84px] md:h-[82px]";
   const text =
-    size === "sm" ? "text-[8px] md:text-[10px]" : "text-[9px] md:text-[11px]";
+    size === "sm" ? "text-[8px] md:text-xs" : "text-[9px] md:text-sm";
+  const iconSize =
+    size === "sm" ? "w-5 h-5 md:w-9 md:h-9" : "w-5 h-5 md:w-10 md:h-10";
+  const lockSize =
+    size === "sm" ? "w-3 h-3 md:w-5 md:h-5" : "w-3 h-3 md:w-5 md:h-5";
 
   return (
     <div
       className={[
         "relative",
         outer,
-        "rounded-2xl border border-border/60 bg-muted/40 shadow-xl opacity-90",
+        "border border-border/60 bg-muted/40 shadow-xl opacity-90",
       ].join(" ")}
+      style={{
+        borderRadius: size === "sm" ? "18%" : "16%",
+      }}
     >
-      <div className="absolute inset-0 rounded-2xl pointer-events-none [background:radial-gradient(40px_24px_at_35%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          borderRadius: size === "sm" ? "18%" : "16%",
+          background:
+            "radial-gradient(40px 24px at 35% 25%, rgba(255,255,255,0.14), transparent 60%)",
+        }}
+      />
       <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
-        <div className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-muted-foreground/20 flex items-center justify-center">
-          <Lock className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground" />
+        <div
+          className={`${iconSize} rounded-full bg-muted-foreground/20 flex items-center justify-center`}
+        >
+          <Lock className={`${lockSize} text-muted-foreground`} />
         </div>
         <span
           className={[text, "font-semibold text-muted-foreground"].join(" ")}

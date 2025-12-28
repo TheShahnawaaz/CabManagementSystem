@@ -20,14 +20,10 @@ import { DemandSummaryCards } from "./allocation/DemandSummaryCards";
 import { VehicleSeatViewer } from "./allocation/VehicleSeatViewer";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { mapStudentsToSeats } from "@/utils/allocation.utils";
 import type { Trip } from "@/types/trip.types";
 import type { TripDetailStatus } from "./utils";
-import type {
-  CabAllocation,
-  DemandSummary,
-  AssignedStudent,
-  SeatAssignments,
-} from "@/types/allocation.types";
+import type { CabAllocation, DemandSummary } from "@/types/allocation.types";
 
 interface AllocationTabContext {
   trip: Trip;
@@ -48,19 +44,6 @@ export default function AllocationTab() {
   const [demandSummary, setDemandSummary] = useState<DemandSummary[]>([]);
   const [cabs, setCabs] = useState<CabAllocation[]>([]);
   const [totalStudents, setTotalStudents] = useState(0);
-  const [allStudents, setAllStudents] = useState<AssignedStudent[]>([]);
-  const [formattedCabs, setFormattedCabs] = useState<
-    {
-      id: string;
-      cab_number: string;
-      cab_type: string;
-      driver_name: string;
-      driver_phone: string;
-      pickup_region: string;
-      passkey: string;
-      seats: SeatAssignments;
-    }[]
-  >([]);
 
   // Dialogs
   const [showClearDialog, setShowClearDialog] = useState(false);
@@ -82,58 +65,6 @@ export default function AllocationTab() {
           const cabData = response.data.cabs || [];
           setCabs(cabData);
           setTotalStudents(response.data.total_students || 0);
-
-          // Extract all unique students
-          const students: AssignedStudent[] = [];
-          cabData.forEach((cab) => {
-            cab.assigned_students.forEach((student) => {
-              if (!students.find((s) => s.user_id === student.user_id)) {
-                students.push(student);
-              }
-            });
-          });
-          setAllStudents(students);
-
-          // Format cabs for view
-          const formatted = cabData.map((cab) => {
-            const seats: SeatAssignments = {
-              F1: null,
-              M1: null,
-              M2: null,
-              M3: null,
-              B1: null,
-              B2: null,
-              B3: null,
-            };
-
-            // Map assigned students to seats
-            cab.assigned_students.forEach((student, idx) => {
-              const seatKeys: Array<keyof SeatAssignments> = [
-                "F1",
-                "M1",
-                "M2",
-                "M3",
-                "B1",
-                "B2",
-                "B3",
-              ];
-              if (idx < seatKeys.length) {
-                seats[seatKeys[idx]] = student.user_id;
-              }
-            });
-
-            return {
-              id: cab.id || cab.temp_id || "",
-              cab_number: cab.cab_number,
-              cab_type: cab.cab_type || "Omni",
-              driver_name: cab.driver_name,
-              driver_phone: cab.driver_phone || "",
-              pickup_region: cab.pickup_region,
-              passkey: cab.passkey,
-              seats,
-            };
-          });
-          setFormattedCabs(formatted);
         } else {
           setDemandSummary(response.data.demand_summary || []);
         }
@@ -300,98 +231,101 @@ export default function AllocationTab() {
 
       {/* Cabs */}
       <div className="space-y-6">
-        {formattedCabs.map((cab, index) => (
-          <Card key={cab.id} className="overflow-hidden">
-            {/* Cab Header */}
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-muted/30">
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
-                  Cab #{index + 1}
-                  <span className="text-xs sm:text-sm font-normal text-muted-foreground">
-                    • {cab.pickup_region}
-                  </span>
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {Object.values(cab.seats).filter(Boolean).length}/7 seats
-                  filled
-                </p>
+        {cabs.map((cab, index) => {
+          // Map students to seats using utility function
+          const studentsBySeat = mapStudentsToSeats(cab.assigned_students);
+
+          return (
+            <Card key={cab.id || cab.temp_id} className="overflow-hidden">
+              {/* Cab Header */}
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-muted/30">
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                    Cab #{index + 1}
+                    <span className="text-xs sm:text-sm font-normal text-muted-foreground">
+                      • {cab.pickup_region}
+                    </span>
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    {cab.assigned_students.length}/7 seats filled
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto,1fr] gap-6 lg:gap-8">
-                {/* Left: Cab Details (Read-only) */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Cab Number</Label>
-                      <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center font-mono text-sm">
-                        {cab.cab_number}
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto,1fr] gap-6 lg:gap-8">
+                  {/* Left: Cab Details (Read-only) */}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Cab Number
+                        </Label>
+                        <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center font-mono text-sm">
+                          {cab.cab_number}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Cab Type</Label>
+                        <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm capitalize">
+                          {cab.cab_type}
+                        </div>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Cab Type</Label>
-                      <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm capitalize">
-                        {cab.cab_type}
+                      <Label className="text-sm font-medium">Driver Name</Label>
+                      <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
+                        {cab.driver_name}
                       </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Driver Name</Label>
-                    <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
-                      {cab.driver_name}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Driver Phone</Label>
-                    <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
-                      {cab.driver_phone}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        Pickup Region
+                        Driver Phone
                       </Label>
                       <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
-                        {cab.pickup_region}
+                        {cab.driver_phone}
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Passkey</Label>
-                      <div className="h-10 px-3 py-2 rounded-md border border-primary/20 bg-primary/5 flex items-center font-mono text-base font-semibold text-primary">
-                        {cab.passkey}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Pickup Region
+                        </Label>
+                        <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
+                          {cab.pickup_region}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Passkey</Label>
+                        <div className="h-10 px-3 py-2 rounded-md border border-primary/20 bg-primary/5 flex items-center font-mono text-base font-semibold text-primary">
+                          {cab.passkey}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Divider */}
-                <div className="hidden lg:block">
-                  <Separator orientation="vertical" className="h-full" />
-                </div>
-                <div className="lg:hidden">
-                  <Separator orientation="horizontal" />
-                </div>
+                  {/* Divider */}
+                  <div className="hidden lg:block">
+                    <Separator orientation="vertical" className="h-full" />
+                  </div>
+                  <div className="lg:hidden">
+                    <Separator orientation="horizontal" />
+                  </div>
 
-                {/* Right: Vehicle Seat Viewer */}
-                <div className="flex items-center justify-center lg:justify-start">
-                  <VehicleSeatViewer
-                    seats={cab.seats}
-                    availableStudents={allStudents.filter((s) =>
-                      Object.values(cab.seats).includes(s.user_id)
-                    )}
-                  />
+                  {/* Right: Vehicle Seat Viewer */}
+                  <div className="flex items-center justify-center lg:justify-start">
+                    <VehicleSeatViewer students={studentsBySeat} />
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Clear Allocation Dialog */}

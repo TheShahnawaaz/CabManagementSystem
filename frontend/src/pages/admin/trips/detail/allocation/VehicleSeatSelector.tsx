@@ -489,12 +489,13 @@ function SeatButton({
   onOpenChange: (open: boolean) => void;
 }) {
   const isAssigned = !!student;
+  // Mobile stays same, desktop increased by ~30%
   const outer = small
-    ? "w-[48px] h-[46px] md:w-[58px] md:h-[56px]"
-    : "w-[50px] h-[48px] md:w-[66px] md:h-[64px]";
+    ? "w-[48px] h-[46px] md:w-[72px] md:h-[70px]"
+    : "w-[50px] h-[48px] md:w-[84px] md:h-[82px]";
   const avatar = small
-    ? "w-4 h-4 text-[8px] md:w-6 md:h-6 md:text-[10px]"
-    : "w-5 h-5 text-[9px] md:w-7 md:h-7 md:text-[11px]";
+    ? "w-4 h-4 text-[8px] md:w-8 md:h-8 md:text-[10px]"
+    : "w-5 h-5 text-[9px] md:w-9 md:h-9 md:text-[11px]";
   const text = small
     ? "text-[8px] md:text-[10px]"
     : "text-[9px] md:text-[11px]";
@@ -516,7 +517,7 @@ function SeatButton({
           className={[
             "relative",
             outer,
-            "rounded-2xl border transition-all duration-200",
+            "border transition-all duration-200",
             "shadow-xl",
             "bg-gradient-to-b from-muted/70 to-muted/35",
             "hover:scale-[1.04] active:scale-[0.98]",
@@ -524,10 +525,20 @@ function SeatButton({
               ? `${hallColors.border} ring-2 ${hallColors.ring}`
               : "border-border/70 hover:border-border",
           ].join(" ")}
+          style={{
+            borderRadius: small ? "18%" : "16%", // Percentage-based for proportional rounding
+          }}
           aria-label={`Seat ${seatId}`}
         >
           {/* Cushion shine */}
-          <div className="absolute inset-0 rounded-2xl pointer-events-none [background:radial-gradient(40px_24px_at_35%_25%,rgba(255,255,255,0.18),transparent_60%)]" />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              borderRadius: small ? "18%" : "16%",
+              background:
+                "radial-gradient(40px 24px at 35% 25%, rgba(255,255,255,0.18), transparent 60%)",
+            }}
+          />
 
           {/* Content */}
           <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
@@ -625,21 +636,42 @@ function SeatButton({
 }
 
 function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
-  const outer = size === "sm" ? "w-[58px] h-[56px]" : "w-[66px] h-[64px]";
-  const text = size === "sm" ? "text-[10px]" : "text-[11px]";
+  // Mobile stays same, desktop increased by ~30%
+  const outer =
+    size === "sm"
+      ? "w-[48px] h-[46px] md:w-[72px] md:h-[70px]"
+      : "w-[50px] h-[48px] md:w-[84px] md:h-[82px]";
+  const text =
+    size === "sm" ? "text-[8px] md:text-xs" : "text-[9px] md:text-sm";
+  const iconSize =
+    size === "sm" ? "w-5 h-5 md:w-9 md:h-9" : "w-5 h-5 md:w-10 md:h-10";
+  const lockSize =
+    size === "sm" ? "w-3 h-3 md:w-5 md:h-5" : "w-3 h-3 md:w-5 md:h-5";
 
   return (
     <div
       className={[
         "relative",
         outer,
-        "rounded-2xl border border-border/60 bg-muted/40 shadow-xl opacity-90",
+        "border border-border/60 bg-muted/40 shadow-xl opacity-90",
       ].join(" ")}
+      style={{
+        borderRadius: size === "sm" ? "18%" : "16%",
+      }}
     >
-      <div className="absolute inset-0 rounded-2xl pointer-events-none [background:radial-gradient(40px_24px_at_35%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          borderRadius: size === "sm" ? "18%" : "16%",
+          background:
+            "radial-gradient(40px 24px at 35% 25%, rgba(255,255,255,0.14), transparent 60%)",
+        }}
+      />
       <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
-        <div className="w-7 h-7 rounded-full bg-muted-foreground/20 flex items-center justify-center">
-          <Lock className="w-4 h-4 text-muted-foreground" />
+        <div
+          className={`${iconSize} rounded-full bg-muted-foreground/20 flex items-center justify-center`}
+        >
+          <Lock className={`${lockSize} text-muted-foreground`} />
         </div>
         <span
           className={[text, "font-semibold text-muted-foreground"].join(" ")}
