@@ -30,21 +30,30 @@ export function UserStats({ users }: UserStatsProps) {
       title: "Admin Users",
       value: adminCount,
       icon: Shield,
-      description: `${((adminCount / totalUsers) * 100).toFixed(1)}% of total`,
+      description:
+        totalUsers > 0
+          ? `${((adminCount / totalUsers) * 100).toFixed(1)}% of total`
+          : "0% of total",
       color: "text-purple-500",
     },
     {
       title: "Total Bookings",
       value: totalBookings,
       icon: Calendar,
-      description: `${(totalBookings / totalUsers).toFixed(1)} per user avg`,
+      description:
+        totalUsers > 0
+          ? `${(totalBookings / totalUsers).toFixed(1)} per user avg`
+          : "0 per user avg",
       color: "text-green-500",
     },
     {
       title: "Confirmed Payments",
       value: totalPayments,
       icon: CreditCard,
-      description: `${((totalPayments / totalBookings) * 100).toFixed(1)}% completion`,
+      description:
+        totalBookings > 0
+          ? `${((totalPayments / totalBookings) * 100).toFixed(1)}% completion`
+          : "0% completion",
       color: "text-orange-500",
     },
   ];
