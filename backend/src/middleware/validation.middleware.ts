@@ -45,11 +45,6 @@ export const validateTripData = (
       if (isNaN(tripDate.getTime())) {
         errors.push('Invalid trip date');
       }
-      // Check if trip_date is a Friday
-      const dayOfWeek = tripDate.getDay();
-      if (dayOfWeek !== 5) {
-        errors.push('Trip date must be a Friday (day 5 of the week)');
-      }
     }
   }
 
@@ -176,11 +171,6 @@ export const validateTripUpdate = (
       const tripDate = new Date(trip_date);
       if (isNaN(tripDate.getTime())) {
         errors.push('Invalid trip date');
-      }
-      // Check if trip_date is a Friday
-      const dayOfWeek = tripDate.getDay();
-      if (dayOfWeek !== 5) {
-        errors.push('Trip date must be a Friday (day 5 of the week)');
       }
     }
   }

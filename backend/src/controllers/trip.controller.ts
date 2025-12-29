@@ -135,11 +135,12 @@ export const createTrip = async (req: Request, res: Response): Promise<void> => 
   } catch (error: any) {
     console.error('Error creating trip:', error);
 
-    // Handle unique constraint violation (duplicate trip_date)
+    // Handle unique constraint violation (if any other unique constraints exist)
     if (error.code === '23505') {
       res.status(409).json({
         success: false,
-        error: 'A trip already exists for this date',
+        error: 'Duplicate value detected',
+        details: error.message,
       });
       return;
     }
@@ -360,11 +361,12 @@ export const updateTrip = async (req: Request, res: Response): Promise<void> => 
   } catch (error: any) {
     console.error('Error updating trip:', error);
 
-    // Handle unique constraint violation
+    // Handle unique constraint violation (if any other unique constraints exist)
     if (error.code === '23505') {
       res.status(409).json({
         success: false,
-        error: 'A trip already exists for this date',
+        error: 'Duplicate value detected',
+        details: error.message,
       });
       return;
     }
