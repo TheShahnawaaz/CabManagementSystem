@@ -45,7 +45,7 @@ const userMenuItems = [
     icon: Home,
   },
   {
-    title: "Active Trips",
+    title: "Trips",
     url: "/trips",
     icon: MapPin,
   },
@@ -59,11 +59,6 @@ const userMenuItems = [
     url: "/profile",
     icon: User2,
   },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
 ];
 
 // Menu items for admin users
@@ -74,14 +69,14 @@ const adminMenuItems = [
     icon: Home,
   },
   {
-    title: "Manage Users",
-    url: "/admin/users",
-    icon: Users,
-  },
-  {
     title: "Manage Trips",
     url: "/admin/trips",
     icon: Calendar,
+  },
+  {
+    title: "Manage Users",
+    url: "/admin/users",
+    icon: Users,
   },
   {
     title: "Manage Vehicles",
@@ -180,27 +175,7 @@ export function AppSidebar() {
             </SidebarGroup>
           </>
         )}
-
-        <SidebarSeparator />
-
-        {/* Testing Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Development</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Testing Pages">
-                  <Link to="/rough">
-                    <FileText />
-                    <span>Rough/Testing</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
-
       {/* Sidebar Footer - User Menu */}
       <SidebarFooter>
         <SidebarMenu>
@@ -260,13 +235,7 @@ export function AppSidebar() {
                 <DropdownMenuItem asChild>
                   <Link to="/profile">
                     <User2 className="mr-2 h-4 w-4" />
-                    Account
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    Profile
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

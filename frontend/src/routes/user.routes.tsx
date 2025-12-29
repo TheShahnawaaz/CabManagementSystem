@@ -1,15 +1,8 @@
-import {
-  Home as HomeIcon,
-  User,
-  Calendar,
-  MapPin,
-  Settings,
-} from "lucide-react";
+import { Home as HomeIcon, User, Calendar, MapPin } from "lucide-react";
 import Home from "@/pages/Home";
 import ProfilePage from "@/pages/Profile";
 import BookingsPage from "@/pages/bookings";
 import TripsPage from "@/pages/trips";
-import SettingsPage from "@/pages/Settings";
 import type { CustomRouteObject } from "./guards";
 
 /**
@@ -22,7 +15,6 @@ import type { CustomRouteObject } from "./guards";
  * - Dashboard
  * - User profile
  * - Booking management
- * - Personal settings
  * - Trip history
  *
  * Security:
@@ -81,19 +73,6 @@ export const userRoutes: CustomRouteObject[] = [
       breadcrumb: {
         label: "Trips",
         icon: MapPin,
-      },
-    },
-  },
-  {
-    path: "settings",
-    element: <SettingsPage />,
-    meta: {
-      requireAuth: true,
-      title: "Settings",
-      description: "Account settings",
-      breadcrumb: {
-        label: "Settings",
-        icon: Settings,
       },
     },
   },
