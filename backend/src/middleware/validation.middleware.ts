@@ -307,6 +307,122 @@ export const validateProfileUpdate = (
 };
 
 // ====================================
+// USER MANAGEMENT VALIDATION
+// ====================================
+
+export const validateUserCreation = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const { email, name, phone_number, is_admin } = req.body;
+  const errors: string[] = [];
+
+  // Validate email
+  if (!email) {
+    errors.push('Email is required');
+  } else if (typeof email !== 'string') {
+    errors.push('Email must be a string');
+  } else {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      errors.push('Invalid email format');
+    }
+  }
+
+  // Validate name
+  if (!name) {
+    errors.push('Name is required');
+  } else if (typeof name !== 'string' || name.trim().length === 0) {
+    errors.push('Name must be a non-empty string');
+  } else if (name.trim().length > 255) {
+    errors.push('Name must not exceed 255 characters');
+  }
+
+  // Validate phone_number (optional)
+  if (phone_number !== undefined && phone_number !== null && phone_number !== '') {
+    const normalizedPhone = String(phone_number).replace(/[^0-9]/g, '');
+    if (normalizedPhone.length !== 10) {
+      errors.push('Phone number must be exactly 10 digits (without +91)');
+    }
+  }
+
+  // Validate is_admin (optional, default false)
+  if (is_admin !== undefined && typeof is_admin !== 'boolean') {
+    errors.push('is_admin must be a boolean');
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors,
+    });
+    return;
+  }
+
+  next();
+};
+
+export const validateUserUpdate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const { email, name, phone_number } = req.body;
+  const errors: string[] = [];
+
+  // At least one field must be provided
+  if (email === undefined && name === undefined && phone_number === undefined) {
+    res.status(400).json({
+      success: false,
+      error: 'At least one field (email, name, or phone_number) is required',
+    });
+    return;
+  }
+
+  // Validate email if provided
+  if (email !== undefined) {
+    if (typeof email !== 'string') {
+      errors.push('Email must be a string');
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errors.push('Invalid email format');
+      }
+    }
+  }
+
+  // Validate name if provided
+  if (name !== undefined) {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      errors.push('Name must be a non-empty string');
+    } else if (name.trim().length > 255) {
+      errors.push('Name must not exceed 255 characters');
+    }
+  }
+
+  // Validate phone_number if provided
+  if (phone_number !== undefined && phone_number !== null && phone_number !== '') {
+    const normalizedPhone = String(phone_number).replace(/[^0-9]/g, '');
+    if (normalizedPhone.length !== 10) {
+      errors.push('Phone number must be exactly 10 digits (without +91)');
+    }
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors,
+    });
+    return;
+  }
+
+  next();
+};
+
+// ====================================
 // BOOKING VALIDATION
 // ====================================
 

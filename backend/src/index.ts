@@ -16,6 +16,7 @@ import authRoutes from './routes/auth.routes';
 import tripRoutes from './routes/trip.routes';
 import bookingRoutes from './routes/booking.routes';
 import allocationRoutes from './routes/allocation.routes';
+import userRoutes from './routes/user.routes';
 import { runMigrations } from './config/migrations';
 
 const app: Application = express();
@@ -76,6 +77,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', tripRoutes);
 app.use('/api', bookingRoutes);
 app.use('/api', allocationRoutes);
+app.use('/api', userRoutes);
 
 // Start server with migrations
 async function startServer() {

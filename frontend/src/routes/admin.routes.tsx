@@ -9,7 +9,7 @@ import {
   MapPin,
 } from "lucide-react";
 import AdminDashboard from "@/pages/admin/Dashboard";
-import UserManagement from "@/pages/admin/Users";
+import UserManagement from "@/pages/admin/users";
 import TripManagement from "@/pages/admin/trips";
 import TripDetailLayout from "@/pages/admin/trips/detail/TripDetailLayout";
 import DemandTab from "@/pages/admin/trips/detail/DemandTab";

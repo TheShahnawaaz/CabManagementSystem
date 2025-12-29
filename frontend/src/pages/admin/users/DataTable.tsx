@@ -15,6 +15,13 @@ import {
 } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -28,15 +35,11 @@ import { DataTableViewOptions } from "./DataTableViewOptions";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  onRowClick?: (row: TData) => void;
-  isRowClickable?: (row: TData) => boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  onRowClick,
-  isRowClickable,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -45,6 +48,7 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [roleFilter, setRoleFilter] = React.useState<string>("all");
 
   const table = useReactTable({
     data,
@@ -65,19 +69,36 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  // Handle role filter
+  React.useEffect(() => {
+    if (roleFilter === "all") {
+      table.getColumn("is_admin")?.setFilterValue(undefined);
+    } else {
+      table.getColumn("is_admin")?.setFilterValue(roleFilter === "admin");
+    }
+  }, [roleFilter, table]);
+
   return (
     <div className="w-full space-y-4">
-      <div className="flex items-center">
+      <div className="flex items-center gap-4">
         <Input
-          placeholder="Filter trips by title..."
-          value={
-            (table.getColumn("trip_title")?.getFilterValue() as string) ?? ""
-          }
+          placeholder="Search by name or email..."
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("trip_title")?.setFilterValue(event.target.value)
+            table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Filter by role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Users</SelectItem>
+            <SelectItem value="admin">Admins Only</SelectItem>
+            <SelectItem value="user">Users Only</SelectItem>
+          </SelectContent>
+        </Select>
         <DataTableViewOptions table={table} />
       </div>
       <div className="overflow-hidden rounded-md border">
@@ -102,46 +123,21 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const isClickable = isRowClickable
-                  ? isRowClickable(row.original)
-                  : true;
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    onClick={(e) => {
-                      if (!isClickable) return;
-
-                      // Don't trigger row click if clicking on buttons or interactive elements
-                      const target = e.target as HTMLElement;
-                      if (
-                        target.closest("button") ||
-                        target.closest("a") ||
-                        target.closest('[role="checkbox"]')
-                      ) {
-                        return;
-                      }
-                      onRowClick?.(row.original);
-                    }}
-                    className={
-                      onRowClick && isClickable
-                        ? "cursor-pointer hover:bg-muted/50"
-                        : ""
-                    }
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : (
               <TableRow>
                 <TableCell

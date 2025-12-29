@@ -1,45 +1,33 @@
 import { Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { TripStats } from "./TripStats";
-import { TripStatsSkeleton } from "./TripStatsSkeleton";
-import { TripTableSkeleton } from "./TripTableSkeleton";
-import { TripFormSheet } from "./TripFormSheet";
-import { DeleteTripDialog } from "./DeleteTripDialog";
+import { UserStats } from "./UserStats";
+import { UserStatsSkeleton } from "./UserStatsSkeleton";
+import { UserTableSkeleton } from "./UserTableSkeleton";
+import { UserFormSheet } from "./UserFormSheet";
+import { DeleteUserDialog } from "./DeleteUserDialog";
 import { DataTable } from "./DataTable";
 import { createColumns } from "./columns";
-import { useTripManagement } from "./useTripManagement";
-import type { Trip } from "@/types/trip.types";
+import { useUserManagement } from "./useUserManagement";
 
-export default function TripManagement() {
-  const navigate = useNavigate();
+export default function UserManagement() {
   const {
     state,
     formState,
     updateFormState,
     handleSubmit,
     handleDelete,
+    handleToggleAdmin,
     openCreateSheet,
     openEditSheet,
     openDeleteDialog,
     closeSheet,
     closeDeleteDialog,
-  } = useTripManagement();
-
-  const handleViewDetails = (trip: Trip) => {
-    navigate(`/admin/trips/${trip.id}`);
-  };
-
-  const isRowClickable = (trip: Trip) => {
-    const now = new Date();
-    const bookingStart = new Date(trip.booking_start_time);
-    return now >= bookingStart; // Only clickable if not upcoming
-  };
+  } = useUserManagement();
 
   const columns = createColumns(
     openEditSheet,
     openDeleteDialog,
-    handleViewDetails
+    handleToggleAdmin
   );
 
   return (
@@ -47,41 +35,36 @@ export default function TripManagement() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Trip Management</h1>
+          <h1 className="text-3xl font-bold">User Management</h1>
           <p className="text-muted-foreground mt-1">
-            Create and manage Friday cab trips
+            Manage system users and administrators
           </p>
         </div>
         <Button onClick={openCreateSheet}>
           <Plus className="w-4 h-4 mr-2" />
-          Create Trip
+          Create User
         </Button>
       </div>
 
       {/* Stats Cards */}
       {state.loading ? (
-        <TripStatsSkeleton />
+        <UserStatsSkeleton />
       ) : (
-        <TripStats trips={state.trips} />
+        <UserStats users={state.users} />
       )}
 
       {/* Data Table */}
       {state.loading ? (
-        <TripTableSkeleton />
+        <UserTableSkeleton />
       ) : (
-        <DataTable
-          columns={columns}
-          data={state.trips}
-          onRowClick={handleViewDetails}
-          isRowClickable={isRowClickable}
-        />
+        <DataTable columns={columns} data={state.users} />
       )}
 
       {/* Create/Edit Sheet */}
-      <TripFormSheet
+      <UserFormSheet
         isOpen={state.isSheetOpen}
         onOpenChange={(open) => !open && closeSheet()}
-        editingTrip={state.editingTrip}
+        editingUser={state.editingUser}
         formState={formState}
         onFormChange={updateFormState}
         onSubmit={handleSubmit}
@@ -89,9 +72,9 @@ export default function TripManagement() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <DeleteTripDialog
+      <DeleteUserDialog
         isOpen={state.isDeleteDialogOpen}
-        trip={state.deletingTrip}
+        user={state.deletingUser}
         onClose={closeDeleteDialog}
         onConfirm={handleDelete}
         submitting={state.submitting}

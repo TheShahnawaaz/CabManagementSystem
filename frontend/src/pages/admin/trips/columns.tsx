@@ -1,18 +1,18 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { Edit, MoreHorizontal, Trash2, Eye } from "lucide-react";
+import { Edit, Trash2, MoreHorizontalIcon, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import type { Trip } from "@/types/trip.types";
 import { DataTableColumnHeader } from "./DataTableColumnHeader";
@@ -124,43 +124,47 @@ export const createColumns = (
       const trip = row.original;
       const now = new Date();
       const bookingStart = new Date(trip.booking_start_time);
-
-      // Check if trip is upcoming (can't view details)
       const isUpcoming = now < bookingStart;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            {!isUpcoming && (
-              <>
-                <DropdownMenuItem onClick={() => onViewDetails(trip)}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem onClick={() => onEdit(trip)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Trip
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(trip)}
-              className="text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Trip
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ButtonGroup>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewDetails(trip)}
+            disabled={isUpcoming}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="px-2">
+                <MoreHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem
+                onClick={() => onViewDetails(trip)}
+                disabled={isUpcoming}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(trip)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Trip
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onDelete(trip)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Trip
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ButtonGroup>
       );
     },
   },

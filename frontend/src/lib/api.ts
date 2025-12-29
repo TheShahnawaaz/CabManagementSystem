@@ -69,4 +69,11 @@ export const apiClient = {
       method: "DELETE",
     });
   },
+
+  patch(endpoint: string, data?: unknown) {
+    return this.request(endpoint, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
 };

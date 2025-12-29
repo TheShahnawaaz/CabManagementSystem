@@ -62,7 +62,10 @@ export function TripTableSkeleton() {
                   <Skeleton className="h-5 w-[80px] rounded-full" />
                 </TableCell>
                 <TableCell>
-                  <Skeleton className="h-8 w-8 rounded" />
+                  <div className="flex items-center gap-1">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

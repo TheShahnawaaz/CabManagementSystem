@@ -172,7 +172,7 @@ export const getAllTrips = async (req: Request, res: Response): Promise<void> =>
     let query = `
       SELECT 
         t.*,
-        (SELECT COUNT(*) FROM trip_users WHERE trip_id = t.id) as booking_count
+        (SELECT COUNT(*)::int FROM trip_users WHERE trip_id = t.id) as booking_count
       FROM trips t
     `;
 
@@ -241,9 +241,9 @@ export const getTripById = async (req: Request, res: Response): Promise<void> =>
     const result = await pool.query(
       `SELECT 
         t.*,
-        (SELECT COUNT(*) FROM trip_users WHERE trip_id = t.id) as booking_count,
-        (SELECT COUNT(*) FROM cabs WHERE trip_id = t.id) as cab_count,
-        (SELECT COUNT(*) FROM cab_allocations WHERE trip_id = t.id) as allocation_count
+        (SELECT COUNT(*)::int FROM trip_users WHERE trip_id = t.id) as booking_count,
+        (SELECT COUNT(*)::int FROM cabs WHERE trip_id = t.id) as cab_count,
+        (SELECT COUNT(*)::int FROM cab_allocations WHERE trip_id = t.id) as allocation_count
       FROM trips t
       WHERE t.id = $1`,
       [id]
@@ -453,8 +453,8 @@ export const getActiveTrips = async (
     const result = await pool.query(
       `SELECT 
         t.*,
-        (SELECT COUNT(*) FROM trip_users WHERE trip_id = t.id) as booking_count,
-        (SELECT COUNT(*) FROM cabs WHERE trip_id = t.id) as cab_count
+        (SELECT COUNT(*)::int FROM trip_users WHERE trip_id = t.id) as booking_count,
+        (SELECT COUNT(*)::int FROM cabs WHERE trip_id = t.id) as cab_count
       FROM trips t
       WHERE t.booking_start_time <= NOW() 
         AND t.end_time > NOW()
@@ -487,7 +487,7 @@ export const getUpcomingTrips = async (
     const result = await pool.query(
       `SELECT 
         t.*,
-        (SELECT COUNT(*) FROM trip_users WHERE trip_id = t.id) as booking_count
+        (SELECT COUNT(*)::int FROM trip_users WHERE trip_id = t.id) as booking_count
       FROM trips t
       WHERE t.trip_date >= CURRENT_DATE
       ORDER BY t.trip_date ASC
