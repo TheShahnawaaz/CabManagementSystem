@@ -6,6 +6,7 @@ import {
   updateTrip,
   deleteTrip,
   getActiveTrips,
+  getActiveTripsForUser,
   getUpcomingTrips,
   getTripDemand,
 } from '../controllers/trip.controller';
@@ -112,6 +113,13 @@ router.get(
  * @access  Public
  */
 router.get('/trips/active', getActiveTrips);
+
+/**
+ * @route   GET /api/trips/active/me
+ * @desc    Get active trips with user's booking status
+ * @access  Authenticated users only
+ */
+router.get('/trips/active/me', authenticateUser, getActiveTripsForUser);
 
 /**
  * @route   GET /api/trips/upcoming

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Calendar,
   Clock,
@@ -6,6 +7,7 @@ import {
   Users,
   MapPin,
   Check,
+  CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -36,6 +38,7 @@ import {
 } from "@/components/ui/select";
 
 export default function TripsPage() {
+  const navigate = useNavigate();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -50,7 +53,8 @@ export default function TripsPage() {
   const fetchActiveTrips = async () => {
     try {
       setLoading(true);
-      const response = await tripApi.getActiveTrips();
+      // Use the new authenticated endpoint to get booking status
+      const response = await tripApi.getActiveTripsForMe();
       if (response.success && response.data) {
         setTrips(response.data);
       }
@@ -112,6 +116,13 @@ export default function TripsPage() {
   };
 
   const handleBookNowClick = (trip: Trip) => {
+    // If user already booked, navigate to bookings page
+    if (trip.has_booked && trip.booking_id) {
+      navigate("/bookings");
+      return;
+    }
+
+    // Otherwise, open booking modal
     setSelectedTrip(trip);
     setSelectedHall("RK"); // Default hall
     setIsBookingModalOpen(true);
@@ -227,6 +238,7 @@ export default function TripsPage() {
           {trips.map((trip) => {
             const bookingStatus = getBookingStatus(trip.booking_end_time);
             const isBookable = canBook(trip.booking_end_time);
+            const hasBooked = trip.has_booked === true;
 
             return (
               <Card
@@ -235,12 +247,20 @@ export default function TripsPage() {
               >
                 {/* Trip Badge */}
                 <div className="flex items-center justify-between mb-4">
-                  <Badge className={bookingStatus.color}>
-                    {bookingStatus.text}
-                  </Badge>
-                  <Badge variant="outline">
-                    {trip.booking_count || 0} booked
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className={bookingStatus.color}>
+                      {bookingStatus.text}
+                    </Badge>
+                    {hasBooked && (
+                      <Badge
+                        variant="default"
+                        className="bg-green-500 hover:bg-green-600"
+                      >
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Already Booked
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 {/* Trip Title */}
@@ -282,7 +302,7 @@ export default function TripsPage() {
                 <div className="flex items-center gap-2 mb-6">
                   <IndianRupee className="w-5 h-5 text-primary" />
                   <span className="text-2xl font-bold">
-                    ₹{trip.amount_per_person}
+                    {trip.amount_per_person}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     per person
@@ -293,11 +313,21 @@ export default function TripsPage() {
                 <Button
                   className="w-full"
                   size="lg"
-                  disabled={!isBookable}
+                  variant={hasBooked ? "outline" : "default"}
+                  disabled={!isBookable && !hasBooked}
                   onClick={() => handleBookNowClick(trip)}
                 >
-                  <Users className="w-4 h-4 mr-2" />
-                  {isBookable ? "Book Now" : "Booking Closed"}
+                  {hasBooked ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      View My Booking
+                    </>
+                  ) : (
+                    <>
+                      <Users className="w-4 h-4 mr-2" />
+                      {isBookable ? "Book Now" : "Booking Closed"}
+                    </>
+                  )}
                 </Button>
               </Card>
             );

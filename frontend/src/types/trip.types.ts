@@ -16,6 +16,9 @@ export interface Trip {
   allocation_count?: number;
   created_at: string;
   updated_at: string;
+  // User booking status (only present in authenticated endpoints)
+  has_booked?: boolean;
+  booking_id?: string | null;
 }
 
 export interface CreateTripData {

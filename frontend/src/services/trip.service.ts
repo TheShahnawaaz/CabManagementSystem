@@ -71,6 +71,14 @@ export const tripApi = {
   },
 
   /**
+   * Get active trips with user's booking status (authenticated)
+   * Returns trips with has_booked and booking_id fields
+   */
+  async getActiveTripsForMe(): Promise<ApiResponse<Trip[]>> {
+    return apiClient.get("/trips/active/me");
+  },
+
+  /**
    * Get upcoming trips (public - for students)
    */
   async getUpcomingTrips(): Promise<ApiResponse<Trip[]>> {

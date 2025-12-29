@@ -478,6 +478,57 @@ export const getActiveTrips = async (
 };
 
 // ====================================
+// GET ACTIVE TRIPS FOR AUTHENTICATED USER
+// ====================================
+export const getActiveTripsForUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
+      });
+      return;
+    }
+
+    // Get active trips with user's booking status
+    const result = await pool.query(
+      `SELECT 
+        t.*,
+        (SELECT COUNT(*)::int FROM trip_users WHERE trip_id = t.id) as booking_count,
+        (SELECT COUNT(*)::int FROM cabs WHERE trip_id = t.id) as cab_count,
+        CASE 
+          WHEN tu.id IS NOT NULL THEN TRUE 
+          ELSE FALSE 
+        END as has_booked,
+        tu.id as booking_id
+      FROM trips t
+      LEFT JOIN trip_users tu ON tu.trip_id = t.id AND tu.user_id = $1
+      WHERE t.booking_start_time <= NOW() 
+        AND t.end_time > NOW()
+      ORDER BY t.trip_date ASC`,
+      [userId]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result.rows,
+    });
+  } catch (error: any) {
+    console.error('Error fetching active trips for user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch active trips',
+      details: error.message,
+    });
+  }
+};
+
+// ====================================
 // GET UPCOMING TRIPS (Public - for students)
 // ====================================
 export const getUpcomingTrips = async (
