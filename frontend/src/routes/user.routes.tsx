@@ -8,7 +8,7 @@ import {
 import Home from "@/pages/Home";
 import ProfilePage from "@/pages/Profile";
 import BookingsPage from "@/pages/Bookings";
-import TripsPage from "@/pages/Trips";
+import TripsPage from "@/pages/trips";
 import SettingsPage from "@/pages/Settings";
 import type { CustomRouteObject } from "./guards";
 
@@ -76,10 +76,10 @@ export const userRoutes: CustomRouteObject[] = [
     element: <TripsPage />,
     meta: {
       requireAuth: true,
-      title: "Active Trips",
-      description: "View active trips and book your seat",
+      title: "Trips",
+      description: "View and book your trips",
       breadcrumb: {
-        label: "Active Trips",
+        label: "Trips",
         icon: MapPin,
       },
     },

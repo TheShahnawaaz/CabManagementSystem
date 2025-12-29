@@ -536,13 +536,13 @@ export const getUpcomingTrips = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Upcoming trips = booking not yet started but trip is in future
+    // Upcoming trips = booking has not started yet (future trips)
     const result = await pool.query(
       `SELECT 
         t.*,
         (SELECT COUNT(*)::int FROM trip_users WHERE trip_id = t.id) as booking_count
       FROM trips t
-      WHERE t.trip_date >= CURRENT_DATE
+      WHERE t.booking_start_time > NOW()
       ORDER BY t.trip_date ASC
       LIMIT 10`
     );
