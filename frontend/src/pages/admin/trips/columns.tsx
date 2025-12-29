@@ -131,32 +131,50 @@ export const createColumns = (
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onViewDetails(trip)}
-            disabled={isUpcoming}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(trip);
+            }}
           >
-            <Eye className="h-4 w-4" />
+            <Edit className="h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="px-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreHorizontalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem
-                onClick={() => onViewDetails(trip)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewDetails(trip);
+                }}
                 disabled={isUpcoming}
               >
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(trip)}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(trip);
+                }}
+              >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Trip
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => onDelete(trip)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(trip);
+                }}
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
