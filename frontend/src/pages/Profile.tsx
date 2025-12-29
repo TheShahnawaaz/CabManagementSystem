@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Phone,
-  Mail,
-  User as UserIcon,
-  CalendarClock,
-  Edit2,
-} from "lucide-react";
+import { Phone, Mail, CalendarClock, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks";
 import { userApi } from "@/services";
@@ -72,17 +66,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <UserIcon className="w-7 h-7 text-primary" />
-            Profile
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            View your account details and update your contact number.
-          </p>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Profile</h1>
+        <p className="text-muted-foreground">
+          View your account details and update your contact number
+        </p>
       </div>
 
       <div className="w-full">

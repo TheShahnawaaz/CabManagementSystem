@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function TripCardSkeleton() {
+export function BookingCardSkeleton() {
   return (
     <Card className="p-6">
       <Skeleton className="h-6 w-full mb-4" />

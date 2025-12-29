@@ -90,7 +90,9 @@ export function ActiveTripCard({ trip, onBookClick }: ActiveTripCardProps) {
       {/* Trip Date */}
       <div className="flex items-start gap-2 mb-3 text-sm">
         <Calendar className="w-4 h-4 mt-0.5 text-muted-foreground" />
-        <span className="text-muted-foreground">{formatDate(trip.trip_date)}</span>
+        <span className="text-muted-foreground">
+          {formatDate(trip.trip_date)}
+        </span>
       </div>
 
       {/* Booking Window */}
@@ -147,4 +149,3 @@ export function ActiveTripCard({ trip, onBookClick }: ActiveTripCardProps) {
     </Card>
   );
 }
-

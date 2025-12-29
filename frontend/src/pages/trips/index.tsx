@@ -7,6 +7,7 @@ import { bookingApi } from "@/services/booking.service";
 import type { Trip } from "@/types/trip.types";
 import type { Hall } from "@/types/booking.types";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ActiveTripCard } from "./ActiveTripCard";
 import { UpcomingTripCard } from "./UpcomingTripCard";
@@ -127,12 +128,12 @@ export default function TripsPage() {
 
           {/* Tabs Skeleton */}
           <Tabs value="active" onValueChange={() => {}}>
-            <TabsList>
-              <TabsTrigger value="active" disabled>
-                Active (...)
+            <TabsList className="grid w-full md:w-[350px] grid-cols-2">
+              <TabsTrigger value="active" disabled className="gap-2">
+                Active <Badge variant="secondary">...</Badge>
               </TabsTrigger>
-              <TabsTrigger value="upcoming" disabled>
-                Upcoming (...)
+              <TabsTrigger value="upcoming" disabled className="gap-2">
+                Upcoming <Badge variant="secondary">...</Badge>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -164,12 +165,12 @@ export default function TripsPage() {
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "active" | "upcoming")}
         >
-          <TabsList>
-            <TabsTrigger value="active">
-              Active ({activeTrips.length})
+          <TabsList className="grid w-full md:w-[350px] grid-cols-2">
+            <TabsTrigger value="active" className="gap-2">
+              Active <Badge variant="secondary">{activeTrips.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="upcoming">
-              Upcoming ({upcomingTrips.length})
+            <TabsTrigger value="upcoming" className="gap-2">
+              Upcoming <Badge variant="secondary">{upcomingTrips.length}</Badge>
             </TabsTrigger>
           </TabsList>
         </Tabs>

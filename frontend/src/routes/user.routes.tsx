@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import Home from "@/pages/Home";
 import ProfilePage from "@/pages/Profile";
-import BookingsPage from "@/pages/Bookings";
+import BookingsPage from "@/pages/bookings";
 import TripsPage from "@/pages/trips";
 import SettingsPage from "@/pages/Settings";
 import type { CustomRouteObject } from "./guards";
@@ -64,7 +64,7 @@ export const userRoutes: CustomRouteObject[] = [
     meta: {
       requireAuth: true,
       title: "My Bookings",
-      description: "View and manage your bookings",
+      description: "View your active and past Friday prayer trip bookings",
       breadcrumb: {
         label: "My Bookings",
         icon: Calendar,
