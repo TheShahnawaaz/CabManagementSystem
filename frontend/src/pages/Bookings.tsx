@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, CreditCard, Users, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, CreditCard, Users, AlertCircle, QrCode } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { bookingApi } from "@/services/booking.service";
@@ -9,11 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QRCardModal } from "@/components/QRCardModal";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
 
   const fetchBookings = async () => {
     try {
@@ -69,6 +72,16 @@ export default function BookingsPage() {
     } else {
       return { label: "Awaiting Allocation", color: "bg-yellow-500" };
     }
+  };
+
+  const handleViewQR = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setQrModalOpen(true);
+  };
+
+  const handleCloseQR = () => {
+    setQrModalOpen(false);
+    setSelectedBooking(null);
   };
 
   if (loading) {
@@ -217,6 +230,19 @@ export default function BookingsPage() {
                               </span>
                             </p>
                           </div>
+
+                          {/* QR Code Button */}
+                          {booking.allocation_id && (
+                            <Button
+                              className="w-full mt-3"
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleViewQR(booking)}
+                            >
+                              <QrCode className="w-4 h-4 mr-2" />
+                              View QR Code
+                            </Button>
+                          )}
                         </div>
                       ) : (
                         <div className="mt-3 p-3 rounded-md bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900">
@@ -240,6 +266,15 @@ export default function BookingsPage() {
             );
           })}
         </div>
+      )}
+
+      {/* QR Code Modal */}
+      {selectedBooking && (
+        <QRCardModal
+          booking={selectedBooking}
+          open={qrModalOpen}
+          onClose={handleCloseQR}
+        />
       )}
     </div>
   );

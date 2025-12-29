@@ -1,4 +1,5 @@
 import type { CustomRouteObject } from "./guards";
+import DriverScanPage from "@/pages/DriverScanPage";
 
 /**
  * Public Routes Configuration
@@ -12,6 +13,7 @@ import type { CustomRouteObject } from "./guards";
  * - Public documentation
  * - Terms of service
  * - Privacy policy
+ * - Driver QR validation (no auth needed)
  */
 
 // Placeholder components - these will be created as needed
@@ -31,6 +33,14 @@ export const publicRoutes: CustomRouteObject[] = [
     meta: {
       title: "About Us",
       description: "Learn more about Friday Cab System",
+    },
+  },
+  {
+    path: "driver-scan",
+    element: <DriverScanPage />,
+    meta: {
+      title: "Driver Validation",
+      description: "QR code validation for drivers",
     },
   },
   // Add more public routes as needed:

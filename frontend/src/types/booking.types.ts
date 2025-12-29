@@ -26,6 +26,7 @@ export interface Booking {
   payment_amount: number;
 
   // Cab allocation (from LEFT JOIN - optional)
+  allocation_id?: string | null;
   cab_id?: string | null;
   cab_number?: string | null;
   pickup_region?: string | null;

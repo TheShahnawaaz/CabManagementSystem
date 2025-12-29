@@ -201,6 +201,7 @@ export const getMyBookings = async (req: Request, res: Response): Promise<void> 
         p.transaction_id,
         p.payment_date,
         p.payment_amount,
+        ca.id as allocation_id,
         ca.cab_id,
         c.cab_number,
         c.pickup_region
@@ -272,6 +273,7 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
         p.transaction_id,
         p.payment_date,
         p.payment_amount,
+        ca.id as allocation_id,
         ca.cab_id,
         c.cab_number,
         c.pickup_region,
