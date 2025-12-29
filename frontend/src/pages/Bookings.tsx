@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, CreditCard, Users, AlertCircle, QrCode } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  CreditCard,
+  Users,
+  AlertCircle,
+  QrCode,
+  Car,
+} from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { bookingApi } from "@/services/booking.service";
@@ -10,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QRCardModal } from "@/components/QRCardModal";
+import { CabDetailsSheet } from "@/components/CabDetailsSheet";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -17,6 +26,7 @@ export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [cabDetailsOpen, setCabDetailsOpen] = useState(false);
 
   const fetchBookings = async () => {
     try {
@@ -81,6 +91,16 @@ export default function BookingsPage() {
 
   const handleCloseQR = () => {
     setQrModalOpen(false);
+    setSelectedBooking(null);
+  };
+
+  const handleViewCab = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setCabDetailsOpen(true);
+  };
+
+  const handleCloseCab = () => {
+    setCabDetailsOpen(false);
     setSelectedBooking(null);
   };
 
@@ -231,17 +251,26 @@ export default function BookingsPage() {
                             </p>
                           </div>
 
-                          {/* QR Code Button */}
+                          {/* Action Buttons */}
                           {booking.allocation_id && (
-                            <Button
-                              className="w-full mt-3"
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleViewQR(booking)}
-                            >
-                              <QrCode className="w-4 h-4 mr-2" />
-                              View QR Code
-                            </Button>
+                            <div className="grid grid-cols-2 gap-2 mt-3">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewCab(booking)}
+                              >
+                                <Car className="w-4 h-4 mr-2" />
+                                View My Cab
+                              </Button>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => handleViewQR(booking)}
+                              >
+                                <QrCode className="w-4 h-4 mr-2" />
+                                View QR Code
+                              </Button>
+                            </div>
                           )}
                         </div>
                       ) : (
@@ -274,6 +303,15 @@ export default function BookingsPage() {
           booking={selectedBooking}
           open={qrModalOpen}
           onClose={handleCloseQR}
+        />
+      )}
+
+      {/* Cab Details Sheet */}
+      {selectedBooking && (
+        <CabDetailsSheet
+          booking={selectedBooking}
+          open={cabDetailsOpen}
+          onClose={handleCloseCab}
         />
       )}
     </div>

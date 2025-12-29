@@ -7,6 +7,7 @@ import pool from '../config/database';
  * Handles QR code generation and validation for student boarding
  * - Get allocation data for QR display (public)
  * - Validate passkey and log journey (public)
+ * - Get cab details for student view (public)
  */
 
 // ====================================
@@ -298,6 +299,136 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
     });
   } finally {
     client.release();
+  }
+};
+
+// ====================================
+// GET CAB DETAILS (for student cab view)
+// ====================================
+export const getCabDetails = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { allocationId } = req.params;
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(allocationId)) {
+      res.status(400).json({
+        success: false,
+        error: 'invalid_format',
+        message: 'Invalid allocation ID format',
+      });
+      return;
+    }
+
+    // Get cab_id from the allocation
+    const allocationResult = await pool.query(
+      `SELECT cab_id, trip_id, user_id 
+       FROM cab_allocations 
+       WHERE id = $1`,
+      [allocationId]
+    );
+
+    if (allocationResult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'not_found',
+        message: 'Allocation not found',
+      });
+      return;
+    }
+
+    const { cab_id, trip_id, user_id } = allocationResult.rows[0];
+
+    // Check if user has paid for this trip
+    const paymentCheck = await pool.query(
+      `SELECT p.payment_status
+       FROM trip_users tu
+       JOIN payments p ON tu.payment_id = p.id
+       WHERE tu.trip_id = $1 AND tu.user_id = $2`,
+      [trip_id, user_id]
+    );
+
+    if (paymentCheck.rows.length === 0 || paymentCheck.rows[0].payment_status !== 'confirmed') {
+      res.status(403).json({
+        success: false,
+        error: 'payment_required',
+        message: 'Payment not confirmed for this trip',
+      });
+      return;
+    }
+
+    // Fetch cab details (WITHOUT passkey - students shouldn't see it)
+    const cabResult = await pool.query(
+      `SELECT 
+        c.id,
+        c.cab_number,
+        c.cab_type,
+        c.cab_capacity as capacity,
+        c.cab_owner_name as driver_name,
+        c.cab_owner_phone as driver_phone,
+        c.pickup_region
+      FROM cabs c
+      WHERE c.id = $1`,
+      [cab_id]
+    );
+
+    if (cabResult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'not_found',
+        message: 'Cab not found',
+      });
+      return;
+    }
+
+    const cab = cabResult.rows[0];
+
+    // Fetch all students in this cab
+    const studentsResult = await pool.query(
+      `SELECT 
+        ca.user_id,
+        ca.id as booking_id,
+        u.name,
+        u.email,
+        u.phone_number,
+        u.profile_picture,
+        tu.hall,
+        1 as seat_position
+      FROM cab_allocations ca
+      JOIN users u ON ca.user_id = u.id
+      JOIN trip_users tu ON tu.user_id = ca.user_id AND tu.trip_id = ca.trip_id
+      WHERE ca.cab_id = $1
+      ORDER BY ca.created_at ASC`,
+      [cab_id]
+    );
+
+    // Map students to seat positions
+    const assignedStudents = studentsResult.rows.map((s: any, idx: number) => ({
+      user_id: s.user_id,
+      booking_id: s.booking_id,
+      name: s.name,
+      email: s.email,
+      phone_number: s.phone_number,
+      profile_picture: s.profile_picture,
+      hall: s.hall,
+      seat_position: idx + 1, // Assign seat positions sequentially
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ...cab,
+        assigned_students: assignedStudents,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching cab details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'server_error',
+      message: 'Failed to fetch cab details',
+      details: error.message,
+    });
   }
 };
 

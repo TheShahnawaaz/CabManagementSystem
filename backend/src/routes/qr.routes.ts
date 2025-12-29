@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getQRData, validateQR } from '../controllers/qr.controller';
+import { getQRData, validateQR, getCabDetails } from '../controllers/qr.controller';
 
 const router = Router();
 
@@ -8,6 +8,7 @@ const router = Router();
  * 
  * Public routes (no authentication required)
  * Used by drivers to scan and validate student QR codes
+ * Also provides cab details for student view
  */
 
 // ====================================
@@ -29,6 +30,14 @@ router.get('/qr/:allocationId', getQRData);
  * @body    { allocation_id: UUID, passkey: string (4 digits) }
  */
 router.post('/qr/validate', validateQR);
+
+/**
+ * @route   GET /api/qr/cab/:allocationId
+ * @desc    Get cab details and all co-travelers for student view
+ * @access  Public (no auth needed, but payment is checked)
+ * @params  allocationId (UUID)
+ */
+router.get('/qr/cab/:allocationId', getCabDetails);
 
 export default router;
 

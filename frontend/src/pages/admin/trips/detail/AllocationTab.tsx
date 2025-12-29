@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { allocationApi } from "@/services/allocation.service";
 import { DemandSummaryCards } from "./allocation/DemandSummaryCards";
-import { VehicleSeatViewer } from "./allocation/VehicleSeatViewer";
+import { VehicleSeatViewer } from "@/components/VehicleSeatViewer";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { mapStudentsToSeats } from "@/utils/allocation.utils";

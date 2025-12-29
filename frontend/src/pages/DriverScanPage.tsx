@@ -20,7 +20,7 @@ import type {
   QRAllocationData,
   QRValidationSuccess,
   QRValidationError,
-} from "@/services/qr.service";
+} from "@/types/qr.types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
