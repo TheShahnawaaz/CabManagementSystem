@@ -1,0 +1,739 @@
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
+import { Lock, Mail, Phone, Armchair, Clock, CheckCircle2 } from "lucide-react";
+import { formatPhoneNumber } from "@/lib/utils";
+import type { OutboundStudent, ReturnStudent } from "@/types/journey.types";
+import { format } from "date-fns";
+
+const VIEWBOX = { w: 300, h: 420 };
+
+// Hall color mapping with subtle shades
+const HALL_COLORS = {
+  RK: {
+    bg: "bg-blue-500/20",
+    border: "border-blue-500/70",
+    ring: "ring-blue-500/15",
+    avatar: "bg-blue-500",
+    text: "text-blue-950 dark:text-blue-50",
+  },
+  VS: {
+    bg: "bg-purple-500/20",
+    border: "border-purple-500/70",
+    ring: "ring-purple-500/15",
+    avatar: "bg-purple-500",
+    text: "text-purple-950 dark:text-purple-50",
+  },
+  LBS: {
+    bg: "bg-green-500/20",
+    border: "border-green-500/70",
+    ring: "ring-green-500/15",
+    avatar: "bg-green-500",
+    text: "text-green-950 dark:text-green-50",
+  },
+  PAN: {
+    bg: "bg-orange-500/20",
+    border: "border-orange-500/70",
+    ring: "ring-orange-500/15",
+    avatar: "bg-orange-500",
+    text: "text-orange-950 dark:text-orange-50",
+  },
+  MS: {
+    bg: "bg-pink-500/20",
+    border: "border-pink-500/70",
+    ring: "ring-pink-500/15",
+    avatar: "bg-pink-500",
+    text: "text-pink-950 dark:text-pink-50",
+  },
+  HJB: {
+    bg: "bg-cyan-500/20",
+    border: "border-cyan-500/70",
+    ring: "ring-cyan-500/15",
+    avatar: "bg-cyan-500",
+    text: "text-cyan-950 dark:text-cyan-50",
+  },
+  LLR: {
+    bg: "bg-amber-500/20",
+    border: "border-amber-500/70",
+    ring: "ring-amber-500/15",
+    avatar: "bg-amber-500",
+    text: "text-amber-950 dark:text-amber-50",
+  },
+} as const;
+
+type SeatPosition = "F1" | "M1" | "M2" | "M3" | "B1" | "B2" | "B3";
+
+type SeatMeta = {
+  id: SeatPosition;
+  label: string;
+  x: number;
+  y: number;
+  rot?: number;
+  size?: "lg" | "sm";
+};
+
+interface VehicleJourneyViewerProps {
+  students: OutboundStudent[] | ReturnStudent[];
+  journeyType: "outbound" | "return";
+}
+
+export function VehicleJourneyViewer({
+  students,
+  journeyType,
+}: VehicleJourneyViewerProps) {
+  const driverSeat = { x: 192, y: 130, rot: 0 };
+
+  const passengerSeats: SeatMeta[] = [
+    { id: "F1", label: "F1", x: 108, y: 130, rot: 0, size: "lg" },
+    { id: "M1", label: "M1", x: 100, y: 240, size: "sm" },
+    { id: "M2", label: "M2", x: 150, y: 240, size: "sm" },
+    { id: "M3", label: "M3", x: 200, y: 240, size: "sm" },
+    { id: "B1", label: "B1", x: 100, y: 310, size: "sm" },
+    { id: "B2", label: "B2", x: 150, y: 310, size: "sm" },
+    { id: "B3", label: "B3", x: 200, y: 310, size: "sm" },
+  ];
+
+  const getStudentForSeat = (seatId: SeatPosition) => {
+    // Map seat IDs to positions: F1=1, M1=2, M2=3, M3=4, B1=5, B2=6, B3=7
+    const seatMap: Record<SeatPosition, number> = {
+      F1: 1,
+      M1: 2,
+      M2: 3,
+      M3: 4,
+      B1: 5,
+      B2: 6,
+      B3: 7,
+    };
+    const position = seatMap[seatId];
+    // Convert seat_position to number for comparison (backend returns string)
+    return students.find((s) => Number(s.seat_position) === position);
+  };
+
+  return (
+    <div className="w-full max-w-[520px] mx-auto">
+      {/* Vehicle container */}
+      <div className="relative mx-auto w-full aspect-[300/420] rounded-2xl overflow-hidden border border-border/60 bg-gradient-to-b from-muted/10 to-background">
+        <div className="absolute inset-0 opacity-60 pointer-events-none [background:radial-gradient(800px_420px_at_50%_18%,rgba(255,255,255,0.12),transparent_60%),radial-gradient(520px_320px_at_30%_70%,rgba(255,255,255,0.08),transparent_62%),repeating-linear-gradient(90deg,rgba(255,255,255,0.04)_0_10px,transparent_10px_20px)]" />
+
+        {/* Realistic Omni/Van SVG */}
+        <svg viewBox="0 0 300 420" className="w-full h-full drop-shadow-2xl">
+          <defs>
+            <linearGradient id="paint-journey" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stopColor="#d8dde6" />
+              <stop offset="0.25" stopColor="#aeb7c7" />
+              <stop offset="0.55" stopColor="#7f8aa0" />
+              <stop offset="1" stopColor="#636e84" />
+            </linearGradient>
+            <linearGradient id="paintHi-journey" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stopColor="#ffffff" stopOpacity="0.55" />
+              <stop offset="0.35" stopColor="#ffffff" stopOpacity="0.12" />
+              <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="glass-journey" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stopColor="#3b5a80" stopOpacity="0.85" />
+              <stop offset="1" stopColor="#0b1220" stopOpacity="0.95" />
+            </linearGradient>
+            <linearGradient id="glassRef-journey" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stopColor="#ffffff" stopOpacity="0.25" />
+              <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.05" />
+              <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="floor-journey" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stopColor="#111827" stopOpacity="0.35" />
+              <stop offset="1" stopColor="#111827" stopOpacity="0.10" />
+            </linearGradient>
+            <filter
+              id="outerShadow-journey"
+              x="-25%"
+              y="-25%"
+              width="150%"
+              height="150%"
+            >
+              <feDropShadow
+                dx="0"
+                dy="14"
+                stdDeviation="12"
+                floodOpacity="0.38"
+              />
+            </filter>
+          </defs>
+
+          {/* Wheels */}
+          <g opacity="0.98">
+            <rect x="18" y="80" width="28" height="75" rx="14" fill="#0a0f1a" />
+            <rect x="21" y="88" width="22" height="59" rx="11" fill="#111827" />
+            <rect x="24" y="95" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect
+              x="254"
+              y="80"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="257"
+              y="88"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
+            <rect x="260" y="95" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect
+              x="18"
+              y="265"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="21"
+              y="273"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
+            <rect x="24" y="280" width="16" height="45" rx="8" fill="#1f2937" />
+            <rect
+              x="254"
+              y="265"
+              width="28"
+              height="75"
+              rx="14"
+              fill="#0a0f1a"
+            />
+            <rect
+              x="257"
+              y="273"
+              width="22"
+              height="59"
+              rx="11"
+              fill="#111827"
+            />
+            <rect
+              x="260"
+              y="280"
+              width="16"
+              height="45"
+              rx="8"
+              fill="#1f2937"
+            />
+          </g>
+
+          {/* Body */}
+          <g filter="url(#outerShadow-journey)">
+            <path
+              d="M94,15
+                 Q150,5 206,15
+                 Q244,23 250,60
+                 L250,360
+                 Q244,397 206,407
+                 Q150,417 94,407
+                 Q56,397 50,360
+                 L50,60
+                 Q56,23 94,15 Z"
+              fill="url(#paint-journey)"
+            />
+            <path
+              d="M94,15
+                 Q150,5 206,15
+                 Q244,23 250,60
+                 L250,360
+                 Q244,397 206,407
+                 Q150,417 94,407
+                 Q56,397 50,360
+                 L50,60
+                 Q56,23 94,15 Z"
+              fill="none"
+              stroke="#e5e7eb"
+              strokeOpacity="0.35"
+            />
+            <path
+              d="M76,50
+                 Q150,25 224,55
+                 L224,350
+                 Q150,390 76,358 Z"
+              fill="url(#paintHi-journey)"
+              opacity="0.55"
+            />
+          </g>
+
+          {/* Wheel arches */}
+          <g opacity="0.25">
+            <path
+              d="M52 92 Q66 80 86 83 L86 150 Q66 153 52 138 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M248 92 Q234 80 214 83 L214 150 Q234 153 248 138 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M52 277 Q66 265 86 268 L86 335 Q66 338 52 323 Z"
+              fill="#0b1220"
+            />
+            <path
+              d="M248 277 Q234 265 214 268 L214 335 Q234 338 248 323 Z"
+              fill="#0b1220"
+            />
+          </g>
+
+          {/* Cabin floor */}
+          <path
+            d="M92 100
+               Q150 80 208 100
+               Q224 106 226 122
+               L226 328
+               Q224 344 208 352
+               Q150 372 92 352
+               Q76 344 74 328
+               L74 122
+               Q76 106 92 100 Z"
+            fill="url(#floor-journey)"
+            opacity="0.9"
+          />
+
+          {/* Windshield */}
+          <g>
+            <path
+              d="M92 52
+                 Q150 28 208 52
+                 L214 110
+                 Q150 94 86 110 Z"
+              fill="url(#glass-journey)"
+              stroke="#cbd5e1"
+              strokeOpacity="0.18"
+            />
+            <path
+              d="M102 58
+                 Q150 38 198 58
+                 L201 80
+                 Q150 68 99 80 Z"
+              fill="url(#glassRef-journey)"
+              opacity="0.8"
+            />
+          </g>
+
+          {/* Rear glass */}
+          <g>
+            <path
+              d="M104 326
+                 Q150 312 196 326
+                 L196 380
+                 Q150 394 104 380 Z"
+              fill="url(#glass-journey)"
+              opacity="0.92"
+              stroke="#cbd5e1"
+              strokeOpacity="0.16"
+            />
+            <path
+              d="M114 332
+                 Q150 322 186 332
+                 L186 342
+                 Q150 336 114 342 Z"
+              fill="url(#glassRef-journey)"
+              opacity="0.55"
+            />
+          </g>
+
+          {/* Door seams + handles */}
+          <g opacity="0.30" stroke="#0b1220" strokeWidth="2">
+            <path d="M82 138 L82 308" />
+            <path d="M218 138 L218 308" />
+            <path d="M110 130 L190 130" />
+            <path d="M110 318 L190 318" />
+          </g>
+          <g opacity="0.55" fill="#111827">
+            <rect x="72" y="203" width="12" height="28" rx="6" />
+            <rect x="216" y="203" width="12" height="28" rx="6" />
+          </g>
+
+          {/* Lights */}
+          <g opacity="0.9">
+            <rect
+              x="78"
+              y="23"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#e5e7eb"
+              opacity="0.65"
+            />
+            <rect
+              x="188"
+              y="23"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#e5e7eb"
+              opacity="0.65"
+            />
+            <rect
+              x="78"
+              y="395"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#fb7185"
+              opacity="0.65"
+            />
+            <rect
+              x="188"
+              y="395"
+              width="34"
+              height="10"
+              rx="5"
+              fill="#fb7185"
+              opacity="0.65"
+            />
+          </g>
+
+          {/* Dashboard + steering */}
+          <g>
+            <rect
+              x="92"
+              y="108"
+              width="116"
+              height="14"
+              rx="7"
+              fill="#0b1220"
+              opacity="0.35"
+            />
+            <circle
+              cx="192"
+              cy="120"
+              r="10"
+              fill="none"
+              stroke="#0b1220"
+              strokeWidth="3"
+              opacity="0.85"
+            />
+            <circle cx="192" cy="120" r="3" fill="#0b1220" opacity="0.85" />
+          </g>
+        </svg>
+
+        {/* Overlay seats */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Driver (fixed/locked) */}
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              left: `${(driverSeat.x / VIEWBOX.w) * 100}%`,
+              top: `${(driverSeat.y / VIEWBOX.h) * 100}%`,
+              transform: `translate(-50%, -50%) rotate(${driverSeat.rot}deg)`,
+            }}
+          >
+            <DriverSeat size="lg" />
+          </div>
+
+          {/* Passengers */}
+          {passengerSeats.map((s) => (
+            <div
+              key={s.id}
+              className="absolute pointer-events-auto"
+              style={{
+                left: `${(s.x / VIEWBOX.w) * 100}%`,
+                top: `${(s.y / VIEWBOX.h) * 100}%`,
+                transform: `translate(-50%, -50%) rotate(${s.rot ?? 0}deg)`,
+              }}
+            >
+              <SeatDisplay
+                seatId={s.id}
+                label={s.label}
+                student={getStudentForSeat(s.id)}
+                small={s.size === "sm"}
+                journeyType={journeyType}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SeatDisplay({
+  seatId,
+  label,
+  student,
+  small = false,
+  journeyType,
+}: {
+  seatId: string;
+  label: string;
+  student: OutboundStudent | ReturnStudent | undefined;
+  small?: boolean;
+  journeyType: "outbound" | "return";
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  const isAssigned = !!student;
+  // Mobile stays same, desktop increased by ~30%
+  const outer = small
+    ? "w-[48px] h-[46px] md:w-[72px] md:h-[70px]"
+    : "w-[50px] h-[48px] md:w-[84px] md:h-[82px]";
+  const avatar = small
+    ? "w-4 h-4 text-[8px] md:w-8 md:h-8 md:text-xs"
+    : "w-5 h-5 text-[9px] md:w-9 md:h-9 md:text-sm";
+  const text = small
+    ? "text-[8px] md:text-[10px]"
+    : "text-[9px] md:text-[11px]";
+  const checkSize = small
+    ? "w-3 h-3 md:w-4 md:h-4"
+    : "w-3.5 h-3.5 md:w-5 md:h-5";
+
+  // Get hall colors if student is assigned
+  const hallColors = student?.hall
+    ? HALL_COLORS[student.hall as keyof typeof HALL_COLORS]
+    : null;
+
+  // Handle hover with delay
+  const handleMouseEnter = () => {
+    if (hoverTimeout) clearTimeout(hoverTimeout);
+    const timeout = setTimeout(() => {
+      setIsOpen(true);
+    }, 200); // 200ms delay before opening
+    setHoverTimeout(timeout);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setIsOpen(false);
+  };
+
+  const seatContent = (
+    <div
+      className={[
+        "relative",
+        outer,
+        "border",
+        "shadow-xl",
+        "bg-gradient-to-b from-muted/70 to-muted/35",
+        isAssigned && hallColors
+          ? `${hallColors.border} ring-2 ${hallColors.ring}`
+          : "border-border/70",
+        isAssigned ? "cursor-pointer" : "",
+      ].join(" ")}
+      style={{
+        borderRadius: small ? "18%" : "16%",
+      }}
+      aria-label={`Seat ${seatId}`}
+    >
+      {/* Cushion shine */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          borderRadius: small ? "18%" : "16%",
+          background:
+            "radial-gradient(40px 24px at 35% 25%, rgba(255,255,255,0.18), transparent 60%)",
+        }}
+      />
+
+      {/* Boarded indicator - green check */}
+      {isAssigned && (
+        <div className="absolute -top-1 -right-1 md:-top-1.5 md:-right-1.5 z-20">
+          <CheckCircle2
+            className={`${checkSize} text-green-500 fill-green-100 dark:fill-green-950`}
+          />
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
+        {isAssigned ? (
+          <>
+            <Avatar className={avatar}>
+              <AvatarImage
+                src={student.profile_picture || undefined}
+                loading="lazy"
+              />
+              <AvatarFallback
+                className={`${hallColors?.avatar} ${hallColors?.text} font-extrabold text-xs`}
+              >
+                {student.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .substring(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span
+              className={[
+                text,
+                "font-semibold text-foreground/90 max-w-[36px] md:max-w-[52px] truncate block",
+              ].join(" ")}
+            >
+              {student.name.split(" ")[0]}
+            </span>
+          </>
+        ) : (
+          <>
+            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-muted-foreground/10" />
+            <span
+              className={[text, "font-medium text-muted-foreground"].join(" ")}
+            >
+              {label}
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  // If no student assigned, return seat without popover
+  if (!isAssigned) {
+    return seatContent;
+  }
+
+  // If student assigned, wrap with popover (works on both desktop hover & mobile click)
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger
+        asChild
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {seatContent}
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-80 p-0"
+        side="top"
+        align="center"
+        onMouseEnter={() => {
+          if (hoverTimeout) clearTimeout(hoverTimeout);
+          setIsOpen(true);
+        }}
+        onMouseLeave={handleMouseLeave}
+      >
+        <Item variant="outline" className="border-0">
+          <ItemMedia>
+            <Avatar className="h-14 w-14">
+              <AvatarImage
+                src={student.profile_picture || undefined}
+                alt={student.name}
+              />
+              <AvatarFallback
+                className={`${hallColors?.avatar} ${hallColors?.text} text-base font-bold`}
+              >
+                {student.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .substring(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </ItemMedia>
+
+          <ItemContent>
+            <ItemTitle className="line-clamp-1 flex items-center gap-2">
+              {student.name}
+              <Badge
+                variant="secondary"
+                className={`${hallColors?.avatar.replace("bg-", "text-")} text-xs font-semibold`}
+              >
+                {student.hall}
+              </Badge>
+            </ItemTitle>
+            <ItemDescription className="space-y-1 mt-1">
+              <div className="flex items-center gap-1.5 text-xs">
+                <Mail className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{student.email}</span>
+              </div>
+
+              {student.phone_number && (
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Phone className="w-3 h-3 flex-shrink-0" />
+                  <span>{formatPhoneNumber(student.phone_number)}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-1.5 text-xs">
+                <Armchair className="w-3 h-3 flex-shrink-0" />
+                <span className="font-mono font-semibold">Seat {seatId}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 font-medium pt-1 border-t border-border/50 mt-1.5">
+                <Clock className="w-3 h-3 flex-shrink-0" />
+                <span>
+                  Boarded {journeyType} at{" "}
+                  {format(new Date(student.scan_time), "hh:mm:ss a")}
+                </span>
+              </div>
+            </ItemDescription>
+          </ItemContent>
+        </Item>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function DriverSeat({ size = "lg" }: { size?: "lg" | "sm" }) {
+  // Mobile stays same, desktop increased by ~30%
+  const outer =
+    size === "sm"
+      ? "w-[48px] h-[46px] md:w-[72px] md:h-[70px]"
+      : "w-[50px] h-[48px] md:w-[84px] md:h-[82px]";
+  const text =
+    size === "sm" ? "text-[8px] md:text-xs" : "text-[9px] md:text-sm";
+  const iconSize =
+    size === "sm" ? "w-5 h-5 md:w-9 md:h-9" : "w-5 h-5 md:w-10 md:h-10";
+  const lockSize =
+    size === "sm" ? "w-3 h-3 md:w-5 md:h-5" : "w-3 h-3 md:w-5 md:h-5";
+
+  return (
+    <div
+      className={[
+        "relative",
+        outer,
+        "border border-border/60 bg-muted/40 shadow-xl opacity-90",
+      ].join(" ")}
+      style={{
+        borderRadius: size === "sm" ? "18%" : "16%",
+      }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          borderRadius: size === "sm" ? "18%" : "16%",
+          background:
+            "radial-gradient(40px 24px at 35% 25%, rgba(255,255,255,0.14), transparent 60%)",
+        }}
+      />
+      <div className="relative z-10 h-full w-full flex flex-col items-center justify-center gap-1 pt-2">
+        <div
+          className={`${iconSize} rounded-full bg-muted-foreground/20 flex items-center justify-center`}
+        >
+          <Lock className={`${lockSize} text-muted-foreground`} />
+        </div>
+        <span
+          className={[text, "font-semibold text-muted-foreground"].join(" ")}
+        >
+          Driver
+        </span>
+      </div>
+    </div>
+  );
+}

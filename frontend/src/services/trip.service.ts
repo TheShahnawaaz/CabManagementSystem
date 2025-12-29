@@ -6,6 +6,7 @@ import type {
   UpdateTripData,
   HallDemand,
 } from "../types/trip.types";
+import type { TripJourneyData } from "../types/journey.types";
 
 // ====================================
 // TRIP API SERVICE
@@ -91,5 +92,13 @@ export const tripApi = {
    */
   async getTripDemand(tripId: string): Promise<ApiResponse<HallDemand[]>> {
     return apiClient.get(`/admin/trips/${tripId}/demand`);
+  },
+
+  /**
+   * Get trip journeys (admin only)
+   * Returns journey analytics with outbound/return scans and no-shows
+   */
+  async getTripJourneys(tripId: string): Promise<ApiResponse<TripJourneyData>> {
+    return apiClient.get(`/admin/trips/${tripId}/journeys`);
   },
 };

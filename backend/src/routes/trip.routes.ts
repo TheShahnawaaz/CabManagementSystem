@@ -9,6 +9,7 @@ import {
   getActiveTripsForUser,
   getUpcomingTrips,
   getTripDemand,
+  getTripJourneys,
 } from '../controllers/trip.controller';
 import { authenticateUser, requireAdmin } from '../middleware/auth.middleware';
 import {
@@ -101,6 +102,18 @@ router.get(
   authenticateUser,
   requireAdmin,
   getTripDemand
+);
+
+/**
+ * @route   GET /api/admin/trips/:tripId/journeys
+ * @desc    Get journey analytics (outbound/return scans, no-shows)
+ * @access  Admin only
+ */
+router.get(
+  '/admin/trips/:tripId/journeys',
+  authenticateUser,
+  requireAdmin,
+  getTripJourneys
 );
 
 // ====================================

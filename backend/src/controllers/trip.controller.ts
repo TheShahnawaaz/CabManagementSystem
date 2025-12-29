@@ -560,3 +560,219 @@ export const getUpcomingTrips = async (
     });
   }
 };
+
+// ====================================
+// GET TRIP JOURNEYS (Admin only)
+// ====================================
+export const getTripJourneys = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { tripId } = req.params;
+
+    if (!tripId) {
+      res.status(400).json({
+        success: false,
+        error: 'Trip ID is required',
+      });
+      return;
+    }
+
+    // STEP 1: Get summary statistics
+    const summaryResult = await pool.query(
+      `SELECT 
+        COUNT(DISTINCT tu.id)::int as total_bookings,
+        COUNT(DISTINCT ca.id)::int as total_allocations,
+        COUNT(DISTINCT c.id)::int as total_cabs,
+        COUNT(DISTINCT CASE WHEN j_out.id IS NOT NULL THEN j_out.user_id END)::int as outbound_boarded,
+        COUNT(DISTINCT CASE WHEN ca.id IS NOT NULL AND j_out.id IS NULL THEN ca.user_id END)::int as outbound_no_shows,
+        COUNT(DISTINCT CASE WHEN j_ret.id IS NOT NULL THEN j_ret.user_id END)::int as return_boarded,
+        COUNT(DISTINCT CASE WHEN ca.id IS NOT NULL AND j_ret.id IS NULL THEN ca.user_id END)::int as return_no_shows
+      FROM trip_users tu
+      LEFT JOIN cab_allocations ca ON ca.trip_id = tu.trip_id AND ca.user_id = tu.user_id
+      LEFT JOIN cabs c ON c.id = ca.cab_id
+      LEFT JOIN journeys j_out ON j_out.trip_id = tu.trip_id AND j_out.user_id = tu.user_id AND j_out.journey_type = 'pickup'
+      LEFT JOIN journeys j_ret ON j_ret.trip_id = tu.trip_id AND j_ret.user_id = tu.user_id AND j_ret.journey_type = 'dropoff'
+      WHERE tu.trip_id = $1`,
+      [tripId]
+    );
+
+    const summary = summaryResult.rows[0];
+
+    // STEP 2: Get cab-wise journey data
+    const cabsResult = await pool.query(
+      `SELECT 
+        c.id as cab_id,
+        c.cab_number,
+        c.pickup_region,
+        c.passkey,
+        c.cab_owner_name as driver_name,
+        c.cab_owner_phone as driver_phone,
+        c.cab_capacity as capacity
+      FROM cabs c
+      WHERE c.trip_id = $1
+      ORDER BY c.pickup_region, c.cab_number`,
+      [tripId]
+    );
+
+    // STEP 3: For each cab, get separated student lists
+    const cabsWithStudents = await Promise.all(
+      cabsResult.rows.map(async (cab: any) => {
+        // 3A: Get students who boarded THIS cab for outbound (allocated to this cab)
+        const outboundStudentsResult = await pool.query(
+          `SELECT 
+            u.id as user_id,
+            u.name,
+            u.email,
+            u.phone_number,
+            u.profile_picture,
+            tu.hall,
+            j.journey_date_time as scan_time,
+            ROW_NUMBER() OVER (ORDER BY ca.created_at) as seat_position
+          FROM cab_allocations ca
+          JOIN users u ON u.id = ca.user_id
+          JOIN trip_users tu ON tu.user_id = ca.user_id AND tu.trip_id = ca.trip_id
+          JOIN journeys j ON j.user_id = ca.user_id 
+            AND j.cab_id = ca.cab_id 
+            AND j.trip_id = ca.trip_id 
+            AND j.journey_type = 'pickup'
+          WHERE ca.cab_id = $1 AND ca.trip_id = $2
+          ORDER BY ca.created_at ASC`,
+          [cab.cab_id, tripId]
+        );
+
+        // 3B: Get students who boarded THIS cab for return (from ANY allocation)
+        const returnStudentsResult = await pool.query(
+          `SELECT 
+            u.id as user_id,
+            u.name,
+            u.email,
+            u.phone_number,
+            u.profile_picture,
+            tu.hall,
+            j.journey_date_time as scan_time,
+            ROW_NUMBER() OVER (ORDER BY j.journey_date_time) as seat_position
+          FROM journeys j
+          JOIN users u ON u.id = j.user_id
+          JOIN trip_users tu ON tu.user_id = j.user_id AND tu.trip_id = j.trip_id
+          WHERE j.cab_id = $1 
+            AND j.trip_id = $2 
+            AND j.journey_type = 'dropoff'
+          ORDER BY j.journey_date_time ASC`,
+          [cab.cab_id, tripId]
+        );
+
+        // 3C: Get students allocated to this cab who didn't board outbound
+        const outboundNoShowsResult = await pool.query(
+          `SELECT 
+            u.id as user_id,
+            u.name,
+            u.email,
+            u.phone_number,
+            u.profile_picture,
+            tu.hall,
+            ROW_NUMBER() OVER (ORDER BY ca.created_at) as seat_position
+          FROM cab_allocations ca
+          JOIN users u ON u.id = ca.user_id
+          JOIN trip_users tu ON tu.user_id = ca.user_id AND tu.trip_id = ca.trip_id
+          WHERE ca.cab_id = $1 
+            AND ca.trip_id = $2
+            AND NOT EXISTS (
+              SELECT 1 FROM journeys j 
+              WHERE j.user_id = ca.user_id 
+                AND j.cab_id = ca.cab_id 
+                AND j.trip_id = ca.trip_id
+                AND j.journey_type = 'pickup'
+            )
+          ORDER BY ca.created_at ASC`,
+          [cab.cab_id, tripId]
+        );
+
+        return {
+          cab_id: cab.cab_id,
+          cab_number: cab.cab_number,
+          pickup_region: cab.pickup_region,
+          cab_type: 'Omni',
+          passkey: cab.passkey,
+          driver_name: cab.driver_name,
+          driver_phone: cab.driver_phone,
+          capacity: parseInt(cab.capacity),
+          outbound_students: outboundStudentsResult.rows,
+          return_students: returnStudentsResult.rows,
+          outbound_noshow_students: outboundNoShowsResult.rows,
+        };
+      })
+    );
+
+    // STEP 4: Get global outbound no-shows
+    const outboundNoShowsResult = await pool.query(
+      `SELECT 
+        u.id as user_id,
+        u.name,
+        u.email,
+        u.phone_number,
+        u.profile_picture,
+        tu.hall,
+        c.cab_number as allocated_cab_number,
+        c.pickup_region as allocated_cab_region
+      FROM cab_allocations ca
+      JOIN users u ON u.id = ca.user_id
+      JOIN trip_users tu ON tu.user_id = ca.user_id AND tu.trip_id = ca.trip_id
+      JOIN cabs c ON c.id = ca.cab_id
+      WHERE ca.trip_id = $1
+        AND NOT EXISTS (
+          SELECT 1 FROM journeys j 
+          WHERE j.user_id = ca.user_id 
+            AND j.cab_id = ca.cab_id 
+            AND j.trip_id = ca.trip_id
+            AND j.journey_type = 'pickup'
+        )
+      ORDER BY tu.hall, u.name`,
+      [tripId]
+    );
+
+    // STEP 5: Get global return no-shows (independent of outbound)
+    const returnNoShowsResult = await pool.query(
+      `SELECT 
+        u.id as user_id,
+        u.name,
+        u.email,
+        u.phone_number,
+        u.profile_picture,
+        tu.hall,
+        c.cab_number as allocated_cab_number,
+        c.pickup_region as allocated_cab_region
+      FROM cab_allocations ca
+      JOIN users u ON u.id = ca.user_id
+      JOIN trip_users tu ON tu.user_id = ca.user_id AND tu.trip_id = ca.trip_id
+      JOIN cabs c ON c.id = ca.cab_id
+      WHERE ca.trip_id = $1
+        AND NOT EXISTS (
+          SELECT 1 FROM journeys j 
+          WHERE j.user_id = ca.user_id 
+            AND j.trip_id = ca.trip_id
+            AND j.journey_type = 'dropoff'
+        )
+      ORDER BY tu.hall, u.name`,
+      [tripId]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        summary,
+        cabs: cabsWithStudents,
+        outbound_no_shows: outboundNoShowsResult.rows,
+        return_no_shows: returnNoShowsResult.rows,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching trip journeys:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch trip journeys',
+      details: error.message,
+    });
+  }
+};
