@@ -6,23 +6,17 @@
 
 import { MapPin, CheckCircle2, TrendingUp, Clock } from "lucide-react";
 import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
-import type { Booking } from "@/types/booking.types";
 
 interface DashboardStatsProps {
-  bookings: Booking[];
+  stats: {
+    totalTrips: number;
+    activeBookings: number;
+    completedTrips: number;
+    upcomingTrips: number;
+  };
 }
 
-export function DashboardStats({ bookings }: DashboardStatsProps) {
-  const stats = {
-    totalTrips: bookings.length,
-    activeBookings: bookings.filter((b) => new Date(b.end_time) >= new Date())
-      .length,
-    completedTrips: bookings.filter((b) => new Date(b.end_time) < new Date())
-      .length,
-    upcomingTrips: bookings.filter((b) => new Date(b.trip_date) > new Date())
-      .length,
-  };
-
+export function DashboardStats({ stats }: DashboardStatsProps) {
   return (
     <StatCardGrid columns={4}>
       <StatCard

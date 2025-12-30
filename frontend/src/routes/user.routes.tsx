@@ -1,5 +1,4 @@
-import { Home as HomeIcon, User, Calendar, MapPin } from "lucide-react";
-import Home from "@/pages/Home";
+import { LayoutDashboard, User, Calendar, MapPin } from "lucide-react";
 import Dashboard from "@/pages/dashboard";
 import ProfilePage from "@/pages/Profile";
 import BookingsPage from "@/pages/bookings";
@@ -34,7 +33,7 @@ export const userRoutes: CustomRouteObject[] = [
       description: "User dashboard for Friday Cab System",
       breadcrumb: {
         label: "Dashboard",
-        icon: HomeIcon,
+        icon: LayoutDashboard,
       },
     },
   },

@@ -1,7 +1,7 @@
 import {
   Calendar,
   Car,
-  Home,
+  LayoutDashboard,
   Users,
   MapPin,
   LogOut,
@@ -39,7 +39,7 @@ const userMenuItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
-    icon: Home,
+    icon: LayoutDashboard,
   },
   {
     title: "Trips",
@@ -63,7 +63,7 @@ const adminMenuItems = [
   {
     title: "Admin Dashboard",
     url: "/admin",
-    icon: Home,
+    icon: LayoutDashboard,
   },
   {
     title: "Manage Trips",
