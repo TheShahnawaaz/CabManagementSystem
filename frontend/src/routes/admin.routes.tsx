@@ -1,13 +1,5 @@
 import { Navigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  Car,
-  DollarSign,
-  FileText,
-  Settings,
-  MapPin,
-} from "lucide-react";
+import { LayoutDashboard, Users, MapPin } from "lucide-react";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import UserManagement from "@/pages/admin/users";
 import TripManagement from "@/pages/admin/trips";
@@ -16,10 +8,6 @@ import DemandTab from "@/pages/admin/trips/detail/DemandTab";
 import JourneyTab from "@/pages/admin/trips/detail/JourneyTab";
 import AllocationTab from "@/pages/admin/trips/detail/AllocationTab";
 import AllocationEditPage from "@/pages/admin/trips/detail/AllocationEditPage";
-import VehicleManagement from "@/pages/admin/Vehicles";
-import PaymentsManagement from "@/pages/admin/Payments";
-import ReportsPage from "@/pages/admin/Reports";
-import AdminSettings from "@/pages/admin/AdminSettings";
 import type { CustomRouteObject } from "./guards";
 import { tripApi } from "@/services/trip.service";
 
@@ -157,61 +145,5 @@ export const adminRoutes: CustomRouteObject[] = [
         },
       },
     ],
-  },
-  {
-    path: "admin/vehicles",
-    element: <VehicleManagement />,
-    meta: {
-      requireAuth: true,
-      requireAdmin: true,
-      title: "Vehicle Management",
-      description: "Manage vehicle fleet",
-      breadcrumb: {
-        label: "Vehicles",
-        icon: Car,
-      },
-    },
-  },
-  {
-    path: "admin/payments",
-    element: <PaymentsManagement />,
-    meta: {
-      requireAuth: true,
-      requireAdmin: true,
-      title: "Payments",
-      description: "Manage payments",
-      breadcrumb: {
-        label: "Payments",
-        icon: DollarSign,
-      },
-    },
-  },
-  {
-    path: "admin/reports",
-    element: <ReportsPage />,
-    meta: {
-      requireAuth: true,
-      requireAdmin: true,
-      title: "Reports",
-      description: "Analytics and reports",
-      breadcrumb: {
-        label: "Reports",
-        icon: FileText,
-      },
-    },
-  },
-  {
-    path: "admin/settings",
-    element: <AdminSettings />,
-    meta: {
-      requireAuth: true,
-      requireAdmin: true,
-      title: "System Settings",
-      description: "Configure system settings",
-      breadcrumb: {
-        label: "Settings",
-        icon: Settings,
-      },
-    },
   },
 ];

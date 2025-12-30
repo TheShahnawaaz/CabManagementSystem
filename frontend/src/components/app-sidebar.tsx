@@ -3,10 +3,7 @@ import {
   Car,
   Home,
   Users,
-  Settings,
   MapPin,
-  CreditCard,
-  FileText,
   LogOut,
   ChevronUp,
   User2,
@@ -77,26 +74,6 @@ const adminMenuItems = [
     title: "Manage Users",
     url: "/admin/users",
     icon: Users,
-  },
-  {
-    title: "Manage Vehicles",
-    url: "/admin/vehicles",
-    icon: Car,
-  },
-  {
-    title: "Payments",
-    url: "/admin/payments",
-    icon: CreditCard,
-  },
-  {
-    title: "Reports",
-    url: "/admin/reports",
-    icon: FileText,
-  },
-  {
-    title: "System Settings",
-    url: "/admin/settings",
-    icon: Settings,
   },
 ];
 
