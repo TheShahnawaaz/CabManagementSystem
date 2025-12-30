@@ -34,6 +34,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 // Predefined color themes for common use cases
 const COLOR_THEMES = {
@@ -95,6 +96,42 @@ const COLOR_THEMES = {
 
 export type ColorTheme = keyof typeof COLOR_THEMES;
 
+/**
+ * Custom hook for animating number values
+ * Counts up from 0 to the target value over a specified duration
+ */
+function useCountAnimation(
+  targetValue: number,
+  duration: number = 1000
+): number {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    // Reset count when target changes
+    setCount(0);
+
+    // Calculate increment steps
+    const steps = 60; // 60 frames for smooth animation
+    const increment = targetValue / steps;
+    const stepDuration = duration / steps;
+    let currentStep = 0;
+
+    const timer = setInterval(() => {
+      currentStep++;
+      if (currentStep >= steps) {
+        setCount(targetValue); // Ensure we end at exact target
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(increment * currentStep));
+      }
+    }, stepDuration);
+
+    return () => clearInterval(timer);
+  }, [targetValue, duration]);
+
+  return count;
+}
+
 export interface StatCardProps {
   /** The main value to display (number or string) */
   value: number | string;
@@ -139,6 +176,8 @@ export interface StatCardProps {
     value: string;
     isPositive?: boolean;
   };
+  /** Enable/disable counter animation for numeric values (default: true) */
+  animate?: boolean;
 }
 
 export function StatCard({
@@ -162,8 +201,17 @@ export function StatCard({
   onClick,
   loading = false,
   trend,
+  animate = true,
 }: StatCardProps) {
   const theme = COLOR_THEMES[color];
+
+  // Animate numeric values (only if animate is true)
+  const isNumericValue = typeof value === "number";
+  const animatedValue = useCountAnimation(
+    isNumericValue && animate ? value : 0,
+    1000 // 1.0 seconds animation duration
+  );
+  const displayValue = isNumericValue && animate ? animatedValue : value;
 
   // Auto-set border radius based on variant
   const defaultRadius = variant === "stacked" ? "rounded-full" : "rounded-xl";
@@ -223,7 +271,7 @@ export function StatCard({
           <div className="min-w-0 flex-1">
             <p className={cn(labelClasses, "truncate")}>{label}</p>
             <div className="flex items-baseline gap-1.5">
-              <p className={valueClasses}>{value}</p>
+              <p className={valueClasses}>{displayValue}</p>
               {trend && (
                 <span
                   className={cn(
@@ -257,7 +305,7 @@ export function StatCard({
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
-            <p className={valueClasses}>{value}</p>
+            <p className={valueClasses}>{displayValue}</p>
             {trend && (
               <span
                 className={cn(
