@@ -1,5 +1,6 @@
 import { Home as HomeIcon, User, Calendar, MapPin } from "lucide-react";
 import Home from "@/pages/Home";
+import Dashboard from "@/pages/dashboard";
 import ProfilePage from "@/pages/Profile";
 import BookingsPage from "@/pages/bookings";
 import TripsPage from "@/pages/trips";
@@ -26,7 +27,7 @@ import type { CustomRouteObject } from "./guards";
 export const userRoutes: CustomRouteObject[] = [
   {
     path: "dashboard",
-    element: <Home />,
+    element: <Dashboard />,
     meta: {
       requireAuth: true,
       title: "Dashboard",

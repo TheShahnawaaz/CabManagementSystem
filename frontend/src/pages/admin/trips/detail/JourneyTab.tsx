@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -74,11 +75,17 @@ export default function JourneyTab() {
         </div>
 
         {/* Stats Skeleton */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCardGrid columns={4}>
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
+            <StatCard
+              key={i}
+              value={0}
+              label="Loading..."
+              loading
+              variant="stacked"
+            />
           ))}
-        </div>
+        </StatCardGrid>
 
         {/* Tabs Skeleton */}
         <Skeleton className="h-12 w-full md:w-[400px] rounded-lg" />
@@ -119,63 +126,36 @@ export default function JourneyTab() {
       </div>
 
       {/* Summary Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-5 bg-gradient-to-br from-background to-muted/30">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-primary/10">
-              <Users className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {data.summary.total_allocations}
-              </p>
-              <p className="text-xs text-muted-foreground">Allocated</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5 bg-gradient-to-br from-background to-green-500/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-green-500/10">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {data.summary.outbound_boarded}
-              </p>
-              <p className="text-xs text-muted-foreground">Outbound</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5 bg-gradient-to-br from-background to-blue-500/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-500/10">
-              <CheckCircle2 className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {data.summary.return_boarded}
-              </p>
-              <p className="text-xs text-muted-foreground">Return</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5 bg-gradient-to-br from-background to-red-500/5">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-red-500/10">
-              <XCircle className="w-5 h-5 text-red-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {data.summary.outbound_no_shows + data.summary.return_no_shows}
-              </p>
-              <p className="text-xs text-muted-foreground">No-Shows</p>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <StatCardGrid columns={4}>
+        <StatCard
+          value={data.summary.total_allocations}
+          label="Allocated"
+          icon={Users}
+          color="neutral"
+          variant="stacked"
+        />
+        <StatCard
+          value={data.summary.outbound_boarded}
+          label="Outbound"
+          icon={CheckCircle2}
+          color="green"
+          variant="stacked"
+        />
+        <StatCard
+          value={data.summary.return_boarded}
+          label="Return"
+          icon={CheckCircle2}
+          color="indigo"
+          variant="stacked"
+        />
+        <StatCard
+          value={data.summary.outbound_no_shows + data.summary.return_no_shows}
+          label="No-Shows"
+          icon={XCircle}
+          color="red"
+          variant="stacked"
+        />
+      </StatCardGrid>
 
       {/* Tabs: Outbound vs Return */}
       <Tabs
