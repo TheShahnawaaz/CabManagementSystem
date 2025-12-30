@@ -33,10 +33,14 @@ export default function TripDetailLayout() {
   const [loading, setLoading] = useState(true);
 
   // Determine current tab from URL
-  const currentPath = location.pathname.split("/").pop() || "demand";
-  const currentTab = ["demand", "journey", "allocation"].includes(currentPath)
-    ? currentPath
-    : "demand";
+  const pathSegments = location.pathname.split("/");
+  const currentTab = pathSegments.includes("allocation")
+    ? "allocation"
+    : pathSegments.includes("journey")
+      ? "journey"
+      : pathSegments.includes("demand")
+        ? "demand"
+        : "demand";
 
   useEffect(() => {
     if (!tripId) {
@@ -58,7 +62,7 @@ export default function TripDetailLayout() {
         toast.error("Failed to load trip details");
         navigate("/admin/trips");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching trip:", error);
       toast.error("Failed to load trip details");
       navigate("/admin/trips");

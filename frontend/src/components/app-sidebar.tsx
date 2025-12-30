@@ -35,7 +35,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 // Menu items for regular users
 const userMenuItems = [
@@ -105,6 +105,17 @@ const formatPhoneNumber = (phone?: string | null) =>
 
 export function AppSidebar() {
   const { user, isAdmin, signOut } = useAuth();
+  const location = useLocation();
+
+  // Check if a menu item is active based on current path
+  const isActiveRoute = (url: string) => {
+    // Exact match for dashboard/home routes
+    if (url === "/dashboard" || url === "/admin") {
+      return location.pathname === url;
+    }
+    // For other routes, check if current path starts with the menu item URL
+    return location.pathname.startsWith(url);
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -140,7 +151,11 @@ export function AppSidebar() {
             <SidebarMenu>
               {userMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    isActive={isActiveRoute(item.url)}
+                  >
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -162,7 +177,11 @@ export function AppSidebar() {
                 <SidebarMenu>
                   {adminMenuItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild tooltip={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={item.title}
+                        isActive={isActiveRoute(item.url)}
+                      >
                         <Link to={item.url}>
                           <item.icon />
                           <span>{item.title}</span>
