@@ -5,10 +5,10 @@
  */
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { User } from "@/types/user.types";
+import type { UserProfile } from "@/types/user.types";
 
 interface DashboardHeaderProps {
-  user: User;
+  user: UserProfile;
 }
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
