@@ -6,6 +6,7 @@ import { bookingApi } from "@/services/booking.service";
 import type { Booking } from "@/types/booking.types";
 import { BookingCard } from "./BookingCard";
 import { BookingCardSkeleton } from "./BookingCardSkeleton";
+import { EmptyBookings } from "./EmptyBookings";
 import { QRCardModal } from "@/components/QRCardModal";
 import { CabDetailsSheet } from "@/components/CabDetailsSheet";
 
@@ -139,18 +140,7 @@ export default function BookingsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">
-            {activeTab === "active"
-              ? "No active bookings found"
-              : "No bookings found"}
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            {activeTab === "active"
-              ? "Book a trip from the Trips page to get started"
-              : "Your bookings will appear here once you book a trip"}
-          </p>
-        </div>
+        <EmptyBookings type={activeTab} />
       )}
 
       {/* Modals */}

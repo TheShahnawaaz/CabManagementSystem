@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { tripApi } from "@/services/trip.service";
 import { bookingApi } from "@/services/booking.service";
 import type { Trip } from "@/types/trip.types";
 import type { Hall } from "@/types/booking.types";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ActiveTripCard } from "./ActiveTripCard";
 import { UpcomingTripCard } from "./UpcomingTripCard";
 import { TripCardSkeleton } from "./TripCardSkeleton";
+import { EmptyTrips } from "./EmptyTrips";
 import { BookingModal } from "./BookingModal";
 
 export default function TripsPage() {
@@ -178,24 +177,7 @@ export default function TripsPage() {
 
       {/* Trips Grid */}
       {trips.length === 0 ? (
-        <Card className="p-12">
-          <div className="text-center">
-            <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
-              {activeTab === "active" ? "No Active Trips" : "No Upcoming Trips"}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {activeTab === "active"
-                ? "There are currently no trips available for booking. Please check back later."
-                : "No upcoming trips scheduled yet. New trips will appear here once announced."}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {activeTab === "active"
-                ? "Booking windows open a few days before the trip date."
-                : "Check the Active tab for trips you can book now."}
-            </p>
-          </div>
-        </Card>
+        <EmptyTrips type={activeTab} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeTab === "active"
