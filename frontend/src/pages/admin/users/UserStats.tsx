@@ -32,8 +32,8 @@ export function UserStats({ users }: UserStatsProps) {
         value={adminCount}
         label="Admin Users"
         description={
-          totalUsers > 0
-            ? `${((adminCount / totalUsers) * 100).toFixed(1)}% of total`
+        totalUsers > 0
+          ? `${((adminCount / totalUsers) * 100).toFixed(1)}% of total`
             : "0% of total"
         }
         icon={Shield}
@@ -44,8 +44,8 @@ export function UserStats({ users }: UserStatsProps) {
         value={totalBookings}
         label="Total Bookings"
         description={
-          totalUsers > 0
-            ? `${(totalBookings / totalUsers).toFixed(1)} per user avg`
+        totalUsers > 0
+          ? `${(totalBookings / totalUsers).toFixed(1)} per user avg`
             : "0 per user avg"
         }
         icon={Calendar}
@@ -56,8 +56,8 @@ export function UserStats({ users }: UserStatsProps) {
         value={totalPayments}
         label="Confirmed Payments"
         description={
-          totalBookings > 0
-            ? `${((totalPayments / totalBookings) * 100).toFixed(1)}% completion`
+        totalBookings > 0
+          ? `${((totalPayments / totalBookings) * 100).toFixed(1)}% completion`
             : "0% completion"
         }
         icon={CreditCard}

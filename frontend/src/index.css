@@ -83,3 +83,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Enable smooth animations for elements with transition classes */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-behavior: smooth;
+  }
+}

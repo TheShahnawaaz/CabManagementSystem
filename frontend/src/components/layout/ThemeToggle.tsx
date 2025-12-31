@@ -1,37 +1,54 @@
-import { Moon, Sun } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Moon, Sun, Monitor } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/hooks/useTheme";
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Tabs
+      value={theme}
+      onValueChange={(value) => setTheme(value as "light" | "dark" | "system")}
+    >
+      <TabsList rounded className="rounded-full h-9 p-1">
+        <TabsTrigger value="light" className="h-7 w-7 p-0 rounded-full">
+          <Sun className="h-4 w-4" />
+          <span className="sr-only">Light theme</span>
+        </TabsTrigger>
+        <TabsTrigger value="dark" className="h-7 w-7 p-0 rounded-full">
+          <Moon className="h-4 w-4" />
+          <span className="sr-only">Dark theme</span>
+        </TabsTrigger>
+        <TabsTrigger value="system" className="h-7 w-7 p-0 rounded-full">
+          <Monitor className="h-4 w-4" />
+          <span className="sr-only">System theme</span>
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
+  );
+}
+
+// Full-width version for dropdown menus using Tabs
+export function ThemeToggleDropdown() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <Tabs
+      value={theme}
+      onValueChange={(value) => setTheme(value as "light" | "dark" | "system")}
+      className="w-full"
+    >
+      <TabsList rounded className="grid w-full grid-cols-3 rounded-full h-10">
+        <TabsTrigger value="light" className="rounded-full">
+          <Sun className="h-4 w-4" />
+        </TabsTrigger>
+        <TabsTrigger value="dark" className="rounded-full">
+          <Moon className="h-4 w-4" />
+        </TabsTrigger>
+        <TabsTrigger value="system" className="rounded-full">
+          <Monitor className="h-4 w-4" />
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   );
 }

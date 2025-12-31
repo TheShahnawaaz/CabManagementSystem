@@ -8,16 +8,18 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ThemeToggle } from "./ThemeToggle";
+import { UserMenu } from "./UserMenu";
 
 /**
  * Dashboard Layout with Sidebar
  *
  * Features:
  * - Collapsible sidebar (desktop: icons only, mobile: sheet)
- * - Sticky header with breadcrumbs
+ * - Sticky header with breadcrumbs and user menu
  * - Auto-generated breadcrumbs from URL
  * - Breadcrumbs show entity names (not IDs)
- * - Theme toggleimage.png
+ * - Theme toggle
+ * - User menu with profile and logout
  * - Auto-collapses on mobile
  * - Persists state in cookies
  */
@@ -27,7 +29,7 @@ export default function DashboardLayout() {
       <AppSidebar />
       <SidebarInset>
         {/* Sticky Header with breadcrumbs and controls */}
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
+        <header className="sticky top-0 z-50 flex items-center gap-2 border-b bg-card px-4 py-2">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
 
@@ -36,7 +38,10 @@ export default function DashboardLayout() {
 
           {/* Right side controls */}
           <div className="ml-auto flex items-center gap-2">
-            <ThemeToggle />
+            <div className="hidden lg:block">
+              <ThemeToggle />
+            </div>
+            <UserMenu />
           </div>
         </header>
 
