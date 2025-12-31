@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Booking } from "@/types/booking.types";
+import { BookingTimeline } from "./BookingTimeline";
 
 interface BookingCardProps {
   booking: Booking;
@@ -144,6 +145,19 @@ export function BookingCard({
           </Button>
         )}
       </div>
+
+      {/* Timeline Section - Accordion */}
+      <div className="-mx-6 border-t my-4" />
+
+      <BookingTimeline
+        createdAt={booking.created_at}
+        paymentDate={booking.payment_date}
+        bookingEndTime={booking.booking_end_time}
+        allocationId={booking.allocation_id}
+        returnTime={booking.return_time}
+        endTime={booking.end_time}
+        cabNumber={booking.cab_number}
+      />
 
       {/* Payment ID Footer - Full Width Divider */}
       <div className="-mx-6 border-t px-6 pt-3">
