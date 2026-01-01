@@ -181,11 +181,11 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
         {/* Boarding Pass Content - This will be captured for download */}
         <div
           id="boarding-pass-content"
-          className="space-y-4 p-4 bg-white dark:bg-gray-950"
+          className="space-y-4 p-4 bg-card border border-border rounded-lg"
         >
           {/* Header - For Download Only (hidden in UI) */}
           <div className="hidden space-y-3 pb-4" id="download-header">
-            <h2 className="flex items-center gap-2 text-2xl font-bold">
+            <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground">
               <Ticket className="w-6 h-6" />
               Your Boarding Pass
             </h2>
@@ -196,7 +196,7 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
           </div>
 
           {/* QR Code Display */}
-          <div className="flex justify-center items-center py-6 bg-white dark:bg-gray-100 rounded-lg border-2 border-gray-200">
+          <div className="flex justify-center items-center py-6 rounded-lg border-2 border-border">
             <QRCodeSVG
               id="qr-code-svg"
               value={qrUrl}
@@ -208,7 +208,7 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
 
           {/* Trip Details */}
           <div className="space-y-3 mt-4">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
+            <h3 className="font-semibold text-lg flex items-center gap-2 text-foreground">
               <MapPin className="w-4 h-4" />
               Trip Details
             </h3>
@@ -219,7 +219,7 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
                 <User className="w-4 h-4 text-muted-foreground mt-0.5" />
                 <div>
                   <span className="text-muted-foreground">Student: </span>
-                  <span className="font-medium">You</span>
+                  <span className="font-medium text-foreground">You</span>
                 </div>
               </div>
 
@@ -228,7 +228,9 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
                 <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
                 <div>
                   <span className="text-muted-foreground">Hall: </span>
-                  <span className="font-medium">{booking.hall}</span>
+                  <span className="font-medium text-foreground">
+                    {booking.hall}
+                  </span>
                 </div>
               </div>
 
@@ -238,7 +240,9 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
                   <Car className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground">Cab Number: </span>
-                    <span className="font-medium">{booking.cab_number}</span>
+                    <span className="font-medium text-foreground">
+                      {booking.cab_number}
+                    </span>
                   </div>
                 </div>
               )}
@@ -251,7 +255,9 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
                     <span className="text-muted-foreground">
                       Pickup Region:{" "}
                     </span>
-                    <span className="font-medium">{booking.pickup_region}</span>
+                    <span className="font-medium text-foreground">
+                      {booking.pickup_region}
+                    </span>
                   </div>
                 </div>
               )}
@@ -261,7 +267,7 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
                 <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                 <div>
                   <span className="text-muted-foreground">Departure: </span>
-                  <span className="font-medium">
+                  <span className="font-medium text-foreground">
                     {formatTime(booking.return_time)}
                   </span>
                 </div>
@@ -275,8 +281,8 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
           </div>
 
           {/* Instructions */}
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900">
-            <p className="text-sm text-blue-900 dark:text-blue-100 flex items-start gap-2">
+          <div className="mt-4 p-3 bg-primary/10 rounded-md border border-primary/20">
+            <p className="text-sm text-primary flex items-start gap-2">
               <span className="text-lg">ℹ️</span>
               <span>
                 Show this QR code to your driver for boarding verification.
