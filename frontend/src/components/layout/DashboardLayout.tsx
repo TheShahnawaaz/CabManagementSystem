@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
+import { PublicLinksBar } from "./PublicLinksBar";
 
 /**
  * Dashboard Layout with Sidebar
@@ -49,6 +50,8 @@ export default function DashboardLayout() {
         <div className="flex flex-1 flex-col gap-4 p-4">
           <Outlet />
         </div>
+
+        <PublicLinksBar />
       </SidebarInset>
     </SidebarProvider>
   );
