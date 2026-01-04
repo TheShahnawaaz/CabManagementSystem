@@ -1,5 +1,9 @@
 import type { CustomRouteObject } from "./guards";
 import DriverScanPage from "@/pages/DriverScanPage";
+import TermsPage from "@/pages/legal/TermsPage";
+import PrivacyPage from "@/pages/legal/PrivacyPage";
+import ContactPage from "@/pages/legal/ContactPage";
+import CancellationRefundPage from "@/pages/legal/CancellationRefundPage";
 
 /**
  * Public Routes Configuration
@@ -41,6 +45,40 @@ export const publicRoutes: CustomRouteObject[] = [
     meta: {
       title: "Driver Validation",
       description: "QR code validation for drivers",
+    },
+  },
+  {
+    path: "terms",
+    element: <TermsPage />,
+    meta: {
+      title: "Terms & Conditions",
+      description:
+        "Rules for using the Friday Cab Allocation System and booking Friday prayer transport.",
+    },
+  },
+  {
+    path: "privacy",
+    element: <PrivacyPage />,
+    meta: {
+      title: "Privacy Policy",
+      description:
+        "How we collect, use, and protect data for cab booking and QR validation.",
+    },
+  },
+  {
+    path: "contact",
+    element: <ContactPage />,
+    meta: {
+      title: "Contact Us",
+      description: "Get support for bookings, payments, and QR validation.",
+    },
+  },
+  {
+    path: "cancellation-refunds",
+    element: <CancellationRefundPage />,
+    meta: {
+      title: "Cancellation & Refunds",
+      description: "Policies for cancelling a booking and receiving refunds.",
     },
   },
   // Add more public routes as needed:
