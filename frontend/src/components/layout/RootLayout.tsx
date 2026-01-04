@@ -3,6 +3,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useAuth } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PublicLinksBar } from "@/components/layout/PublicLinksBar";
 
 export default function RootLayout() {
   const { user, signOut, isAdmin } = useAuth();
@@ -46,6 +47,8 @@ export default function RootLayout() {
 
       {/* Page content will be rendered here */}
       <Outlet />
+
+      <PublicLinksBar />
     </div>
   );
 }
