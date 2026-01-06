@@ -44,7 +44,7 @@ export function SystemStats({ stats }: SystemStatsProps) {
         description="All time"
       />
       <StatCard
-        value={`₹${stats.totalRevenue.toLocaleString()}`}
+        value={stats.totalRevenue}
         label="Revenue"
         icon={IndianRupee}
         color="orange"
