@@ -145,4 +145,77 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logout successful' });
 });
 
+// ============================================
+// TEMPORARY: Razorpay Verification Login
+// This endpoint is only enabled when ENABLE_VERIFY_LOGIN=true
+// Remove this after Razorpay verification is complete
+// ============================================
+router.post('/verify-login', async (req, res) => {
+  try {
+    // Check if verification login is enabled
+    if (process.env.ENABLE_VERIFY_LOGIN !== 'true') {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Check against environment variables
+    const verifyEmail = process.env.VERIFY_EMAIL;
+    const verifyPassword = process.env.VERIFY_PASSWORD;
+
+    if (!verifyEmail || !verifyPassword) {
+      console.error('VERIFY_EMAIL or VERIFY_PASSWORD not configured');
+      return res.status(500).json({ error: 'Verification login not configured' });
+    }
+
+    // Validate credentials
+    if (email !== verifyEmail || password !== verifyPassword) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Find user in database
+    const result = await db.query(
+      'SELECT id, email, name, phone_number, profile_picture, is_admin FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ 
+        error: 'User not found. Please ensure the test user exists in the database.' 
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Generate JWT token
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      isAdmin: user.is_admin
+    });
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: formatUserResponse(user)
+    });
+  } catch (error) {
+    console.error('Verify login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Check if verify login is enabled (for frontend to show/hide the option)
+router.get('/verify-login/status', (req, res) => {
+  res.json({ 
+    enabled: process.env.ENABLE_VERIFY_LOGIN === 'true' 
+  });
+});
+
 export default router;
