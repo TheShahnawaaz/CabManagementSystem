@@ -2,6 +2,15 @@ import { useAuth } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// ============================================
+// TEMPORARY: Import for Razorpay verification
+// DELETE these imports after verification
+// ============================================
+import {
+  VerifyLoginForm,
+  useVerifyLoginStatus,
+} from "@/components/VerifyLoginForm";
+
 /**
  * Login Page
  *
@@ -13,8 +22,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function Login() {
   const { signInWithGoogle } = useAuth();
 
+  // ============================================
+  // TEMPORARY: Check if email/password login is enabled
+  // DELETE this line after Razorpay verification
+  // ============================================
+  const { isEnabled: showEmailLogin } = useVerifyLoginStatus();
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
@@ -46,6 +61,27 @@ export default function Login() {
             </svg>
             Sign in with Google
           </Button>
+
+          {/* ============================================
+              TEMPORARY: Email/Password login for Razorpay verification
+              DELETE this entire block after verification is complete
+              ============================================ */}
+          {showEmailLogin && (
+            <>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+              <VerifyLoginForm />
+            </>
+          )}
+          {/* END TEMPORARY BLOCK */}
         </CardContent>
       </Card>
     </div>
