@@ -33,7 +33,7 @@ const router = Router();
  * Note: This endpoint expects raw body (not parsed JSON)
  * for signature verification. See webhook.middleware.ts
  */
-router.post('/webhooks/razorpay', async (req: Request, res: Response) => {
+router.post('/razorpay', async (req: Request, res: Response) => {
   try {
     // Get signature from header
     const signature = req.headers['x-razorpay-signature'] as string;
