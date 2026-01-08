@@ -103,7 +103,10 @@ export interface RazorpayError {
 // Razorpay SDK type
 export interface RazorpayInstance {
   open: () => void;
-  on: (event: string, handler: (response: { error: RazorpayError }) => void) => void;
+  on: (
+    event: string,
+    handler: (response: { error: RazorpayError }) => void
+  ) => void;
   close: () => void;
 }
 
@@ -218,7 +221,7 @@ export function openRazorpayCheckout(
   };
 
   const razorpay = new window.Razorpay(options);
-  
+
   razorpay.on("payment.failed", (response) => {
     onError(response.error);
   });
@@ -226,4 +229,3 @@ export function openRazorpayCheckout(
   razorpay.open();
   return razorpay;
 }
-

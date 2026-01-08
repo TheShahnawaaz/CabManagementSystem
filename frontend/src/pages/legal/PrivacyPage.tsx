@@ -36,11 +36,13 @@ export default function PrivacyPage() {
           <Badge variant="outline">Public</Badge>
           <Badge variant="secondary">Privacy</Badge>
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight">Privacy Policy</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Privacy Policy
+        </h1>
         <p className="text-muted-foreground max-w-3xl">
           This policy explains what we collect, why we collect it, and how we
-          use information to operate the Friday Cab Allocation System for
-          Friday prayer transport.
+          use information to operate the Friday Cab Allocation System for Friday
+          prayer transport.
         </p>
       </div>
 
@@ -56,7 +58,9 @@ export default function PrivacyPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
             <ul className="list-disc space-y-2 pl-4">
-              <li>Identity: name, email, profile photo (from authentication).</li>
+              <li>
+                Identity: name, email, profile photo (from authentication).
+              </li>
               <li>Hall selection and trip choices for allocation.</li>
               <li>
                 Booking, payment metadata (status, amount, method), and QR
@@ -92,7 +96,9 @@ export default function PrivacyPage() {
         <Card>
           <CardHeader>
             <CardTitle>Sharing</CardTitle>
-            <CardDescription>Only what is necessary to operate trips.</CardDescription>
+            <CardDescription>
+              Only what is necessary to operate trips.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
             <ul className="list-disc space-y-2 pl-4">
@@ -106,7 +112,9 @@ export default function PrivacyPage() {
         <Card>
           <CardHeader>
             <CardTitle>Retention</CardTitle>
-            <CardDescription>Kept only as long as needed for operations/compliance.</CardDescription>
+            <CardDescription>
+              Kept only as long as needed for operations/compliance.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
             <ul className="list-disc space-y-2 pl-4">
@@ -121,13 +129,20 @@ export default function PrivacyPage() {
       <Card>
         <CardHeader>
           <CardTitle>Security</CardTitle>
-          <CardDescription>Protecting validation and booking data.</CardDescription>
+          <CardDescription>
+            Protecting validation and booking data.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <ul className="list-disc space-y-2 pl-4">
-            <li>QR validation is checked server-side and paired with driver passkeys.</li>
+            <li>
+              QR validation is checked server-side and paired with driver
+              passkeys.
+            </li>
             <li>Sessions are managed with secure cookies where applicable.</li>
-            <li>Input validation and basic rate limiting protect the API surface.</li>
+            <li>
+              Input validation and basic rate limiting protect the API surface.
+            </li>
             <li>
               Payment card/UPI details are handled by the payment gateway; we do
               not store sensitive card data.

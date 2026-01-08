@@ -4,6 +4,7 @@
  * Dedicated page for trip booking with:
  * - Trip summary
  * - Hall selection
+ * - Phone number collection (if missing)
  * - Razorpay payment integration
  */
 
@@ -20,6 +21,7 @@ import {
   Loader2,
   CheckCircle2,
   Shield,
+  Phone,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,12 +32,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { useAuth } from "@/hooks";
+import { isValidIndianPhone } from "@/lib/utils";
 import { tripApi } from "@/services/trip.service";
+import { userApi } from "@/services/user.service";
 import {
   paymentApi,
   loadRazorpayScript,
@@ -51,6 +57,7 @@ export default function CheckoutPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, refetchUser } = useAuth();
 
   // Get trip from router state (passed from trips page) or fetch it
   const tripFromState = location.state?.trip as Trip | undefined;
@@ -62,6 +69,11 @@ export default function CheckoutPage() {
   const [paymentStep, setPaymentStep] = useState<
     "idle" | "initiating" | "paying" | "verifying"
   >("idle");
+
+  // Phone number state (for users without phone)
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const needsPhone = !user?.phone_number;
 
   // Fetch trip if not passed via state
   useEffect(() => {
@@ -115,10 +127,38 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate phone number if user needs to provide one
+    if (needsPhone) {
+      if (!phoneNumber.trim()) {
+        setPhoneError("Phone number is required");
+        return;
+      }
+      if (!isValidIndianPhone(phoneNumber)) {
+        setPhoneError("Please enter a valid 10-digit mobile number");
+        return;
+      }
+      setPhoneError(null);
+    }
+
     setIsProcessing(true);
     setPaymentStep("initiating");
 
     try {
+      // Step 0: Update profile with phone number if needed
+      if (needsPhone && phoneNumber) {
+        const cleanedPhone = phoneNumber.replace(/\D/g, "");
+        const updateResponse = await userApi.updateProfile({
+          phone_number: cleanedPhone,
+        });
+
+        if (!updateResponse.success) {
+          throw new Error("Failed to save phone number. Please try again.");
+        }
+
+        // Refresh user data so phone is available for Razorpay prefill
+        await refetchUser();
+      }
+
       // Step 1: Initiate payment (create order)
       const initiateResponse = await paymentApi.initiatePayment(
         trip.id,
@@ -329,6 +369,63 @@ export default function CheckoutPage() {
             </RadioGroup>
           </div>
 
+          {/* Phone Number Input (if missing) */}
+          {needsPhone && (
+            <div className="space-y-3">
+              <Label
+                htmlFor="phone"
+                className="text-base font-medium flex items-center gap-2"
+              >
+                <Phone className="h-4 w-4" />
+                Mobile Number
+                <span className="text-xs text-muted-foreground font-normal">
+                  (required for booking)
+                </span>
+              </Label>
+
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex items-center px-3 border rounded-md bg-muted text-muted-foreground text-sm">
+                    +91
+                  </div>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter 10-digit mobile number"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      // Only allow digits, max 10
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10);
+                      setPhoneNumber(value);
+
+                      // Real-time validation: show error when 10 digits entered but invalid
+                      if (value.length === 10 && !isValidIndianPhone(value)) {
+                        setPhoneError(
+                          "Phone number must start with 6, 7, 8, or 9"
+                        );
+                      } else if (phoneError) {
+                        setPhoneError(null);
+                      }
+                    }}
+                    disabled={isProcessing}
+                    className={phoneError ? "border-red-500" : ""}
+                    maxLength={10}
+                  />
+                </div>
+                {phoneError ? (
+                  <p className="text-sm text-red-500">{phoneError}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Your phone number will be saved to your profile for future
+                    bookings.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           <Separator />
 
           {/* Security Badge */}
@@ -342,7 +439,11 @@ export default function CheckoutPage() {
             size="lg"
             className="w-full"
             onClick={handlePayment}
-            disabled={!selectedHall || isProcessing}
+            disabled={
+              !selectedHall ||
+              isProcessing ||
+              (needsPhone && !isValidIndianPhone(phoneNumber))
+            }
           >
             {isProcessing ? (
               <>

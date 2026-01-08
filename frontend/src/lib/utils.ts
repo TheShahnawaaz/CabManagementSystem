@@ -6,6 +6,21 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Validates an Indian mobile phone number
+ * Must be 10 digits starting with 6-9
+ * @param phone - Phone number string (may include non-digit characters)
+ * @returns true if valid, false otherwise
+ * @example
+ * isValidIndianPhone("9876543210") // true
+ * isValidIndianPhone("1234567890") // false (starts with 1)
+ * isValidIndianPhone("987654321")  // false (9 digits)
+ */
+export function isValidIndianPhone(phone: string): boolean {
+  const cleaned = phone.replace(/\D/g, "");
+  return /^[6-9]\d{9}$/.test(cleaned);
+}
+
+/**
  * Formats a 10-digit Indian phone number with +91 country code
  * @param phone - 10-digit phone number string (without country code)
  * @param fallback - Text to display if phone is not provided (default: "Not provided")

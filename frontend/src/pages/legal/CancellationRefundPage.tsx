@@ -63,13 +63,17 @@ export default function CancellationRefundPage() {
         <Card>
           <CardHeader>
             <CardTitle>When you can cancel</CardTitle>
-            <CardDescription>Aligned to booking windows and cab commitments.</CardDescription>
+            <CardDescription>
+              Aligned to booking windows and cab commitments.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="list-disc space-y-2 pl-4">
               {timelines.map((item) => (
                 <li key={item.label}>
-                  <span className="font-medium text-foreground">{item.label}:</span>{" "}
+                  <span className="font-medium text-foreground">
+                    {item.label}:
+                  </span>{" "}
                   {item.policy}
                 </li>
               ))}
@@ -95,7 +99,9 @@ export default function CancellationRefundPage() {
       <Card>
         <CardHeader>
           <CardTitle>How to request a cancellation</CardTitle>
-          <CardDescription>Give us enough detail to act quickly.</CardDescription>
+          <CardDescription>
+            Give us enough detail to act quickly.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <ul className="list-disc space-y-2 pl-4">

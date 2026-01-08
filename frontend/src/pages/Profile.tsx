@@ -3,7 +3,7 @@ import { Phone, Mail, CalendarClock, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks";
 import { userApi } from "@/services";
-import { formatPhoneNumber } from "@/lib/utils";
+import { formatPhoneNumber, isValidIndianPhone } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const { user, refetchUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: user?.name ?? "",
     phone_number: user?.phone_number ?? "",
@@ -33,6 +34,15 @@ export default function ProfilePage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!user) return;
+
+    // Validate phone number if provided
+    if (formData.phone_number && !isValidIndianPhone(formData.phone_number)) {
+      setPhoneError(
+        "Please enter a valid 10-digit mobile number starting with 6-9"
+      );
+      return;
+    }
+    setPhoneError(null);
 
     try {
       setSaving(true);
@@ -59,6 +69,7 @@ export default function ProfilePage() {
   const handlePhoneChange = (value: string) => {
     const digits = value.replace(/[^0-9]/g, "").slice(0, 10);
     setFormData((prev) => ({ ...prev, phone_number: digits }));
+    if (phoneError) setPhoneError(null);
   };
 
   if (!user) {
@@ -228,12 +239,16 @@ export default function ProfilePage() {
                           onChange={(event) =>
                             handlePhoneChange(event.target.value)
                           }
-                          className="h-12 text-base"
+                          className={`h-12 text-base ${phoneError ? "border-red-500" : ""}`}
                         />
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Keep this empty if you don&apos;t want to add it yet.
-                      </p>
+                      {phoneError ? (
+                        <p className="text-sm text-red-500">{phoneError}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Keep this empty if you don&apos;t want to add it yet.
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-end gap-3 pt-4">
@@ -243,6 +258,7 @@ export default function ProfilePage() {
                         size="lg"
                         onClick={() => {
                           setIsEditing(false);
+                          setPhoneError(null);
                           setFormData({
                             name: user.name,
                             phone_number: user.phone_number ?? "",

@@ -80,7 +80,10 @@ export default function ContactPage() {
           <p>• Your name and registered email</p>
           <p>• Trip date and hall</p>
           <p>• Booking or payment reference (if available)</p>
-          <p>• A brief description of the issue (e.g., QR not loading, cab mismatch)</p>
+          <p>
+            • A brief description of the issue (e.g., QR not loading, cab
+            mismatch)
+          </p>
         </AlertDescription>
       </Alert>
     </div>
