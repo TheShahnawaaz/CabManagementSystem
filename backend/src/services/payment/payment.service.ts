@@ -180,17 +180,18 @@ export const paymentService = {
         };
       }
 
-      // 3. Check for existing pending payment (and clean up expired ones)
+      // 3. Check for existing pending payment with SAME hall
+      // Only reuse if hall matches - allows users to change their selection
       const existingPending = await client.query(
-        `SELECT id, gateway_order_id, expires_at 
+        `SELECT id, gateway_order_id, expires_at, hall 
          FROM payments 
-         WHERE trip_id = $1 AND user_id = $2 AND payment_status = 'pending'
+         WHERE trip_id = $1 AND user_id = $2 AND payment_status = 'pending' AND hall = $3
          ORDER BY created_at DESC
          LIMIT 1`,
-        [input.tripId, input.userId]
+        [input.tripId, input.userId, input.hall]
       );
 
-      // If there's a non-expired pending payment, return its checkout data
+      // If there's a non-expired pending payment with same hall, return its checkout data
       if (existingPending.rows.length > 0) {
         const pending = existingPending.rows[0];
         const expiresAt = new Date(pending.expires_at);
@@ -219,7 +220,7 @@ export const paymentService = {
               notes: {
                 trip_id: input.tripId,
                 user_id: input.userId,
-                hall: input.hall,
+                hall: input.hall, // Same as pending.hall (query ensures match)
               },
             },
           };
