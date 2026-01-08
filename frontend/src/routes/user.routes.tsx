@@ -1,8 +1,19 @@
-import { LayoutDashboard, User, Calendar, MapPin } from "lucide-react";
+import {
+  LayoutDashboard,
+  User,
+  Calendar,
+  MapPin,
+  CreditCard,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import Dashboard from "@/pages/dashboard";
 import ProfilePage from "@/pages/Profile";
 import BookingsPage from "@/pages/bookings";
 import TripsPage from "@/pages/trips";
+import CheckoutPage from "@/pages/checkout/CheckoutPage";
+import BookingSuccess from "@/pages/booking/BookingSuccess";
+import BookingFailed from "@/pages/booking/BookingFailed";
 import type { CustomRouteObject } from "./guards";
 
 /**
@@ -73,6 +84,48 @@ export const userRoutes: CustomRouteObject[] = [
       breadcrumb: {
         label: "Trips",
         icon: MapPin,
+      },
+    },
+  },
+  // ====================================
+  // CHECKOUT & PAYMENT ROUTES
+  // ====================================
+  {
+    path: "checkout/:tripId",
+    element: <CheckoutPage />,
+    meta: {
+      requireAuth: true,
+      title: "Checkout",
+      description: "Complete your trip booking",
+      breadcrumb: {
+        label: "Checkout",
+        icon: CreditCard,
+      },
+    },
+  },
+  {
+    path: "booking/success/:bookingId",
+    element: <BookingSuccess />,
+    meta: {
+      requireAuth: true,
+      title: "Booking Confirmed",
+      description: "Your booking has been confirmed",
+      breadcrumb: {
+        label: "Booking Confirmed",
+        icon: CheckCircle,
+      },
+    },
+  },
+  {
+    path: "booking/failed",
+    element: <BookingFailed />,
+    meta: {
+      requireAuth: true,
+      title: "Booking Failed",
+      description: "Your booking could not be completed",
+      breadcrumb: {
+        label: "Booking Failed",
+        icon: XCircle,
       },
     },
   },
