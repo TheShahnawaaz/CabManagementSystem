@@ -18,6 +18,8 @@ import bookingRoutes from './routes/booking.routes';
 import allocationRoutes from './routes/allocation.routes';
 import userRoutes from './routes/user.routes';
 import qrRoutes from './routes/qr.routes';
+import paymentRoutes from './routes/payment.routes';
+import webhookRoutes from './routes/webhook.routes';
 import { runMigrations } from './config/migrations';
 
 const app: Application = express();
@@ -38,6 +40,30 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
+
+// ====================================
+// WEBHOOK ROUTES (Must be BEFORE express.json())
+// Webhooks need raw body for signature verification
+// ====================================
+app.use('/api/webhooks', 
+  express.raw({ type: 'application/json' }), 
+  (req, res, next) => {
+    // Store raw body for signature verification
+    if (Buffer.isBuffer(req.body)) {
+      (req as any).rawBody = req.body.toString();
+      // Parse JSON for the route handler
+      try {
+        req.body = JSON.parse(req.body.toString());
+      } catch {
+        // Leave as raw if not valid JSON
+      }
+    }
+    next();
+  },
+  webhookRoutes
+);
+
+// Regular JSON parsing for all other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -80,6 +106,7 @@ app.use('/api', bookingRoutes);
 app.use('/api', allocationRoutes);
 app.use('/api', userRoutes);
 app.use('/api', qrRoutes);
+app.use('/api', paymentRoutes);
 
 // Start server with migrations
 async function startServer() {
