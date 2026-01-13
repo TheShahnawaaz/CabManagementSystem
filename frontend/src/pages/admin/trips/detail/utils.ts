@@ -61,8 +61,9 @@ export const canAccessTab = (
       );
 
     case "allocation":
-      // Allocation tab: Available when booking closed but not completed
-      return status === "active-booking-closed";
+      // Allocation tab: Available when booking closed OR after trip completed
+      // (to review/manage allocations even after trip ends)
+      return status === "active-booking-closed" || status === "completed";
 
     default:
       return false;
