@@ -8,13 +8,27 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Car, Users, Loader2, AlertCircle } from "lucide-react";
+import {
+  Car,
+  Users,
+  Loader2,
+  AlertCircle,
+  ChevronDown,
+  Phone,
+  MapPin,
+} from "lucide-react";
 import { VehicleSeatViewer } from "@/components/VehicleSeatViewer";
 import { qrApi } from "@/services/qr.service";
 import type { SeatPosition, AssignedStudent } from "@/types/allocation.types";
-import type { CabDetails } from "@/types/qr.types";
+import type { CabDetails, OtherCab } from "@/types/qr.types";
 import type { Booking } from "@/types/booking.types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 interface CabDetailsSheetProps {
   booking: Booking;
@@ -206,9 +220,101 @@ export function CabDetailsSheet({
                 including contact details.
               </AlertTitle>
             </Alert>
+
+            {/* Other Cabs Section */}
+            {cabDetails.other_cabs && cabDetails.other_cabs.length > 0 && (
+              <OtherCabsSection otherCabs={cabDetails.other_cabs} />
+            )}
           </div>
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+// ====================================
+// OTHER CABS COLLAPSIBLE SECTION
+// ====================================
+
+interface OtherCabsSectionProps {
+  otherCabs: OtherCab[];
+}
+
+function OtherCabsSection({ otherCabs }: OtherCabsSectionProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg bg-muted/30 border hover:bg-muted/50 transition-colors">
+        <div className="flex items-center gap-2">
+          <Car className="w-5 h-5 text-primary" />
+          <span className="font-semibold">Other Cabs for This Trip</span>
+          <span className="text-sm text-muted-foreground">
+            ({otherCabs.length} cab{otherCabs.length !== 1 ? "s" : ""})
+          </span>
+        </div>
+        <ChevronDown
+          className={cn(
+            "w-5 h-5 text-muted-foreground transition-transform duration-200",
+            isOpen && "rotate-180"
+          )}
+        />
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="mt-3 space-y-3">
+        <p className="text-sm text-muted-foreground px-1">
+          You can take any of these cabs for your return journey.
+        </p>
+
+        <div className="grid gap-3">
+          {otherCabs.map((cab) => (
+            <OtherCabCard key={cab.id} cab={cab} />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+// ====================================
+// OTHER CAB CARD
+// ====================================
+
+interface OtherCabCardProps {
+  cab: OtherCab;
+}
+
+function OtherCabCard({ cab }: OtherCabCardProps) {
+  return (
+    <div className="rounded-lg border bg-card p-4 space-y-3">
+      {/* Header */}
+      <div>
+        <h4 className="font-semibold text-base">{cab.cab_number}</h4>
+        <p className="text-sm text-muted-foreground capitalize">
+          {cab.cab_type}
+        </p>
+      </div>
+
+      {/* Driver & Location Info */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Users className="w-4 h-4 shrink-0" />
+          <span>{cab.driver_name}</span>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Phone className="w-4 h-4 shrink-0" />
+          <a
+            href={`tel:${cab.driver_phone}`}
+            className="hover:text-primary transition-colors"
+          >
+            {cab.driver_phone}
+          </a>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
+          <MapPin className="w-4 h-4 shrink-0" />
+          <span>Starting Point: {cab.pickup_region}</span>
+        </div>
+      </div>
+    </div>
   );
 }

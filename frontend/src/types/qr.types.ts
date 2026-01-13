@@ -71,6 +71,19 @@ export interface QRValidationError {
 }
 
 /**
+ * Other Cab (for return journey options)
+ * Only includes driver details and starting point - no passenger info
+ */
+export interface OtherCab {
+  id: string;
+  cab_number: string;
+  cab_type: string;
+  driver_name: string;
+  driver_phone: string;
+  pickup_region: string;
+}
+
+/**
  * Cab Details (Student View)
  * Note: passkey is NOT included for security - students shouldn't see it
  */
@@ -83,4 +96,5 @@ export interface CabDetails {
   driver_phone: string;
   pickup_region: string;
   assigned_students: AssignedStudent[];
+  other_cabs: OtherCab[];
 }
