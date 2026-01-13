@@ -82,7 +82,8 @@ export const createTrip = async (req: Request, res: Response): Promise<void> => 
       trip_date,
       booking_start_time,
       booking_end_time,
-      return_time,
+      departure_time,
+      prayer_time,
       end_time,
       amount_per_person,
     } = req.body;
@@ -93,7 +94,8 @@ export const createTrip = async (req: Request, res: Response): Promise<void> => 
       !trip_date ||
       !booking_start_time ||
       !booking_end_time ||
-      !return_time ||
+      !departure_time ||
+      !prayer_time ||
       !end_time ||
       !amount_per_person
     ) {
@@ -111,17 +113,19 @@ export const createTrip = async (req: Request, res: Response): Promise<void> => 
         trip_date, 
         booking_start_time, 
         booking_end_time, 
-        return_time, 
+        departure_time,
+        prayer_time, 
         end_time, 
         amount_per_person
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *`,
       [
         trip_title,
         trip_date,
         booking_start_time,
         booking_end_time,
-        return_time,
+        departure_time,
+        prayer_time,
         end_time,
         amount_per_person,
       ]
@@ -283,7 +287,8 @@ export const updateTrip = async (req: Request, res: Response): Promise<void> => 
       trip_date,
       booking_start_time,
       booking_end_time,
-      return_time,
+      departure_time,
+      prayer_time,
       end_time,
       amount_per_person,
     } = req.body;
@@ -322,9 +327,13 @@ export const updateTrip = async (req: Request, res: Response): Promise<void> => 
       updates.push(`booking_end_time = $${paramIndex++}`);
       values.push(booking_end_time);
     }
-    if (return_time !== undefined) {
-      updates.push(`return_time = $${paramIndex++}`);
-      values.push(return_time);
+    if (departure_time !== undefined) {
+      updates.push(`departure_time = $${paramIndex++}`);
+      values.push(departure_time);
+    }
+    if (prayer_time !== undefined) {
+      updates.push(`prayer_time = $${paramIndex++}`);
+      values.push(prayer_time);
     }
     if (end_time !== undefined) {
       updates.push(`end_time = $${paramIndex++}`);

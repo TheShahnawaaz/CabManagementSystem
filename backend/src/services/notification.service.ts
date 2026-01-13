@@ -244,7 +244,7 @@ export async function notifyCabAllocated(params: CabAllocatedParams) {
       userName: '',
       tripTitle: params.tripTitle,
       tripDate: params.tripDate,
-      tripTime: params.tripTime,
+      departureTime: params.departureTime,
       cabNumber: params.cabNumber,
       pickupRegion: params.pickupRegion,
       hall: params.hall,

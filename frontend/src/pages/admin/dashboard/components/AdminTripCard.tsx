@@ -170,7 +170,7 @@ export function AdminTripCard({ trip, onEdit }: AdminTripCardProps) {
       <div className="flex items-start gap-2 mb-3 text-sm">
         <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground" />
         <div className="text-muted-foreground">
-          <div>Departs: {formatDateTime(trip.return_time)}</div>
+          <div>Departs: {formatDateTime(trip.departure_time)}</div>
         </div>
       </div>
 

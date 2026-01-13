@@ -30,7 +30,11 @@ export const formDataToCreateData = (
       formData.bookingEndDate,
       formData.bookingEndTime
     ),
-    return_time: buildDateTime(formData.returnDate, formData.returnTime),
+    departure_time: buildDateTime(
+      formData.departureDate,
+      formData.departureTime
+    ),
+    prayer_time: buildDateTime(formData.prayerDate, formData.prayerTime),
     end_time: buildDateTime(formData.endDate, formData.endTime),
     amount_per_person: formData.amount,
   };
@@ -67,10 +71,12 @@ export const getInitialFormData = (): TripFormData => ({
   tripDate: undefined,
   bookingStartDate: undefined,
   bookingEndDate: undefined,
-  returnDate: undefined,
+  departureDate: undefined,
+  prayerDate: undefined,
   endDate: undefined,
   bookingStartTime: "00:00",
   bookingEndTime: "23:59",
-  returnTime: "09:00",
-  endTime: "11:00",
+  departureTime: "12:30",
+  prayerTime: "13:00",
+  endTime: "15:00",
 });

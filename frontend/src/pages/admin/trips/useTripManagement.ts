@@ -22,7 +22,8 @@ export function useTripManagement() {
     tripDateOpen: false,
     bookingStartOpen: false,
     bookingEndOpen: false,
-    returnOpen: false,
+    departureOpen: false,
+    prayerOpen: false,
     endOpen: false,
   });
 
@@ -164,7 +165,8 @@ export function useTripManagement() {
 
     const bStart = new Date(trip.booking_start_time);
     const bEnd = new Date(trip.booking_end_time);
-    const rTime = new Date(trip.return_time);
+    const dTime = new Date(trip.departure_time);
+    const pTime = new Date(trip.prayer_time);
     const eTime = new Date(trip.end_time);
 
     setFormState({
@@ -175,14 +177,17 @@ export function useTripManagement() {
       bookingStartTime: format(bStart, "HH:mm"),
       bookingEndDate: bEnd,
       bookingEndTime: format(bEnd, "HH:mm"),
-      returnDate: rTime,
-      returnTime: format(rTime, "HH:mm"),
+      departureDate: dTime,
+      departureTime: format(dTime, "HH:mm"),
+      prayerDate: pTime,
+      prayerTime: format(pTime, "HH:mm"),
       endDate: eTime,
       endTime: format(eTime, "HH:mm"),
       tripDateOpen: false,
       bookingStartOpen: false,
       bookingEndOpen: false,
-      returnOpen: false,
+      departureOpen: false,
+      prayerOpen: false,
       endOpen: false,
     });
   };
@@ -214,7 +219,8 @@ export function useTripManagement() {
       tripDateOpen: false,
       bookingStartOpen: false,
       bookingEndOpen: false,
-      returnOpen: false,
+      departureOpen: false,
+      prayerOpen: false,
       endOpen: false,
     });
   };

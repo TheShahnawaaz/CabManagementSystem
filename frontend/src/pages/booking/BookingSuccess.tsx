@@ -136,7 +136,7 @@ export default function BookingSuccess() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>{formatTime(booking.return_time)}</span>
+                <span>{formatTime(booking.departure_time)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />

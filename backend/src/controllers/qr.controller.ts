@@ -44,7 +44,8 @@ export const getQRData = async (req: Request, res: Response): Promise<void> => {
         c.passkey as cab_passkey,
         t.trip_title,
         t.trip_date,
-        t.return_time,
+        t.departure_time,
+        t.prayer_time,
         t.end_time,
         p.payment_status
       FROM cab_allocations ca
@@ -78,19 +79,21 @@ export const getQRData = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Determine journey type based on current time
+    // Determine journey type based on current time vs prayer_time
+    // Before prayer = outbound (pickup), after prayer = return (dropoff)
     const now = new Date();
-    const returnTime = new Date(allocation.return_time);
-    const journeyType = now < returnTime ? 'pickup' : 'dropoff';
+    const prayerTime = new Date(allocation.prayer_time);
+    const journeyType = now < prayerTime ? 'pickup' : 'dropoff';
 
     // Return allocation data (without passkey - that's validated separately)
+    // Note: departure_time is shown to users, prayer_time is only used for journey type logic
     res.status(200).json({
       success: true,
       data: {
         allocation_id: allocation.allocation_id,
         trip_title: allocation.trip_title,
         trip_date: allocation.trip_date,
-        return_time: allocation.return_time,
+        departure_time: allocation.departure_time,
         end_time: allocation.end_time,
         student_name: allocation.student_name,
         student_email: allocation.student_email,
@@ -160,7 +163,7 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
       `SELECT 
         ca.*,
         c.cab_number, c.pickup_region, c.passkey as cab_passkey,
-        t.trip_title, t.trip_date, t.return_time, t.end_time,
+        t.trip_title, t.trip_date, t.departure_time, t.prayer_time, t.end_time,
         u.name as student_name, u.email as student_email,
         tu.hall,
         p.payment_status
@@ -197,10 +200,11 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // 3. Determine journey type based on current time
+    // 3. Determine journey type based on current time vs prayer_time
+    // Before prayer = outbound (pickup), after prayer = return (dropoff)
     const now = new Date();
-    const returnTime = new Date(allocation.return_time);
-    const journeyType = now < returnTime ? 'pickup' : 'dropoff';
+    const prayerTime = new Date(allocation.prayer_time);
+    const journeyType = now < prayerTime ? 'pickup' : 'dropoff';
 
     // 4. Check if already scanned for this journey type
     const existingScanResult = await client.query(

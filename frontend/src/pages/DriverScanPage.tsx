@@ -583,7 +583,7 @@ export default function DriverScanPage() {
             <p>
               <span className="text-muted-foreground">Departure: </span>
               <span className="font-medium">
-                {formatTime(allocationData.return_time)}
+                {formatTime(allocationData.departure_time)}
               </span>
             </p>
           </div>

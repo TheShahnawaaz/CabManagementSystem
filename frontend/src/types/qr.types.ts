@@ -12,7 +12,7 @@ export interface QRAllocationData {
   allocation_id: string;
   trip_title: string;
   trip_date: string;
-  return_time: string;
+  departure_time: string;
   end_time: string;
   student_name: string;
   student_email: string;

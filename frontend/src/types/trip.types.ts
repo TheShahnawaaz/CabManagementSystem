@@ -8,7 +8,8 @@ export interface Trip {
   trip_date: string;
   booking_start_time: string;
   booking_end_time: string;
-  return_time: string;
+  departure_time: string;
+  prayer_time: string;
   end_time: string;
   amount_per_person: number;
   booking_count?: number;
@@ -26,7 +27,8 @@ export interface CreateTripData {
   trip_date: string;
   booking_start_time: string;
   booking_end_time: string;
-  return_time: string;
+  departure_time: string;
+  prayer_time: string;
   end_time: string;
   amount_per_person: number;
 }

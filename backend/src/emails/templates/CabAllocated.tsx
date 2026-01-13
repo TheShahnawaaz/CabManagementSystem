@@ -6,7 +6,7 @@ interface CabAllocatedProps {
   userName: string;
   tripTitle: string;
   tripDate: string;
-  tripTime?: string;
+  departureTime?: string;
   cabNumber: string;
   pickupRegion: string;
   hall?: string;
@@ -18,7 +18,7 @@ export const CabAllocated: React.FC<CabAllocatedProps> = ({
   userName,
   tripTitle,
   tripDate,
-  tripTime,
+  departureTime,
   cabNumber,
   pickupRegion,
   hall,
@@ -47,7 +47,7 @@ export const CabAllocated: React.FC<CabAllocatedProps> = ({
           { icon: '🚏', label: 'Starting Point', value: pickupRegion },
           ...(hall ? [{ icon: '📍', label: 'Your Hall', value: hall }] : []),
           { icon: '📅', label: 'Trip Date', value: tripDate },
-          { icon: '⏰', label: 'Departure', value: tripTime || 'Check app' },
+          { icon: '⏰', label: 'Departure', value: departureTime || 'Check app' },
         ]}
       />
 

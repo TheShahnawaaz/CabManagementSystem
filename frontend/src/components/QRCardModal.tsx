@@ -268,7 +268,7 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
                 <div>
                   <span className="text-muted-foreground">Departure: </span>
                   <span className="font-medium text-foreground">
-                    {formatTime(booking.return_time)}
+                    {formatTime(booking.departure_time)}
                   </span>
                 </div>
               </div>

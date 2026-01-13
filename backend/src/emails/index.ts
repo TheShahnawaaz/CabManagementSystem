@@ -31,6 +31,7 @@ export interface TemplateData {
   tripTitle?: string;
   tripDate?: string;
   tripTime?: string;
+  departureTime?: string;
   hall?: string;
   amount?: number;
   bookingId?: string;

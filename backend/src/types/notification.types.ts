@@ -91,7 +91,7 @@ export interface CabAllocatedParams {
   userId: string | number;
   tripTitle: string;
   tripDate: string;
-  tripTime?: string;
+  departureTime?: string;
   cabNumber: string;
   pickupRegion: string;
   hall?: string;

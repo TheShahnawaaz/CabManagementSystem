@@ -21,7 +21,7 @@ interface BookingTimelineProps {
   paymentDate: string;
   bookingEndTime: string;
   allocationId?: string | null;
-  returnTime: string;
+  departureTime: string;
   endTime: string;
   cabNumber?: string | null;
 }
@@ -31,7 +31,7 @@ export function BookingTimeline({
   paymentDate,
   bookingEndTime,
   allocationId,
-  returnTime,
+  departureTime,
   endTime,
   cabNumber,
 }: BookingTimelineProps) {
@@ -47,7 +47,7 @@ export function BookingTimeline({
 
   const getCurrentStage = (): number => {
     if (now >= new Date(endTime)) return 6;
-    if (now >= new Date(returnTime)) return 5;
+    if (now >= new Date(departureTime)) return 5;
     if (allocationId) return 4;
     if (now >= new Date(bookingEndTime)) return 3;
     return 2;
@@ -87,7 +87,7 @@ export function BookingTimeline({
     },
     {
       label: "Trip Departure",
-      time: formatTime(returnTime),
+      time: formatTime(departureTime),
       icon: MapPin,
       completed: currentStage >= 5,
       current: currentStage === 5,

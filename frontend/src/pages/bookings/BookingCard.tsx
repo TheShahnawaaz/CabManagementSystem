@@ -45,14 +45,14 @@ export function BookingCard({
   const getBookingStatus = () => {
     const now = new Date();
     const tripEnd = new Date(booking.end_time);
-    const returnTime = new Date(booking.return_time);
+    const departureTime = new Date(booking.departure_time);
 
     // Completed: trip has ended
     if (tripEnd < now) {
       return { label: "Completed", color: "bg-gray-500", icon: CheckCircle };
     }
-    // In Progress: between return time and end time
-    else if (returnTime <= now && now < tripEnd) {
+    // In Progress: between departure time and end time
+    else if (departureTime <= now && now < tripEnd) {
       return { label: "In Progress", color: "bg-green-500", icon: null };
     }
     // Cab Allocated: has cab assignment
@@ -100,7 +100,7 @@ export function BookingCard({
       <div className="flex items-start gap-2 mb-3 text-sm">
         <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground" />
         <span className="text-muted-foreground">
-          Departs: {formatDateTime(booking.return_time)}
+          Departs: {formatDateTime(booking.departure_time)}
         </span>
       </div>
 
@@ -154,7 +154,7 @@ export function BookingCard({
         paymentDate={booking.payment_date}
         bookingEndTime={booking.booking_end_time}
         allocationId={booking.allocation_id}
-        returnTime={booking.return_time}
+        departureTime={booking.departure_time}
         endTime={booking.end_time}
         cabNumber={booking.cab_number}
       />

@@ -210,21 +210,21 @@ export function TripFormSheet({
             </div>
           </div>
 
-          {/* Return Date & Time */}
+          {/* Departure Date & Time */}
           <div className="flex gap-3">
             <div className="flex flex-col gap-2 flex-1">
-              <Label>Return Date (Trip Start) *</Label>
+              <Label>Departure Date *</Label>
               <Popover
-                open={formState.returnOpen}
-                onOpenChange={(open) => onFormChange({ returnOpen: open })}
+                open={formState.departureOpen}
+                onOpenChange={(open) => onFormChange({ departureOpen: open })}
               >
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className="justify-between font-normal"
                   >
-                    {formState.returnDate
-                      ? format(formState.returnDate, "do MMM, yyyy")
+                    {formState.departureDate
+                      ? format(formState.departureDate, "do MMM, yyyy")
                       : "Select date"}
                     <ChevronDownIcon className="h-4 w-4" />
                   </Button>
@@ -235,28 +235,87 @@ export function TripFormSheet({
                 >
                   <Calendar
                     mode="single"
-                    selected={formState.returnDate}
+                    selected={formState.departureDate}
                     captionLayout="dropdown"
                     fromYear={2024}
                     toYear={2030}
                     onSelect={(date) =>
-                      onFormChange({ returnDate: date, returnOpen: false })
+                      onFormChange({
+                        departureDate: date,
+                        departureOpen: false,
+                      })
                     }
                   />
                 </PopoverContent>
               </Popover>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="return_time">Time *</Label>
+              <Label htmlFor="departure_time">Time *</Label>
               <Input
                 type="time"
-                id="return_time"
-                value={formState.returnTime}
-                onChange={(e) => onFormChange({ returnTime: e.target.value })}
+                id="departure_time"
+                value={formState.departureTime}
+                onChange={(e) =>
+                  onFormChange({ departureTime: e.target.value })
+                }
                 className="w-32 bg-background"
               />
             </div>
           </div>
+          <p className="text-xs text-muted-foreground -mt-2">
+            When cabs leave campus. Shown to students as the hard deadline.
+          </p>
+
+          {/* Prayer Date & Time */}
+          <div className="flex gap-3">
+            <div className="flex flex-col gap-2 flex-1">
+              <Label>Prayer Time *</Label>
+              <Popover
+                open={formState.prayerOpen}
+                onOpenChange={(open) => onFormChange({ prayerOpen: open })}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-between font-normal"
+                  >
+                    {formState.prayerDate
+                      ? format(formState.prayerDate, "do MMM, yyyy")
+                      : "Select date"}
+                    <ChevronDownIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto overflow-hidden p-0"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    selected={formState.prayerDate}
+                    captionLayout="dropdown"
+                    fromYear={2024}
+                    toYear={2030}
+                    onSelect={(date) =>
+                      onFormChange({ prayerDate: date, prayerOpen: false })
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="prayer_time">Time *</Label>
+              <Input
+                type="time"
+                id="prayer_time"
+                value={formState.prayerTime}
+                onChange={(e) => onFormChange({ prayerTime: e.target.value })}
+                className="w-32 bg-background"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground -mt-2">
+            Cutoff for outbound vs return journey (not shown to students).
+          </p>
 
           {/* End Date & Time */}
           <div className="flex gap-3">

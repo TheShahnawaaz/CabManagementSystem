@@ -196,9 +196,9 @@ export default function TripDetailLayout() {
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-muted-foreground" />
             <div>
-              <p className="text-sm text-muted-foreground">Return Time</p>
+              <p className="text-sm text-muted-foreground">Departure Time</p>
               <p className="font-medium text-sm">
-                {format(new Date(trip.return_time), "dd MMM, HH:mm")}
+                {format(new Date(trip.departure_time), "dd MMM, HH:mm")}
               </p>
             </div>
           </div>

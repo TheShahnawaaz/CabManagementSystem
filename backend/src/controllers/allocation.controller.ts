@@ -489,7 +489,7 @@ export const notifyAllocatedUsers = async (req: Request, res: Response): Promise
 
     // Get trip details
     const tripResult = await pool.query(
-      'SELECT trip_title, trip_date, return_time FROM trips WHERE id = $1',
+      'SELECT trip_title, trip_date, departure_time FROM trips WHERE id = $1',
       [tripId]
     );
 
@@ -557,7 +557,7 @@ export const notifyAllocatedUsers = async (req: Request, res: Response): Promise
           month: 'long',
           day: 'numeric',
         }),
-        tripTime: trip.return_time ? new Date(trip.return_time).toLocaleTimeString('en-IN', {
+        departureTime: trip.departure_time ? new Date(trip.departure_time).toLocaleTimeString('en-IN', {
           hour: '2-digit',
           minute: '2-digit',
         }) : undefined,

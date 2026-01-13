@@ -557,7 +557,7 @@ export const paymentService = {
       
       try {
         const tripResult = await pool.query(
-          `SELECT t.trip_title, t.trip_date, t.return_time, t.amount_per_person
+          `SELECT t.trip_title, t.trip_date, t.departure_time, t.amount_per_person
            FROM trips t WHERE t.id = $1`,
           [payment.trip_id]
         );
@@ -579,7 +579,7 @@ export const paymentService = {
               month: 'long',
               day: 'numeric',
             }),
-            tripTime: trip.return_time ? new Date(trip.return_time).toLocaleTimeString('en-IN', {
+            tripTime: trip.departure_time ? new Date(trip.departure_time).toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
             }) : undefined,

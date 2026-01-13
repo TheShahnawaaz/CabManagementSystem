@@ -7,8 +7,10 @@ export interface TripFormData {
   bookingStartTime: string;
   bookingEndDate: Date | undefined;
   bookingEndTime: string;
-  returnDate: Date | undefined;
-  returnTime: string;
+  departureDate: Date | undefined;
+  departureTime: string;
+  prayerDate: Date | undefined;
+  prayerTime: string;
   endDate: Date | undefined;
   endTime: string;
   amount: number;
@@ -18,7 +20,8 @@ export interface TripFormState extends TripFormData {
   tripDateOpen: boolean;
   bookingStartOpen: boolean;
   bookingEndOpen: boolean;
-  returnOpen: boolean;
+  departureOpen: boolean;
+  prayerOpen: boolean;
   endOpen: boolean;
 }
 

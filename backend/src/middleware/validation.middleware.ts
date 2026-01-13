@@ -19,7 +19,8 @@ export const validateTripData = (
     trip_date,
     booking_start_time,
     booking_end_time,
-    return_time,
+    departure_time,
+    prayer_time,
     end_time,
     amount_per_person,
   } = req.body;
@@ -52,7 +53,8 @@ export const validateTripData = (
   const timestamps = [
     { name: 'booking_start_time', value: booking_start_time },
     { name: 'booking_end_time', value: booking_end_time },
-    { name: 'return_time', value: return_time },
+    { name: 'departure_time', value: departure_time },
+    { name: 'prayer_time', value: prayer_time },
     { name: 'end_time', value: end_time },
   ];
 
@@ -71,23 +73,28 @@ export const validateTripData = (
   if (
     booking_start_time &&
     booking_end_time &&
-    return_time &&
+    departure_time &&
+    prayer_time &&
     end_time &&
     errors.length === 0
   ) {
     const bStart = new Date(booking_start_time).getTime();
     const bEnd = new Date(booking_end_time).getTime();
-    const rTime = new Date(return_time).getTime();
+    const dTime = new Date(departure_time).getTime();
+    const pTime = new Date(prayer_time).getTime();
     const eTime = new Date(end_time).getTime();
 
     if (bEnd <= bStart) {
       errors.push('booking_end_time must be after booking_start_time');
     }
-    if (bEnd >= rTime) {
-      errors.push('booking_end_time must be before return_time (booking window must close before trip starts)');
+    if (bEnd >= dTime) {
+      errors.push('booking_end_time must be before departure_time (booking window must close before cabs depart)');
     }
-    if (eTime <= rTime) {
-      errors.push('end_time must be after return_time');
+    if (dTime >= pTime) {
+      errors.push('departure_time must be before prayer_time');
+    }
+    if (pTime >= eTime) {
+      errors.push('prayer_time must be before end_time');
     }
   }
 
@@ -130,7 +137,8 @@ export const validateTripUpdate = (
     trip_date,
     booking_start_time,
     booking_end_time,
-    return_time,
+    departure_time,
+    prayer_time,
     end_time,
     amount_per_person,
   } = req.body;
@@ -143,7 +151,8 @@ export const validateTripUpdate = (
     !trip_date &&
     !booking_start_time &&
     !booking_end_time &&
-    !return_time &&
+    !departure_time &&
+    !prayer_time &&
     !end_time &&
     amount_per_person === undefined
   ) {
@@ -179,7 +188,8 @@ export const validateTripUpdate = (
   const timestampFields = [
     { name: 'booking_start_time', value: booking_start_time },
     { name: 'booking_end_time', value: booking_end_time },
-    { name: 'return_time', value: return_time },
+    { name: 'departure_time', value: departure_time },
+    { name: 'prayer_time', value: prayer_time },
     { name: 'end_time', value: end_time },
   ];
 

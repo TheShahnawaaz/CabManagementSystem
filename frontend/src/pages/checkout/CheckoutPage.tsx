@@ -314,7 +314,8 @@ export default function CheckoutPage() {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 <span>
-                  {formatTime(trip.return_time)} - {formatTime(trip.end_time)}
+                  {formatTime(trip.departure_time)} -{" "}
+                  {formatTime(trip.end_time)}
                 </span>
               </div>
             </div>
