@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Phone, Mail, CalendarClock, Edit2 } from "lucide-react";
+import { Phone, Mail, CalendarClock, Edit2, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks";
 import { userApi } from "@/services";
@@ -7,20 +7,31 @@ import { formatPhoneNumber, isValidIndianPhone } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
   const { user, refetchUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingNotifications, setSavingNotifications] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: user?.name ?? "",
     phone_number: user?.phone_number ?? "",
   });
+  const [emailNotifications, setEmailNotifications] = useState(
+    user?.email_notifications ?? true
+  );
 
   useEffect(() => {
     if (user) {
@@ -28,8 +39,36 @@ export default function ProfilePage() {
         name: user.name,
         phone_number: user.phone_number ?? "",
       });
+      setEmailNotifications(user.email_notifications ?? true);
     }
   }, [user]);
+
+  const handleEmailNotificationsChange = async (checked: boolean) => {
+    try {
+      setSavingNotifications(true);
+      setEmailNotifications(checked); // Optimistic update
+
+      const response = await userApi.updateProfile({
+        email_notifications: checked,
+      });
+      if (response.success) {
+        toast.success(
+          checked
+            ? "Email notifications enabled"
+            : "Email notifications disabled"
+        );
+        await refetchUser();
+      }
+    } catch (error) {
+      // Revert on error
+      setEmailNotifications(!checked);
+      const message =
+        error instanceof Error ? error.message : "Failed to update preference";
+      toast.error(message);
+    } finally {
+      setSavingNotifications(false);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -277,6 +316,41 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Notification Preferences */}
+        <Card className="mt-6 border-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notification Preferences
+            </CardTitle>
+            <CardDescription>
+              Control how you receive notifications from IITKGP Cabs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="email-notifications"
+                  className="text-base font-medium"
+                >
+                  Email Notifications
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive booking confirmations, trip reminders, and updates via
+                  email
+                </p>
+              </div>
+              <Switch
+                id="email-notifications"
+                checked={emailNotifications}
+                onCheckedChange={handleEmailNotificationsChange}
+                disabled={savingNotifications}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -170,7 +170,7 @@ export function CabDetailsSheet({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Pickup Region</Label>
+                  <Label className="text-sm font-medium">Starting Point</Label>
                   <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
                     {cabDetails.pickup_region}
                   </div>

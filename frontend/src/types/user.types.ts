@@ -9,6 +9,7 @@ export interface UserProfile {
   phone_number: string | null;
   profile_picture?: string | null;
   is_admin: boolean;
+  email_notifications: boolean;
   created_at: string;
   updated_at?: string;
 }
@@ -16,6 +17,7 @@ export interface UserProfile {
 export interface UpdateUserProfilePayload {
   name?: string;
   phone_number?: string | null;
+  email_notifications?: boolean;
 }
 
 // ====================================

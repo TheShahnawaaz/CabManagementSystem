@@ -555,7 +555,7 @@ export default function DriverScanPage() {
               <span className="font-medium">{allocationData.cab_number}</span>
             </p>
             <p>
-              <span className="text-muted-foreground">Pickup Region: </span>
+              <span className="text-muted-foreground">Starting Point: </span>
               <span className="font-medium">
                 {allocationData.pickup_region}
               </span>

@@ -32,11 +32,6 @@ export interface Booking {
   pickup_region?: string | null;
 }
 
-export interface CreateBookingData {
-  trip_id: string;
-  hall: "RK" | "PAN" | "LBS" | "VS";
-}
-
 export type Hall = "RK" | "PAN" | "LBS" | "VS";
 
 export const HALLS: { value: Hall; label: string; description: string }[] = [

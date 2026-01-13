@@ -6,6 +6,7 @@ import {
   CreditCard,
   CheckCircle,
   XCircle,
+  Bell,
 } from "lucide-react";
 import Dashboard from "@/pages/dashboard";
 import ProfilePage from "@/pages/Profile";
@@ -14,6 +15,7 @@ import TripsPage from "@/pages/trips";
 import CheckoutPage from "@/pages/checkout/CheckoutPage";
 import BookingSuccess from "@/pages/booking/BookingSuccess";
 import BookingFailed from "@/pages/booking/BookingFailed";
+import NotificationsPage from "@/pages/Notifications";
 import type { CustomRouteObject } from "./guards";
 
 /**
@@ -84,6 +86,19 @@ export const userRoutes: CustomRouteObject[] = [
       breadcrumb: {
         label: "Trips",
         icon: MapPin,
+      },
+    },
+  },
+  {
+    path: "notifications",
+    element: <NotificationsPage />,
+    meta: {
+      requireAuth: true,
+      title: "Notifications",
+      description: "View your notifications",
+      breadcrumb: {
+        label: "Notifications",
+        icon: Bell,
       },
     },
   },

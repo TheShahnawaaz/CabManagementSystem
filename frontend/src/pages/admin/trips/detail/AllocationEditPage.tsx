@@ -492,7 +492,7 @@ export default function AllocationEditPage() {
                         htmlFor={`pickup_region_${cab.temp_id}`}
                         className="text-sm font-medium"
                       >
-                        Pickup Region
+                        Starting Point
                       </Label>
                       <Select
                         value={cab.pickup_region}

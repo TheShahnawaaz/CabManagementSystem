@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams, useNavigate } from "react-router-dom";
-import { Car, Wand2, Trash2, Edit } from "lucide-react";
+import {
+  Car,
+  Wand2,
+  Trash2,
+  Edit,
+  Bell,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,6 +56,15 @@ export default function AllocationTab() {
   // Dialogs
   const [showClearDialog, setShowClearDialog] = useState(false);
 
+  // Notification state
+  const [notificationStatus, setNotificationStatus] = useState<{
+    notified_count: number;
+    pending_count: number;
+    total_count: number;
+    all_notified: boolean;
+  } | null>(null);
+  const [notifying, setNotifying] = useState(false);
+
   useEffect(() => {
     fetchAllocationData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,8 +82,12 @@ export default function AllocationTab() {
           const cabData = response.data.cabs || [];
           setCabs(cabData);
           setTotalStudents(response.data.total_students || 0);
+
+          // Fetch notification status
+          fetchNotificationStatus();
         } else {
           setDemandSummary(response.data.demand_summary || []);
+          setNotificationStatus(null);
         }
       }
     } catch (error) {
@@ -74,6 +95,17 @@ export default function AllocationTab() {
       toast.error("Failed to load allocation data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNotificationStatus = async () => {
+    try {
+      const response = await allocationApi.getNotificationStatus(tripId!);
+      if (response.success && response.data) {
+        setNotificationStatus(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching notification status:", error);
     }
   };
 
@@ -107,6 +139,7 @@ export default function AllocationTab() {
         toast.success("Allocation cleared successfully");
         setHasAllocation(false);
         setCabs([]);
+        setNotificationStatus(null);
         refreshTrip();
         fetchAllocationData();
       }
@@ -115,6 +148,28 @@ export default function AllocationTab() {
       toast.error("Failed to clear allocation");
     } finally {
       setShowClearDialog(false);
+    }
+  };
+
+  const handleNotifyUsers = async () => {
+    try {
+      setNotifying(true);
+      const response = await allocationApi.notifyAllocatedUsers(tripId!);
+
+      if (response.success) {
+        const count = response.data?.notified_count || 0;
+        if (count > 0) {
+          toast.success(`Notifications sent to ${count} users`);
+        } else {
+          toast.info("All users have already been notified");
+        }
+        fetchNotificationStatus();
+      }
+    } catch (error) {
+      console.error("Error notifying users:", error);
+      toast.error("Failed to send notifications");
+    } finally {
+      setNotifying(false);
     }
   };
 
@@ -182,7 +237,32 @@ export default function AllocationTab() {
               assigned
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Notify Users Button */}
+            {notificationStatus && (
+              <Button
+                variant={
+                  notificationStatus.all_notified ? "outline" : "default"
+                }
+                size="sm"
+                onClick={handleNotifyUsers}
+                disabled={notifying || notificationStatus.all_notified}
+                className="flex-1 sm:flex-none"
+              >
+                {notifying ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : notificationStatus.all_notified ? (
+                  <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
+                ) : (
+                  <Bell className="w-4 h-4 mr-2" />
+                )}
+                {notifying
+                  ? "Sending..."
+                  : notificationStatus.all_notified
+                    ? "All Notified"
+                    : `Notify (${notificationStatus.pending_count})`}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -205,7 +285,7 @@ export default function AllocationTab() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-muted/50 p-3 rounded-lg">
             <p className="text-xs text-muted-foreground">Total Cabs</p>
             <p className="text-lg sm:text-2xl font-bold">{cabs.length}</p>
@@ -224,6 +304,20 @@ export default function AllocationTab() {
             <p className="text-xs text-muted-foreground">Empty Seats</p>
             <p className="text-lg sm:text-2xl font-bold">
               {cabs.length * 7 - assignedCount}
+            </p>
+          </div>
+          <div
+            className={`p-3 rounded-lg ${
+              notificationStatus?.all_notified
+                ? "bg-green-500/10 border border-green-500/20"
+                : "bg-amber-500/10 border border-amber-500/20"
+            }`}
+          >
+            <p className="text-xs text-muted-foreground">Notified</p>
+            <p className="text-lg sm:text-2xl font-bold">
+              {notificationStatus
+                ? `${notificationStatus.notified_count}/${notificationStatus.total_count}`
+                : "—"}
             </p>
           </div>
         </div>
@@ -293,7 +387,7 @@ export default function AllocationTab() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">
-                          Pickup Region
+                          Starting Point
                         </Label>
                         <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
                           {cab.pickup_region}

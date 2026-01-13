@@ -10,6 +10,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 import { PublicLinksBar } from "./PublicLinksBar";
+import { NotificationBell } from "@/components/NotificationBell";
 
 /**
  * Dashboard Layout with Sidebar
@@ -39,6 +40,7 @@ export default function DashboardLayout() {
 
           {/* Right side controls */}
           <div className="ml-auto flex items-center gap-2">
+            <NotificationBell />
             <div className="hidden lg:block">
               <ThemeToggle />
             </div>

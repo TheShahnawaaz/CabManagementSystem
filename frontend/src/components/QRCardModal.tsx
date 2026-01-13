@@ -247,13 +247,13 @@ export function QRCardModal({ booking, open, onClose }: QRCardModalProps) {
                 </div>
               )}
 
-              {/* Pickup Region */}
+              {/* Starting Point (Cab's pickup region) */}
               {booking.pickup_region && (
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <span className="text-muted-foreground">
-                      Pickup Region:{" "}
+                      Starting Point:{" "}
                     </span>
                     <span className="font-medium text-foreground">
                       {booking.pickup_region}

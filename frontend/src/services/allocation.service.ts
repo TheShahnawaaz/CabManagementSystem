@@ -46,4 +46,30 @@ export const allocationApi = {
   ): Promise<ApiResponse<{ message: string }>> {
     return apiClient.delete(`/admin/trips/${tripId}/allocation`);
   },
+
+  /**
+   * Get notification status for allocations (admin only)
+   */
+  async getNotificationStatus(tripId: string): Promise<
+    ApiResponse<{
+      notified_count: number;
+      pending_count: number;
+      total_count: number;
+      all_notified: boolean;
+    }>
+  > {
+    return apiClient.get(`/admin/trips/${tripId}/allocation/notification-status`);
+  },
+
+  /**
+   * Send notifications to all un-notified allocated users (admin only)
+   */
+  async notifyAllocatedUsers(tripId: string): Promise<
+    ApiResponse<{
+      message: string;
+      notified_count: number;
+    }>
+  > {
+    return apiClient.post(`/admin/trips/${tripId}/allocation/notify`, {});
+  },
 };

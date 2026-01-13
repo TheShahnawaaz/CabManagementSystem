@@ -1,26 +1,16 @@
 import { apiClient } from "@/lib/api";
 import type { ApiResponse } from "@/types/api.types";
-import type { Booking, CreateBookingData } from "@/types/booking.types";
+import type { Booking } from "@/types/booking.types";
 
 /**
- * Booking API Service
- *
- * Handles all booking-related API calls
+ * Booking Service
+ * 
+ * Note: Booking creation is handled via payment flow
+ * (paymentApi.initiatePayment → Razorpay → paymentApi.verifyPayment)
  */
-
 export const bookingApi = {
   /**
-   * Create a new booking
-   */
-  async createBooking(
-    data: CreateBookingData
-  ): Promise<ApiResponse<{ booking: Booking }>> {
-    return apiClient.post("/bookings", data);
-  },
-
-  /**
-   * Get all bookings for current user
-   * @param status - Filter by status: 'upcoming', 'past', 'active'
+   * Get current user's bookings
    */
   async getMyBookings(
     status?: "upcoming" | "past" | "active"
