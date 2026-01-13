@@ -16,7 +16,12 @@ import { sendEmail } from '../config/email';
  * Process pending emails in the queue
  * Called by cron endpoint
  * 
- * @param limit - Maximum emails to process per run (default 10)
+ * Optimized for serverless (Vercel) with:
+ * - Small batch size (5 emails max)
+ * - Parallel sending for speed
+ * - 8-second timeout to stay within Vercel limits
+ * 
+ * @param limit - Maximum emails to process per run (default 5)
  * @returns Number of emails processed successfully
  */
 export async function processEmailQueue(limit: number = 10): Promise<{
@@ -24,6 +29,9 @@ export async function processEmailQueue(limit: number = 10): Promise<{
   failed: number;
   remaining: number;
 }> {
+  const startTime = Date.now();
+  const MAX_EXECUTION_TIME = 20000; // 8 seconds max (Vercel free tier = 10s)
+  
   let processed = 0;
   let failed = 0;
   
@@ -44,8 +52,20 @@ export async function processEmailQueue(limit: number = 10): Promise<{
       RETURNING *
     `, [limit]);
     
-    // 2. Send each email
-    for (const email of result.rows) {
+    // 2. Send emails in parallel for speed
+    const sendPromises = result.rows.map(async (email) => {
+      // Check if we're running out of time
+      if (Date.now() - startTime > MAX_EXECUTION_TIME) {
+        console.log(`⏰ Timeout approaching, skipping email ${email.id}`);
+        // Reset to pending for next run
+        await pool.query(`
+          UPDATE email_queue 
+          SET status = 'pending', attempts = attempts - 1
+          WHERE id = $1
+        `, [email.id]);
+        return { success: false, skipped: true };
+      }
+      
       try {
         const sendResult = await sendEmail({
           to: email.to_email,
@@ -54,15 +74,13 @@ export async function processEmailQueue(limit: number = 10): Promise<{
         });
         
         if (sendResult.success) {
-          // Mark as sent
           await pool.query(`
             UPDATE email_queue 
             SET status = 'sent', sent_at = NOW() 
             WHERE id = $1
           `, [email.id]);
-          
-          processed++;
           console.log(`✅ Email sent: ${email.id} to ${email.to_email}`);
+          return { success: true };
         } else {
           throw new Error(sendResult.error || 'Unknown send error');
         }
@@ -70,10 +88,7 @@ export async function processEmailQueue(limit: number = 10): Promise<{
       } catch (error: any) {
         console.error(`❌ Email failed: ${email.id}`, error.message);
         
-        // Check if max attempts reached
         const newStatus = email.attempts >= email.max_attempts ? 'failed' : 'pending';
-        
-        // Calculate backoff delay (5 min, 15 min, 30 min)
         const backoffMinutes = Math.min(5 * Math.pow(2, email.attempts - 1), 30);
         
         await pool.query(`
@@ -84,9 +99,15 @@ export async function processEmailQueue(limit: number = 10): Promise<{
           WHERE id = $3
         `, [newStatus, error.message, email.id]);
         
-        failed++;
+        return { success: false };
       }
-    }
+    });
+    
+    // Wait for all emails to complete
+    const results = await Promise.all(sendPromises);
+    
+    processed = results.filter(r => r.success).length;
+    failed = results.filter(r => !r.success && !r.skipped).length;
     
     // 3. Get remaining count
     const remainingResult = await pool.query(`
