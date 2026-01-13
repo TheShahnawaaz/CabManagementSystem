@@ -425,11 +425,30 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
       seat_position: idx + 1, // Assign seat positions sequentially
     }));
 
+    // Fetch ALL OTHER cabs for this trip (for return journey options)
+    // Only return driver details and starting point - no passenger info
+    const otherCabsResult = await pool.query(
+      `SELECT 
+        c.id,
+        c.cab_number,
+        c.cab_type,
+        c.cab_owner_name as driver_name,
+        c.cab_owner_phone as driver_phone,
+        c.pickup_region
+      FROM cabs c
+      WHERE c.trip_id = $1 AND c.id != $2
+      ORDER BY c.pickup_region, c.cab_number`,
+      [trip_id, cab_id]
+    );
+
+    const otherCabs = otherCabsResult.rows;
+
     res.status(200).json({
       success: true,
       data: {
         ...cab,
         assigned_students: assignedStudents,
+        other_cabs: otherCabs,
       },
     });
   } catch (error: any) {

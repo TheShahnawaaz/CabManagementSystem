@@ -33,7 +33,7 @@ router.post('/qr/validate', validateQR);
 
 /**
  * @route   GET /api/qr/cab/:allocationId
- * @desc    Get cab details and all co-travelers for student view
+ * @desc    Get cab details, co-travelers, and all trip cabs for return options
  * @access  Public (no auth needed, but payment is checked)
  * @params  allocationId (UUID)
  */
