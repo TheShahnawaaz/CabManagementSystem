@@ -4,8 +4,9 @@
  * Works with Gmail, Outlook, or any SMTP server
  * 
  * Environment Variables:
- * - SMTP_HOST (default: smtp.gmail.com)
- * - SMTP_PORT (default: 587)
+ * - SMTP_SERVICE (optional: 'gmail', 'outlook', etc.)
+ * - SMTP_HOST (default: smtp.gmail.com) - ignored if SMTP_SERVICE is set
+ * - SMTP_PORT (default: 587) - ignored if SMTP_SERVICE is set
  * - SMTP_USER (your email)
  * - SMTP_PASS (app password)
  * - EMAIL_FROM (optional, defaults to SMTP_USER)
@@ -19,6 +20,7 @@ export class SmtpProvider implements EmailProvider {
   private transporter: nodemailer.Transporter;
 
   constructor() {
+    const service = process.env.SMTP_SERVICE; // 'gmail', 'outlook', etc.
     const host = process.env.SMTP_HOST || 'smtp.gmail.com';
     const port = parseInt(process.env.SMTP_PORT || '587');
     const user = process.env.SMTP_USER;
@@ -28,17 +30,27 @@ export class SmtpProvider implements EmailProvider {
       console.warn('⚠️ SMTP_USER and SMTP_PASS not set. Emails will fail.');
     }
 
-    this.transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465, // true for 465, false for other ports
-      auth: {
-        user,
-        pass,
-      },
-    });
+    // Use service shortcut (like 'gmail') if provided, otherwise use host/port
+    if (service) {
+      // Service mode (e.g., 'gmail', 'outlook')
+      this.transporter = nodemailer.createTransport({
+        service,
+        auth: { user, pass },
+      });
+    } else {
+      // Manual host/port mode
+      this.transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+    }
 
-    console.log(`   Host: ${host}:${port}`);
+    console.log(`   ${service ? `Service: ${service}` : `Host: ${host}:${port}`}`);
     console.log(`   User: ${user || 'NOT SET'}`);
   }
 
