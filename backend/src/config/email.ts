@@ -16,6 +16,7 @@
 
 import { SmtpProvider } from './email-providers/smtp.provider';
 import { ConsoleProvider } from './email-providers/console.provider';
+import { ResendProvider } from './email-providers/resend.provider';
 
 // ====================================
 // TYPES
@@ -46,8 +47,7 @@ export interface EmailProvider {
 const providers: Record<string, () => EmailProvider> = {
   smtp: () => new SmtpProvider(),
   console: () => new ConsoleProvider(),
-  // To enable Resend: npm install resend, then uncomment below
-  // resend: () => new (require('./email-providers/resend.provider').ResendProvider)(),
+  resend: () => new ResendProvider(),
 };
 
 // ====================================

@@ -234,7 +234,7 @@ export const getPaymentStatus = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    const payment = await paymentService.getPaymentStatus(id);
+    const payment = await paymentService.getPaymentStatus(id as string);
 
     if (!payment) {
       res.status(404).json({

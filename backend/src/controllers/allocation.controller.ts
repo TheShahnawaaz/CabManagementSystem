@@ -127,7 +127,7 @@ export const runAllocation = async (req: Request, res: Response): Promise<void> 
         const capacity = 7;
         const assignedStudents = studentsForRegion.splice(0, capacity);
         
-        const passkey = await generateUniquePasskey(tripId);
+        const passkey = await generateUniquePasskey(tripId as string);
 
         cabs.push({
           temp_id: `temp_${cabCounter++}`,

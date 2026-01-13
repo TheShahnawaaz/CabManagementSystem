@@ -16,7 +16,7 @@ import { notifyJourneyLogged } from '../services/notification.service';
 // ====================================
 export const getQRData = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { allocationId } = req.params;
+    const allocationId = req.params.allocationId as string;
 
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -318,7 +318,7 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
 // ====================================
 export const getCabDetails = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { allocationId } = req.params;
+    const allocationId = req.params.allocationId as string;
 
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
