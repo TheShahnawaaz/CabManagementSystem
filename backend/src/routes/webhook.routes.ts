@@ -40,7 +40,10 @@ router.post('/razorpay', async (req: Request, res: Response) => {
 
     if (!signature) {
       console.error('Webhook missing signature header');
-      res.status(400).json({ error: 'Missing signature header' });
+      res.status(400).json({ 
+        success: false, 
+        error: 'Missing signature header' 
+      });
       return;
     }
 
@@ -51,7 +54,10 @@ router.post('/razorpay', async (req: Request, res: Response) => {
 
     if (!rawBody) {
       console.error('Webhook missing raw body');
-      res.status(400).json({ error: 'Missing request body' });
+      res.status(400).json({ 
+        success: false, 
+        error: 'Missing request body' 
+      });
       return;
     }
 

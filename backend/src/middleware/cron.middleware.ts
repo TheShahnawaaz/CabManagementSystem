@@ -16,12 +16,18 @@ export const verifyCronSecret = (req: Request, res: Response, next: NextFunction
   
   if (!cronSecret) {
     console.error('❌ CRON_SECRET environment variable not set');
-    return res.status(500).json({ error: 'Server misconfiguration' });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Server misconfiguration' 
+    });
   }
   
   if (secret !== cronSecret) {
     console.warn('⚠️ Invalid cron secret attempt');
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ 
+      success: false, 
+      error: 'Unauthorized' 
+    });
   }
   
   next();
