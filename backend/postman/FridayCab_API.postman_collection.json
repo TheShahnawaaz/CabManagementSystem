@@ -1,0 +1,1220 @@
+{
+  "info": {
+    "_postman_id": "friday-cab-api-collection",
+    "name": "Friday Cab Project API",
+    "description": "Complete API collection for the Friday Cab Project - a cab booking and management system for student transportation.\n\n## Authentication\nMost endpoints require JWT authentication. Include the token in the Authorization header:\n`Authorization: Bearer <token>`\n\n## Base URL\n- Development: `http://localhost:3000`\n- Production: Set the `{{base_url}}` variable\n\n## Halls\nValid hall values: `RK`, `PAN`, `LBS`, `VS`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "trip_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "booking_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "allocation_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cron_secret",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health & Status",
+      "description": "Server health and status endpoints",
+      "item": [
+        {
+          "name": "Root - API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Get API information and version"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Health check endpoint used by cron-job.org to keep server alive"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "description": "User authentication and profile management",
+      "item": [
+        {
+          "name": "Google OAuth Login",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "google"]
+            },
+            "description": "Initiates Google OAuth flow. Opens in browser to start authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Check Verify Login Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-login/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-login", "status"]
+            },
+            "description": "Check if email/password verification login is enabled (for Razorpay verification)"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Login (Temporary)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"your_password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-login"]
+            },
+            "description": "Temporary email/password login for Razorpay verification. Only enabled when ENABLE_VERIFY_LOGIN=true"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) {",
+                  "    pm.collectionVariables.set('user_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get the currently authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"phone_number\": \"9876543210\",\n  \"email_notifications\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Update the current user's profile (name, phone number, email notifications preference)"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Logout the current user (token removal is handled client-side)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trips (Public)",
+      "description": "Public trip endpoints for students",
+      "item": [
+        {
+          "name": "Get Active Trips",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trips/active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "active"]
+            },
+            "description": "Get currently active trips (booking window is open)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Trips (With Booking Status)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.length > 0) {",
+                  "    pm.collectionVariables.set('trip_id', jsonData.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trips/active/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "active", "me"]
+            },
+            "description": "Get active trips with the current user's booking status"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Upcoming Trips",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trips/upcoming",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "upcoming"]
+            },
+            "description": "Get upcoming trips (booking has not started yet)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trip by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trips/{{trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "{{trip_id}}"]
+            },
+            "description": "Get trip details by ID (public view)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trips (Admin)",
+      "description": "Admin trip management endpoints",
+      "item": [
+        {
+          "name": "Create Trip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('trip_id', jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_title\": \"Weekend Trip to Kolkata\",\n  \"trip_date\": \"2026-01-20\",\n  \"booking_start_time\": \"2026-01-15T10:00:00.000Z\",\n  \"booking_end_time\": \"2026-01-19T23:59:59.000Z\",\n  \"return_time\": \"2026-01-20T06:00:00.000Z\",\n  \"end_time\": \"2026-01-20T22:00:00.000Z\",\n  \"amount_per_person\": 150\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips"]
+            },
+            "description": "Create a new trip (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Trips",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips?status=active&sort=desc&limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter: upcoming, past, active"
+                },
+                {
+                  "key": "sort",
+                  "value": "desc",
+                  "description": "Sort order: asc, desc"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get all trips with filters and pagination (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trip by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}"]
+            },
+            "description": "Get trip by ID with detailed stats (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Trip",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_title\": \"Updated Trip Title\",\n  \"amount_per_person\": 175\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}"]
+            },
+            "description": "Update a trip (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Trip",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}"]
+            },
+            "description": "Delete a trip (only if no bookings exist) - Admin only"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trip Demand",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}/demand",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}", "demand"]
+            },
+            "description": "Get hall-wise student demand for a trip (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trip Journeys",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}/journeys",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}", "journeys"]
+            },
+            "description": "Get journey analytics (outbound/return scans, no-shows) - Admin only"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "description": "Booking management for authenticated users",
+      "item": [
+        {
+          "name": "Create Booking (Mock Payment)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.booking) {",
+                  "    pm.collectionVariables.set('booking_id', jsonData.data.booking.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"hall\": \"RK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings"]
+            },
+            "description": "Create a new booking with mock payment. Hall must be one of: RK, PAN, LBS, VS"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bookings?status=upcoming",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "upcoming",
+                  "description": "Filter: upcoming, past, active"
+                }
+              ]
+            },
+            "description": "Get current user's bookings with optional status filter"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/bookings/{{booking_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "{{booking_id}}"]
+            },
+            "description": "Get booking details by ID (must own the booking)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "description": "Payment processing with Razorpay",
+      "item": [
+        {
+          "name": "Get Razorpay Key",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/key",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "key"]
+            },
+            "description": "Get Razorpay publishable key ID (safe to expose)"
+          },
+          "response": []
+        },
+        {
+          "name": "Initiate Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.paymentId) {",
+                  "    pm.collectionVariables.set('payment_id', jsonData.data.paymentId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"hall\": \"RK\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/initiate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "initiate"]
+            },
+            "description": "Create a payment order and get checkout data for Razorpay. Hall must be: RK, PAN, LBS, VS"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_id\": \"{{payment_id}}\",\n  \"razorpay_order_id\": \"order_xxxxx\",\n  \"razorpay_payment_id\": \"pay_xxxxx\",\n  \"razorpay_signature\": \"signature_from_razorpay\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "verify"]
+            },
+            "description": "Verify payment signature and create booking"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/{{payment_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "{{payment_id}}", "status"]
+            },
+            "description": "Get payment status (owner or admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Allocation (Admin)",
+      "description": "Cab allocation management for admins",
+      "item": [
+        {
+          "name": "Run Allocation Algorithm",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}/allocation/run",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}", "allocation", "run"]
+            },
+            "description": "Run allocation algorithm and get suggested cab assignments (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Allocation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}/allocation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}", "allocation"]
+            },
+            "description": "Get existing allocation or demand summary (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Allocation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cabs\": [\n    {\n      \"cab_number\": \"WB01X1234\",\n      \"cab_type\": \"Omni\",\n      \"driver_name\": \"Driver Name\",\n      \"driver_phone\": \"9876543210\",\n      \"pickup_region\": \"RK\",\n      \"capacity\": 7,\n      \"passkey\": \"1234\",\n      \"assigned_students\": [\n        {\n          \"user_id\": \"user-uuid-1\",\n          \"name\": \"Student 1\",\n          \"hall\": \"RK\"\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}/allocation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}", "allocation"]
+            },
+            "description": "Submit final allocation and save to database (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Allocation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/trips/{{trip_id}}/allocation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "trips", "{{trip_id}}", "allocation"]
+            },
+            "description": "Clear all allocation data for a trip (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin)",
+      "description": "User management endpoints for admins",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?is_admin=false&search=&sort=desc&limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                {
+                  "key": "is_admin",
+                  "value": "false",
+                  "description": "Filter by admin status"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name or email"
+                },
+                {
+                  "key": "sort",
+                  "value": "desc",
+                  "description": "Sort order: asc, desc"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get all users with filters and pagination (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{user_id}}"]
+            },
+            "description": "Get user by ID with booking history (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"name\": \"New User\",\n  \"phone_number\": \"9876543210\",\n  \"is_admin\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"]
+            },
+            "description": "Create a new user manually (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated@example.com\",\n  \"phone_number\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{user_id}}"]
+            },
+            "description": "Update user information (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Admin Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/admin-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{user_id}}", "admin-status"]
+            },
+            "description": "Toggle admin status for a user (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{user_id}}"]
+            },
+            "description": "Delete a user (only if no active bookings) - Admin only"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "QR & Cab Validation",
+      "description": "QR code validation and cab management for boarding",
+      "item": [
+        {
+          "name": "Get QR Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('allocation_id', jsonData.data.allocation_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/qr/{{allocation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "qr", "{{allocation_id}}"]
+            },
+            "description": "Get allocation data for QR display on driver scan page (Public)"
+          },
+          "response": []
+        },
+        {
+          "name": "Validate QR Code",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allocation_id\": \"{{allocation_id}}\",\n  \"passkey\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/qr/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "qr", "validate"]
+            },
+            "description": "Validate passkey and log journey (boarding). Passkey is 4 digits."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cab Details (Student View)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/qr/cab/{{allocation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "qr", "cab", "{{allocation_id}}"]
+            },
+            "description": "Get cab details and all co-travelers for student view (Public, but payment is verified)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "In-app notification management",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications?limit=20&offset=0&unread=false",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "unread",
+                  "value": "false",
+                  "description": "Filter to unread only"
+                }
+              ]
+            },
+            "description": "Get user's notifications with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/unread-count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "unread-count"]
+            },
+            "description": "Get count of unread notifications"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/{{notification_id}}/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "{{notification_id}}", "read"]
+            },
+            "description": "Mark a single notification as read"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "read-all"]
+            },
+            "description": "Mark all notifications as read"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/{{notification_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "{{notification_id}}"]
+            },
+            "description": "Archive/delete a notification (soft delete)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications (Admin)",
+      "description": "Admin endpoints for sending notifications",
+      "item": [
+        {
+          "name": "Send Trip Reminder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tripId\": \"{{trip_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/notifications/send-reminder",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "notifications", "send-reminder"]
+            },
+            "description": "Send trip reminder to all users booked for a trip (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Important Announcement\",\n  \"message\": \"This is a test announcement message.\",\n  \"targetType\": \"all\",\n  \"tripId\": null,\n  \"actionUrl\": \"/dashboard\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/notifications/send-announcement",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "notifications", "send-announcement"]
+            },
+            "description": "Send announcement to users. targetType: 'all' or 'trip'. If 'trip', provide tripId."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "description": "Payment gateway webhooks",
+      "item": [
+        {
+          "name": "Razorpay Webhook",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Razorpay-Signature",
+                "value": "webhook_signature_here",
+                "description": "HMAC signature from Razorpay"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"payment.captured\",\n  \"payload\": {\n    \"payment\": {\n      \"entity\": {\n        \"id\": \"pay_xxxxx\",\n        \"order_id\": \"order_xxxxx\",\n        \"amount\": 15000,\n        \"status\": \"captured\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/razorpay",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "razorpay"]
+            },
+            "description": "Razorpay payment webhook. Events: payment.captured, payment.failed. Requires X-Razorpay-Signature header."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cron Jobs",
+      "description": "Cron job endpoints called by cron-job.org (requires CRON_SECRET header)",
+      "item": [
+        {
+          "name": "Process Email Queue",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-cron-secret",
+                "value": "{{cron_secret}}",
+                "description": "CRON_SECRET from environment"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cron/process-emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cron", "process-emails"]
+            },
+            "description": "Process pending emails in the queue. Called by cron-job.org every 2 minutes."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Email Management (Admin)",
+      "description": "Email queue management and testing (Admin only)",
+      "item": [
+        {
+          "name": "Get Email Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/email-stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "email-stats"]
+            },
+            "description": "Get email queue statistics (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup Old Emails",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/email-cleanup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "email-cleanup"]
+            },
+            "description": "Cleanup old processed emails and archived notifications (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "List Email Templates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/email-templates",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "email-templates"]
+            },
+            "description": "List all available email templates (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Preview Email Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/email-preview/booking-confirmation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "email-preview", "booking-confirmation"]
+            },
+            "description": "Preview an email template with sample data. Templates: booking-confirmation, cab-allocation, trip-reminder, journey-logged, admin-announcement, payment-success, payment-failed (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Test Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"test@example.com\",\n  \"template\": \"booking-confirmation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/send-test-email",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "send-test-email"]
+            },
+            "description": "Send a test email to a specific address using a template (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
