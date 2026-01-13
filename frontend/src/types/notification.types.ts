@@ -8,8 +8,8 @@ export interface AppNotification {
   body: string;
   icon: string;
   action_url?: string;
-  category: 'booking' | 'payment' | 'trip' | 'cab' | 'admin' | 'journey';
-  priority: 'low' | 'normal' | 'high' | 'critical';
+  category: "booking" | "payment" | "trip" | "cab" | "admin" | "journey";
+  priority: "low" | "normal" | "high" | "critical";
   reference_type?: string;
   reference_id?: string;
   read_at?: string;

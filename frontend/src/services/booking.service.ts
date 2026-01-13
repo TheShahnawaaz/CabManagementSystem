@@ -4,7 +4,7 @@ import type { Booking } from "@/types/booking.types";
 
 /**
  * Booking Service
- * 
+ *
  * Note: Booking creation is handled via payment flow
  * (paymentApi.initiatePayment → Razorpay → paymentApi.verifyPayment)
  */

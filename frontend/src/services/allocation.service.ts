@@ -58,7 +58,9 @@ export const allocationApi = {
       all_notified: boolean;
     }>
   > {
-    return apiClient.get(`/admin/trips/${tripId}/allocation/notification-status`);
+    return apiClient.get(
+      `/admin/trips/${tripId}/allocation/notification-status`
+    );
   },
 
   /**
