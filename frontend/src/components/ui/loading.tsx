@@ -10,17 +10,15 @@ export function LoadingScreen({
   message?: string;
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background">
       <div className="text-center space-y-4">
         {/* Spinner from shadcn/ui */}
         <div className="flex justify-center">
-          <Spinner className="size-16 text-blue-600 dark:text-blue-400" />
+          <Spinner className="size-16 text-primary" />
         </div>
 
         {/* Message */}
-        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-          {message}
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">{message}</p>
       </div>
     </div>
   );

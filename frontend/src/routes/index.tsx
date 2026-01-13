@@ -3,6 +3,7 @@ import RootLayout from "@/components/layout/RootLayout";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ProtectedLayout from "@/components/layout/ProtectedLayout";
 import AuthCallback from "@/pages/AuthCallback";
+import DriverScanPage from "@/pages/DriverScanPage";
 import NotFoundPage from "@/pages/NotFound";
 import { processRoutes, validateRouteConfig } from "./guards";
 import { publicRoutes } from "./public.routes";
@@ -66,6 +67,12 @@ export const router = createBrowserRouter([
   {
     path: "/auth/callback",
     element: <AuthCallback />,
+  },
+  {
+    // Driver QR scan page - standalone, no layout wrapper
+    // This page has its own full-screen design with gradient backgrounds
+    path: "/driver-scan",
+    element: <DriverScanPage />,
   },
 
   // ==========================================

@@ -1,5 +1,4 @@
 import type { CustomRouteObject } from "./guards";
-import DriverScanPage from "@/pages/DriverScanPage";
 import TermsPage from "@/pages/legal/TermsPage";
 import PrivacyPage from "@/pages/legal/PrivacyPage";
 import ContactPage from "@/pages/legal/ContactPage";
@@ -17,7 +16,9 @@ import CancellationRefundPage from "@/pages/legal/CancellationRefundPage";
  * - Public documentation
  * - Terms of service
  * - Privacy policy
- * - Driver QR validation (no auth needed)
+ *
+ * NOTE: Driver QR validation (/driver-scan) is now a special route in index.tsx
+ * to avoid RootLayout header overlap.
  */
 
 // Placeholder components - these will be created as needed
@@ -39,14 +40,7 @@ export const publicRoutes: CustomRouteObject[] = [
       description: "Learn more about Friday Cab System",
     },
   },
-  {
-    path: "driver-scan",
-    element: <DriverScanPage />,
-    meta: {
-      title: "Driver Validation",
-      description: "QR code validation for drivers",
-    },
-  },
+  // NOTE: driver-scan is now a special route in index.tsx (no layout wrapper)
   {
     path: "terms",
     element: <TermsPage />,
