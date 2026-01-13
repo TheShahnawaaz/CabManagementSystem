@@ -17,20 +17,24 @@ import { sendEmail } from '../config/email';
  * Called by cron endpoint
  * 
  * Optimized for serverless (Vercel) with:
- * - Small batch size (5 emails max)
+ * - Configurable batch size via EMAIL_BATCH_SIZE env var
  * - Parallel sending for speed
- * - 8-second timeout to stay within Vercel limits
+ * - Configurable timeout via EMAIL_TIMEOUT env var
  * 
- * @param limit - Maximum emails to process per run (default 5)
+ * Environment Variables:
+ * - EMAIL_BATCH_SIZE: Number of emails per batch (default: 25)
+ * - EMAIL_TIMEOUT: Max execution time in ms (default: 25000)
+ * 
  * @returns Number of emails processed successfully
  */
-export async function processEmailQueue(limit: number = 10): Promise<{
+export async function processEmailQueue(): Promise<{
   processed: number;
   failed: number;
   remaining: number;
 }> {
   const startTime = Date.now();
-  const MAX_EXECUTION_TIME = 20000; // 8 seconds max (Vercel free tier = 10s)
+  const limit = parseInt(process.env.EMAIL_BATCH_SIZE || '25', 10);
+  const MAX_EXECUTION_TIME = parseInt(process.env.EMAIL_TIMEOUT || '25000', 10);
   
   let processed = 0;
   let failed = 0;

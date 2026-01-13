@@ -64,7 +64,7 @@ export const processEmails = async (req: Request, res: Response) => {
   try {
     console.log('📧 [CRON] Processing email queue...');
     
-    const result = await processEmailQueue(10);
+    const result = await processEmailQueue(); // Uses default (25)
     const duration = Date.now() - startTime;
     
     console.log(`📧 [CRON] Complete: ${result.processed} sent, ${result.failed} failed, ${result.remaining} remaining (${duration}ms)`);
