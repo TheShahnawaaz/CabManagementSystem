@@ -163,16 +163,26 @@ export function useTripManagement() {
   const openEditSheet = (trip: Trip) => {
     setState((prev) => ({ ...prev, editingTrip: trip, isSheetOpen: true }));
 
+    const tripDate = new Date(trip.trip_date);
     const bStart = new Date(trip.booking_start_time);
     const bEnd = new Date(trip.booking_end_time);
     const dTime = new Date(trip.departure_time);
     const pTime = new Date(trip.prayer_time);
     const eTime = new Date(trip.end_time);
 
+    // Helper to check if a date matches trip date (ignoring time)
+    const isSameDay = (d: Date) =>
+      format(d, "yyyy-MM-dd") === format(tripDate, "yyyy-MM-dd");
+
+    // Detect if same-day toggles should be on
+    const useSameDayBooking = isSameDay(bStart) && isSameDay(bEnd);
+    const useSameDaySchedule =
+      isSameDay(dTime) && isSameDay(pTime) && isSameDay(eTime);
+
     setFormState({
       tripTitle: trip.trip_title,
       amount: trip.amount_per_person,
-      tripDate: new Date(trip.trip_date),
+      tripDate: tripDate,
       bookingStartDate: bStart,
       bookingStartTime: format(bStart, "HH:mm"),
       bookingEndDate: bEnd,
@@ -183,6 +193,8 @@ export function useTripManagement() {
       prayerTime: format(pTime, "HH:mm"),
       endDate: eTime,
       endTime: format(eTime, "HH:mm"),
+      useSameDayBooking,
+      useSameDaySchedule,
       tripDateOpen: false,
       bookingStartOpen: false,
       bookingEndOpen: false,

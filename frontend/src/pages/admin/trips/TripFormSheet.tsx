@@ -1,9 +1,18 @@
+import * as React from "react";
 import { format } from "date-fns";
-import { ChevronDownIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  ClockIcon,
+  TicketIcon,
+  BusIcon,
+  InfoIcon,
+  IndianRupeeIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
+import { Switch } from "@/components/ui/switch";
 import {
   Popover,
   PopoverContent,
@@ -17,8 +26,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import type { Trip } from "@/types/trip.types";
 import type { TripFormState } from "./types";
+import { syncDatesWithTripDate } from "./utils";
 
 interface TripFormSheetProps {
   isOpen: boolean;
@@ -30,6 +47,86 @@ interface TripFormSheetProps {
   submitting: boolean;
 }
 
+// Section Header Component
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  className,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description?: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-start gap-3 mb-3", className)}>
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="space-y-0.5">
+        <h4 className="text-sm font-semibold">{title}</h4>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Date Picker Button - forwardRef to work with PopoverTrigger asChild
+const DatePickerButton = React.forwardRef<
+  HTMLButtonElement,
+  {
+    date: Date | undefined;
+    placeholder?: string;
+    className?: string;
+  } & React.ComponentPropsWithoutRef<typeof Button>
+>(({ date, placeholder = "Select date", className, ...props }, ref) => {
+  return (
+    <Button
+      ref={ref}
+      variant="outline"
+      className={cn(
+        "justify-start text-left font-normal",
+        !date && "text-muted-foreground",
+        className
+      )}
+      {...props}
+    >
+      <CalendarIcon className="mr-2 h-4 w-4" />
+      {date ? format(date, "EEE, MMM d") : placeholder}
+    </Button>
+  );
+});
+DatePickerButton.displayName = "DatePickerButton";
+
+// Time Input with Clock Icon
+function TimeInput({
+  id,
+  value,
+  onChange,
+  className,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn("relative", className)}>
+      <ClockIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        type="time"
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="pl-9 bg-background"
+      />
+    </div>
+  );
+}
+
 export function TripFormSheet({
   isOpen,
   onOpenChange,
@@ -39,367 +136,554 @@ export function TripFormSheet({
   onSubmit,
   submitting,
 }: TripFormSheetProps) {
+  // Handle trip date change with smart sync
+  const handleTripDateChange = (date: Date | undefined) => {
+    if (date) {
+      const syncUpdates = syncDatesWithTripDate(date, formState);
+      onFormChange({
+        tripDate: date,
+        tripDateOpen: false,
+        ...syncUpdates,
+      });
+    } else {
+      onFormChange({ tripDate: date, tripDateOpen: false });
+    }
+  };
+
+  // Handle same-day toggle changes
+  const handleSameDayBookingChange = (checked: boolean) => {
+    const updates: Partial<TripFormState> = { useSameDayBooking: checked };
+    if (checked && formState.tripDate) {
+      updates.bookingStartDate = formState.tripDate;
+      updates.bookingEndDate = formState.tripDate;
+    }
+    onFormChange(updates);
+  };
+
+  const handleSameDayScheduleChange = (checked: boolean) => {
+    const updates: Partial<TripFormState> = { useSameDaySchedule: checked };
+    if (checked && formState.tripDate) {
+      updates.departureDate = formState.tripDate;
+      updates.prayerDate = formState.tripDate;
+      updates.endDate = formState.tripDate;
+    }
+    onFormChange(updates);
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
-            {editingTrip ? "Edit Trip" : "Create New Trip"}
-          </SheetTitle>
-          <SheetDescription>
-            {editingTrip
-              ? "Update trip details. Changes will be reflected immediately."
-              : "Add a new Friday prayer trip. Make sure the trip date is a Friday."}
-          </SheetDescription>
-        </SheetHeader>
+    <TooltipProvider>
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader className="pb-4">
+            <SheetTitle className="text-xl">
+              {editingTrip ? "Edit Trip" : "Create New Trip"}
+            </SheetTitle>
+            <SheetDescription>
+              {editingTrip
+                ? "Update trip details. Changes will be reflected immediately."
+                : "Set up a new Friday prayer trip with booking windows and schedule."}
+            </SheetDescription>
+          </SheetHeader>
 
-        <div className="grid gap-4 py-4">
-          {/* Trip Title */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="trip_title">Trip Title *</Label>
-            <Input
-              id="trip_title"
-              value={formState.tripTitle}
-              onChange={(e) => onFormChange({ tripTitle: e.target.value })}
-              placeholder="Friday Prayer - Jan 10, 2026"
-            />
-          </div>
+          <div className="space-y-6 py-4">
+            {/* ======================================== */}
+            {/* SECTION: Trip Details */}
+            {/* ======================================== */}
+            <div className="space-y-4">
+              <SectionHeader
+                icon={CalendarIcon}
+                title="Trip Details"
+                description="Basic information about the trip"
+              />
 
-          {/* Trip Date */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="trip_date">Trip Date (Friday) *</Label>
-            <Popover
-              open={formState.tripDateOpen}
-              onOpenChange={(open) => onFormChange({ tripDateOpen: open })}
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  id="trip_date"
-                  className="justify-between font-normal"
-                >
-                  {formState.tripDate
-                    ? format(formState.tripDate, "do MMM, yyyy")
-                    : "Select date"}
-                  <ChevronDownIcon className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto overflow-hidden p-0"
-                align="start"
-              >
-                <Calendar
-                  mode="single"
-                  selected={formState.tripDate}
-                  captionLayout="dropdown"
-                  fromYear={2024}
-                  toYear={2030}
-                  onSelect={(date) =>
-                    onFormChange({ tripDate: date, tripDateOpen: false })
-                  }
+              {/* Trip Title */}
+              <div className="space-y-2">
+                <Label htmlFor="trip_title">Trip Title</Label>
+                <Input
+                  id="trip_title"
+                  value={formState.tripTitle}
+                  onChange={(e) => onFormChange({ tripTitle: e.target.value })}
+                  placeholder="e.g., Friday Prayer - Jan 17"
+                  className="bg-background"
                 />
-              </PopoverContent>
-            </Popover>
-          </div>
+              </div>
 
-          {/* Booking Start Date & Time */}
-          <div className="flex gap-3">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label>Booking Start Date *</Label>
-              <Popover
-                open={formState.bookingStartOpen}
-                onOpenChange={(open) =>
-                  onFormChange({ bookingStartOpen: open })
-                }
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-between font-normal"
+              {/* Trip Date & Amount Row */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Trip Date (Friday)</Label>
+                    <Popover
+                      open={formState.tripDateOpen}
+                      onOpenChange={(open) =>
+                        onFormChange({ tripDateOpen: open })
+                      }
+                    >
+                      <PopoverTrigger asChild>
+                        <DatePickerButton
+                          date={formState.tripDate}
+                          placeholder="Select Friday"
+                          className="w-full"
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formState.tripDate}
+                          onSelect={handleTripDateChange}
+                          captionLayout="dropdown"
+                          fromYear={2024}
+                          toYear={2030}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Price per Person</Label>
+                    <div className="relative">
+                      <IndianRupeeIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="amount"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={formState.amount}
+                        onChange={(e) =>
+                          onFormChange({
+                            amount: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="pl-9 bg-background"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  The main Friday prayer date. Other dates will auto-sync if
+                  "Same day" is enabled.
+                </p>
+              </div>
+            </div>
+
+            {/* ======================================== */}
+            {/* SECTION: Booking Window */}
+            {/* ======================================== */}
+            <div className="space-y-4 rounded-lg border p-4 bg-blue-500/5">
+              <div className="flex items-center justify-between">
+                <SectionHeader
+                  icon={TicketIcon}
+                  title="Booking Window"
+                  description="When students can book seats"
+                  className="mb-0"
+                />
+                <div className="flex items-center gap-2">
+                  <Label
+                    htmlFor="same-day-booking"
+                    className="text-xs text-muted-foreground cursor-pointer"
                   >
-                    {formState.bookingStartDate
-                      ? format(formState.bookingStartDate, "do MMM, yyyy")
-                      : "Select date"}
-                    <ChevronDownIcon className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto overflow-hidden p-0"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={formState.bookingStartDate}
-                    captionLayout="dropdown"
-                    fromYear={2024}
-                    toYear={2030}
-                    onSelect={(date) =>
-                      onFormChange({
-                        bookingStartDate: date,
-                        bookingStartOpen: false,
-                      })
-                    }
+                    Same day
+                  </Label>
+                  <Switch
+                    id="same-day-booking"
+                    checked={formState.useSameDayBooking}
+                    onCheckedChange={handleSameDayBookingChange}
                   />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="booking_start_time">Time *</Label>
-              <Input
-                type="time"
-                id="booking_start_time"
-                value={formState.bookingStartTime}
-                onChange={(e) =>
-                  onFormChange({ bookingStartTime: e.target.value })
-                }
-                className="w-32 bg-background"
-              />
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* Booking End Date & Time */}
-          <div className="flex gap-3">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label>Booking End Date *</Label>
-              <Popover
-                open={formState.bookingEndOpen}
-                onOpenChange={(open) => onFormChange({ bookingEndOpen: open })}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-between font-normal"
+              {formState.useSameDayBooking ? (
+                /* Simplified: Just time inputs */
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="booking_start_time">Opens at</Label>
+                      <TimeInput
+                        id="booking_start_time"
+                        value={formState.bookingStartTime}
+                        onChange={(v) => onFormChange({ bookingStartTime: v })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="booking_end_time">Closes at</Label>
+                      <TimeInput
+                        id="booking_end_time"
+                        value={formState.bookingEndTime}
+                        onChange={(v) => onFormChange({ bookingEndTime: v })}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Students can book seats during this window. After closing,
+                    no new bookings allowed.
+                  </p>
+                </div>
+              ) : (
+                /* Full: Date + Time inputs */
+                <div className="space-y-3">
+                  <div className="grid grid-cols-[1fr,auto] gap-2">
+                    <div className="space-y-2">
+                      <Label>Start Date</Label>
+                      <Popover
+                        open={formState.bookingStartOpen}
+                        onOpenChange={(open) =>
+                          onFormChange({ bookingStartOpen: open })
+                        }
+                      >
+                        <PopoverTrigger asChild>
+                          <DatePickerButton
+                            date={formState.bookingStartDate}
+                            className="w-full"
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formState.bookingStartDate}
+                            onSelect={(date) =>
+                              onFormChange({
+                                bookingStartDate: date,
+                                bookingStartOpen: false,
+                              })
+                            }
+                            captionLayout="dropdown"
+                            fromYear={2024}
+                            toYear={2030}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Time</Label>
+                      <TimeInput
+                        id="booking_start_time_full"
+                        value={formState.bookingStartTime}
+                        onChange={(v) => onFormChange({ bookingStartTime: v })}
+                        className="w-28"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[1fr,auto] gap-2">
+                    <div className="space-y-2">
+                      <Label>End Date</Label>
+                      <Popover
+                        open={formState.bookingEndOpen}
+                        onOpenChange={(open) =>
+                          onFormChange({ bookingEndOpen: open })
+                        }
+                      >
+                        <PopoverTrigger asChild>
+                          <DatePickerButton
+                            date={formState.bookingEndDate}
+                            className="w-full"
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formState.bookingEndDate}
+                            onSelect={(date) =>
+                              onFormChange({
+                                bookingEndDate: date,
+                                bookingEndOpen: false,
+                              })
+                            }
+                            captionLayout="dropdown"
+                            fromYear={2024}
+                            toYear={2030}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Time</Label>
+                      <TimeInput
+                        id="booking_end_time_full"
+                        value={formState.bookingEndTime}
+                        onChange={(v) => onFormChange({ bookingEndTime: v })}
+                        className="w-28"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Students can book seats during this window. After closing,
+                    no new bookings allowed.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* ======================================== */}
+            {/* SECTION: Trip Schedule */}
+            {/* ======================================== */}
+            <div className="space-y-4 rounded-lg border p-4 bg-emerald-500/5">
+              <div className="flex items-center justify-between">
+                <SectionHeader
+                  icon={BusIcon}
+                  title="Trip Schedule"
+                  description="Departure, prayer, and return times"
+                  className="mb-0"
+                />
+                <div className="flex items-center gap-2">
+                  <Label
+                    htmlFor="same-day-schedule"
+                    className="text-xs text-muted-foreground cursor-pointer"
                   >
-                    {formState.bookingEndDate
-                      ? format(formState.bookingEndDate, "do MMM, yyyy")
-                      : "Select date"}
-                    <ChevronDownIcon className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto overflow-hidden p-0"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={formState.bookingEndDate}
-                    captionLayout="dropdown"
-                    fromYear={2024}
-                    toYear={2030}
-                    onSelect={(date) =>
-                      onFormChange({
-                        bookingEndDate: date,
-                        bookingEndOpen: false,
-                      })
-                    }
+                    Same day
+                  </Label>
+                  <Switch
+                    id="same-day-schedule"
+                    checked={formState.useSameDaySchedule}
+                    onCheckedChange={handleSameDayScheduleChange}
                   />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="booking_end_time">Time *</Label>
-              <Input
-                type="time"
-                id="booking_end_time"
-                value={formState.bookingEndTime}
-                onChange={(e) =>
-                  onFormChange({ bookingEndTime: e.target.value })
-                }
-                className="w-32 bg-background"
-              />
+                </div>
+              </div>
+
+              {formState.useSameDaySchedule ? (
+                /* Simplified: Just time inputs */
+                <div className="space-y-3">
+                  {/* Departure Time */}
+                  <div className="grid grid-cols-[1fr,auto] gap-3 items-end">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Label htmlFor="departure_time">Departure Time</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[200px]">
+                            When cabs leave campus. Shown to students as the
+                            deadline.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <TimeInput
+                        id="departure_time"
+                        value={formState.departureTime}
+                        onChange={(v) => onFormChange({ departureTime: v })}
+                      />
+                    </div>
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium pb-2.5">
+                      Visible to students
+                    </span>
+                  </div>
+
+                  {/* Prayer Time */}
+                  <div className="grid grid-cols-[1fr,auto] gap-3 items-end">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Label htmlFor="prayer_time">Prayer Time</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[200px]">
+                            Cutoff between pickup and return journeys. Not shown
+                            to students.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <TimeInput
+                        id="prayer_time"
+                        value={formState.prayerTime}
+                        onChange={(v) => onFormChange({ prayerTime: v })}
+                      />
+                    </div>
+                    <span className="text-xs text-amber-600 dark:text-amber-400 font-medium pb-2.5">
+                      Internal only
+                    </span>
+                  </div>
+
+                  {/* End Time */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <Label htmlFor="end_time">Trip Ends</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <InfoIcon className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[200px]">
+                          When students are expected back on campus.
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <TimeInput
+                      id="end_time"
+                      value={formState.endTime}
+                      onChange={(v) => onFormChange({ endTime: v })}
+                    />
+                  </div>
+
+                  <p className="text-xs text-muted-foreground pt-1">
+                    <strong>Departure:</strong> Cabs leave campus (shown to
+                    students) →<strong> Prayer:</strong> Cutoff for
+                    pickup/return (internal) →<strong> End:</strong> Students
+                    back on campus
+                  </p>
+                </div>
+              ) : (
+                /* Full: Date + Time inputs */
+                <div className="space-y-3">
+                  {/* Departure */}
+                  <div className="grid grid-cols-[1fr,auto] gap-2">
+                    <div className="space-y-2">
+                      <Label>Departure Date</Label>
+                      <Popover
+                        open={formState.departureOpen}
+                        onOpenChange={(open) =>
+                          onFormChange({ departureOpen: open })
+                        }
+                      >
+                        <PopoverTrigger asChild>
+                          <DatePickerButton
+                            date={formState.departureDate}
+                            className="w-full"
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formState.departureDate}
+                            onSelect={(date) =>
+                              onFormChange({
+                                departureDate: date,
+                                departureOpen: false,
+                              })
+                            }
+                            captionLayout="dropdown"
+                            fromYear={2024}
+                            toYear={2030}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Time</Label>
+                      <TimeInput
+                        id="departure_time_full"
+                        value={formState.departureTime}
+                        onChange={(v) => onFormChange({ departureTime: v })}
+                        className="w-28"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Prayer */}
+                  <div className="grid grid-cols-[1fr,auto] gap-2">
+                    <div className="space-y-2">
+                      <Label>Prayer Date</Label>
+                      <Popover
+                        open={formState.prayerOpen}
+                        onOpenChange={(open) =>
+                          onFormChange({ prayerOpen: open })
+                        }
+                      >
+                        <PopoverTrigger asChild>
+                          <DatePickerButton
+                            date={formState.prayerDate}
+                            className="w-full"
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formState.prayerDate}
+                            onSelect={(date) =>
+                              onFormChange({
+                                prayerDate: date,
+                                prayerOpen: false,
+                              })
+                            }
+                            captionLayout="dropdown"
+                            fromYear={2024}
+                            toYear={2030}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Time</Label>
+                      <TimeInput
+                        id="prayer_time_full"
+                        value={formState.prayerTime}
+                        onChange={(v) => onFormChange({ prayerTime: v })}
+                        className="w-28"
+                      />
+                    </div>
+                  </div>
+
+                  {/* End */}
+                  <div className="grid grid-cols-[1fr,auto] gap-2">
+                    <div className="space-y-2">
+                      <Label>End Date</Label>
+                      <Popover
+                        open={formState.endOpen}
+                        onOpenChange={(open) => onFormChange({ endOpen: open })}
+                      >
+                        <PopoverTrigger asChild>
+                          <DatePickerButton
+                            date={formState.endDate}
+                            className="w-full"
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formState.endDate}
+                            onSelect={(date) =>
+                              onFormChange({ endDate: date, endOpen: false })
+                            }
+                            captionLayout="dropdown"
+                            fromYear={2024}
+                            toYear={2030}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Time</Label>
+                      <TimeInput
+                        id="end_time_full"
+                        value={formState.endTime}
+                        onChange={(v) => onFormChange({ endTime: v })}
+                        className="w-28"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground pt-1">
+                    <strong>Departure:</strong> Cabs leave campus (shown to
+                    students) → <strong>Prayer:</strong> Cutoff for
+                    pickup/return (internal) → <strong>End:</strong> Students
+                    back on campus
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Departure Date & Time */}
-          <div className="flex gap-3">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label>Departure Date *</Label>
-              <Popover
-                open={formState.departureOpen}
-                onOpenChange={(open) => onFormChange({ departureOpen: open })}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-between font-normal"
-                  >
-                    {formState.departureDate
-                      ? format(formState.departureDate, "do MMM, yyyy")
-                      : "Select date"}
-                    <ChevronDownIcon className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto overflow-hidden p-0"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={formState.departureDate}
-                    captionLayout="dropdown"
-                    fromYear={2024}
-                    toYear={2030}
-                    onSelect={(date) =>
-                      onFormChange({
-                        departureDate: date,
-                        departureOpen: false,
-                      })
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="departure_time">Time *</Label>
-              <Input
-                type="time"
-                id="departure_time"
-                value={formState.departureTime}
-                onChange={(e) =>
-                  onFormChange({ departureTime: e.target.value })
-                }
-                className="w-32 bg-background"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground -mt-2">
-            When cabs leave campus. Shown to students as the hard deadline.
-          </p>
-
-          {/* Prayer Date & Time */}
-          <div className="flex gap-3">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label>Prayer Time *</Label>
-              <Popover
-                open={formState.prayerOpen}
-                onOpenChange={(open) => onFormChange({ prayerOpen: open })}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-between font-normal"
-                  >
-                    {formState.prayerDate
-                      ? format(formState.prayerDate, "do MMM, yyyy")
-                      : "Select date"}
-                    <ChevronDownIcon className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto overflow-hidden p-0"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={formState.prayerDate}
-                    captionLayout="dropdown"
-                    fromYear={2024}
-                    toYear={2030}
-                    onSelect={(date) =>
-                      onFormChange({ prayerDate: date, prayerOpen: false })
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="prayer_time">Time *</Label>
-              <Input
-                type="time"
-                id="prayer_time"
-                value={formState.prayerTime}
-                onChange={(e) => onFormChange({ prayerTime: e.target.value })}
-                className="w-32 bg-background"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground -mt-2">
-            Cutoff for outbound vs return journey (not shown to students).
-          </p>
-
-          {/* End Date & Time */}
-          <div className="flex gap-3">
-            <div className="flex flex-col gap-2 flex-1">
-              <Label>End Date (Trip End) *</Label>
-              <Popover
-                open={formState.endOpen}
-                onOpenChange={(open) => onFormChange({ endOpen: open })}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="justify-between font-normal"
-                  >
-                    {formState.endDate
-                      ? format(formState.endDate, "do MMM, yyyy")
-                      : "Select date"}
-                    <ChevronDownIcon className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto overflow-hidden p-0"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={formState.endDate}
-                    captionLayout="dropdown"
-                    fromYear={2024}
-                    toYear={2030}
-                    onSelect={(date) =>
-                      onFormChange({ endDate: date, endOpen: false })
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="end_time">Time *</Label>
-              <Input
-                type="time"
-                id="end_time"
-                value={formState.endTime}
-                onChange={(e) => onFormChange({ endTime: e.target.value })}
-                className="w-32 bg-background"
-              />
-            </div>
-          </div>
-
-          {/* Amount */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="amount_per_person">Amount per Person (₹) *</Label>
-            <Input
-              id="amount_per_person"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formState.amount}
-              onChange={(e) =>
-                onFormChange({ amount: parseFloat(e.target.value) || 0 })
-              }
-            />
-          </div>
-        </div>
-
-        <SheetFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={submitting}
-          >
-            Cancel
-          </Button>
-          <Button onClick={onSubmit} disabled={submitting}>
-            {submitting
-              ? editingTrip
-                ? "Updating..."
-                : "Creating..."
-              : editingTrip
-                ? "Update Trip"
-                : "Create Trip"}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+          <SheetFooter className="pt-4 gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={onSubmit} disabled={submitting}>
+              {submitting
+                ? editingTrip
+                  ? "Updating..."
+                  : "Creating..."
+                : editingTrip
+                  ? "Update Trip"
+                  : "Create Trip"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </TooltipProvider>
   );
 }

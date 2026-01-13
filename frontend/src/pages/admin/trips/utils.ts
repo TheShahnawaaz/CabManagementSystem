@@ -14,33 +14,6 @@ export const buildDateTime = (date: Date | undefined, time: string): string => {
 };
 
 /**
- * Convert form data to API create/update format
- */
-export const formDataToCreateData = (
-  formData: TripFormData
-): CreateTripData => {
-  return {
-    trip_title: formData.tripTitle,
-    trip_date: formData.tripDate ? format(formData.tripDate, "yyyy-MM-dd") : "",
-    booking_start_time: buildDateTime(
-      formData.bookingStartDate,
-      formData.bookingStartTime
-    ),
-    booking_end_time: buildDateTime(
-      formData.bookingEndDate,
-      formData.bookingEndTime
-    ),
-    departure_time: buildDateTime(
-      formData.departureDate,
-      formData.departureTime
-    ),
-    prayer_time: buildDateTime(formData.prayerDate, formData.prayerTime),
-    end_time: buildDateTime(formData.endDate, formData.endTime),
-    amount_per_person: formData.amount,
-  };
-};
-
-/**
  * Format datetime for display
  */
 export const formatDateTime = (dateString: string): string => {
@@ -63,7 +36,7 @@ export const formatDate = (dateString: string): string => {
 };
 
 /**
- * Get initial form data
+ * Get initial form data with smart defaults
  */
 export const getInitialFormData = (): TripFormData => ({
   tripTitle: "",
@@ -75,8 +48,85 @@ export const getInitialFormData = (): TripFormData => ({
   prayerDate: undefined,
   endDate: undefined,
   bookingStartTime: "00:00",
-  bookingEndTime: "23:59",
+  bookingEndTime: "10:00",
   departureTime: "12:30",
   prayerTime: "13:00",
   endTime: "15:00",
+  useSameDayBooking: true,
+  useSameDaySchedule: true,
 });
+
+/**
+ * Sync dates when trip date changes (if same-day toggles are enabled)
+ */
+export const syncDatesWithTripDate = (
+  tripDate: Date,
+  formData: TripFormData
+): Partial<TripFormData> => {
+  const updates: Partial<TripFormData> = {};
+
+  if (formData.useSameDayBooking) {
+    updates.bookingStartDate = tripDate;
+    updates.bookingEndDate = tripDate;
+  }
+
+  if (formData.useSameDaySchedule) {
+    updates.departureDate = tripDate;
+    updates.prayerDate = tripDate;
+    updates.endDate = tripDate;
+  }
+
+  return updates;
+};
+
+/**
+ * Get effective dates for form submission (respecting same-day toggles)
+ */
+export const getEffectiveDates = (formData: TripFormData): TripFormData => {
+  const result = { ...formData };
+
+  if (formData.useSameDayBooking && formData.tripDate) {
+    result.bookingStartDate = formData.tripDate;
+    result.bookingEndDate = formData.tripDate;
+  }
+
+  if (formData.useSameDaySchedule && formData.tripDate) {
+    result.departureDate = formData.tripDate;
+    result.prayerDate = formData.tripDate;
+    result.endDate = formData.tripDate;
+  }
+
+  return result;
+};
+
+/**
+ * Convert form data to API create/update format
+ */
+export const formDataToCreateData = (
+  formData: TripFormData
+): CreateTripData => {
+  // Apply same-day sync if enabled
+  const effective = getEffectiveDates(formData);
+
+  return {
+    trip_title: effective.tripTitle,
+    trip_date: effective.tripDate
+      ? format(effective.tripDate, "yyyy-MM-dd")
+      : "",
+    booking_start_time: buildDateTime(
+      effective.bookingStartDate,
+      effective.bookingStartTime
+    ),
+    booking_end_time: buildDateTime(
+      effective.bookingEndDate,
+      effective.bookingEndTime
+    ),
+    departure_time: buildDateTime(
+      effective.departureDate,
+      effective.departureTime
+    ),
+    prayer_time: buildDateTime(effective.prayerDate, effective.prayerTime),
+    end_time: buildDateTime(effective.endDate, effective.endTime),
+    amount_per_person: effective.amount,
+  };
+};
