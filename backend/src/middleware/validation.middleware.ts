@@ -250,13 +250,13 @@ export const validateProfileUpdate = (
   res: Response,
   next: NextFunction
 ): void => {
-  const { name, phone_number } = req.body;
+  const { name, phone_number, email_notifications } = req.body;
   const errors: string[] = [];
 
-  if (name === undefined && phone_number === undefined) {
+  if (name === undefined && phone_number === undefined && email_notifications === undefined) {
     res.status(400).json({
       success: false,
-      error: 'At least one field (name or phone_number) is required'
+      error: 'At least one field (name, phone_number, or email_notifications) is required'
     });
     return;
   }
@@ -281,6 +281,13 @@ export const validateProfileUpdate = (
       } else {
         req.body.phone_number = normalizedPhone;
       }
+    }
+  }
+
+  // Validate email_notifications if provided
+  if (email_notifications !== undefined) {
+    if (typeof email_notifications !== 'boolean') {
+      errors.push('email_notifications must be a boolean');
     }
   }
 
@@ -400,55 +407,6 @@ export const validateUserUpdate = (
     }
   }
 
-  if (errors.length > 0) {
-    res.status(400).json({
-      success: false,
-      error: 'Validation failed',
-      details: errors,
-    });
-    return;
-  }
-
-  next();
-};
-
-// ====================================
-// BOOKING VALIDATION
-// ====================================
-
-export const validateBooking = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const { trip_id, hall } = req.body;
-
-  const errors: string[] = [];
-
-  // Validate trip_id
-  if (!trip_id) {
-    errors.push('trip_id is required');
-  } else {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(trip_id)) {
-      errors.push('Invalid trip_id format');
-    }
-  }
-
-  // Validate hall
-  if (!hall) {
-    errors.push('hall is required');
-  } else if (typeof hall !== 'string') {
-    errors.push('hall must be a string');
-  } else {
-    const validHalls = ['RK', 'PAN', 'LBS', 'VS'];
-    if (!validHalls.includes(hall)) {
-      errors.push(`hall must be one of: ${validHalls.join(', ')}`);
-    }
-  }
-
-  // Return errors if any
   if (errors.length > 0) {
     res.status(400).json({
       success: false,

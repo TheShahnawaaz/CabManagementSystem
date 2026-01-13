@@ -20,6 +20,8 @@ import userRoutes from './routes/user.routes';
 import qrRoutes from './routes/qr.routes';
 import paymentRoutes from './routes/payment.routes';
 import webhookRoutes from './routes/webhook.routes';
+import cronRoutes from './routes/cron.routes';
+import notificationRoutes from './routes/notification.routes';
 import { runMigrations } from './config/migrations';
 
 const app: Application = express();
@@ -91,11 +93,13 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Health check endpoint
+// Health check endpoint (used by cron-job.org to keep server alive)
 app.get('/health', (req: Request, res: Response) => {
   res.json({
     status: 'OK',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()),
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -107,6 +111,8 @@ app.use('/api', allocationRoutes);
 app.use('/api', userRoutes);
 app.use('/api', qrRoutes);
 app.use('/api', paymentRoutes);
+app.use('/api', cronRoutes);
+app.use('/api', notificationRoutes);
 
 // Start server with migrations
 async function startServer() {

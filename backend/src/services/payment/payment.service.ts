@@ -23,6 +23,8 @@ import {
   PaymentRecord,
   PaymentGateway,
 } from './payment.types';
+import { notifyBookingConfirmed } from '../notification.service';
+// Force reload - notification integration
 
 // ====================================
 // CONFIGURATION
@@ -339,6 +341,7 @@ export const paymentService = {
    * 5. Return booking ID
    */
   async verifyPayment(input: VerifyPaymentInput): Promise<VerifyPaymentResult> {
+    console.log('📧 verifyPayment called with paymentId:', input.paymentId);
     const client = await pool.connect();
     
     try {
@@ -357,7 +360,7 @@ export const paymentService = {
 
       const payment: PaymentRecord = paymentResult.rows[0];
 
-      // Check if already confirmed
+      // Check if already confirmed (idempotency)
       if (payment.payment_status === 'confirmed') {
         // Fetch existing booking
         const existingBooking = await client.query(
@@ -365,11 +368,23 @@ export const paymentService = {
           [payment.id]
         );
         await client.query('COMMIT');
+        
+        const bookingId = existingBooking.rows[0]?.id;
+        console.log('📧 Payment already confirmed, checking if notification needed...');
+        
+        // Still send notification if booking exists (might have been missed)
+        // Uses safe method to prevent duplicates
+        if (bookingId) {
+          this.sendBookingNotificationSafe(payment.id, bookingId);
+        }
+        
         return { 
           success: true, 
-          bookingId: existingBooking.rows[0]?.id || undefined,
+          bookingId: bookingId,
         };
       }
+      
+      console.log('📧 Payment status:', payment.payment_status, '- proceeding with verification');
 
       // Check if payment is in valid state
       if (payment.payment_status !== 'pending') {
@@ -472,6 +487,9 @@ export const paymentService = {
 
       await client.query('COMMIT');
 
+      // Send booking confirmation notification (async, safe from duplicates)
+      this.sendBookingNotificationSafe(input.paymentId, bookingId);
+
       return { success: true, bookingId };
     } catch (error) {
       await client.query('ROLLBACK');
@@ -480,6 +498,112 @@ export const paymentService = {
         success: false,
         error: error instanceof Error ? error.message : 'Payment verification failed',
       };
+    } finally {
+      client.release();
+    }
+  },
+
+  /**
+   * Send booking confirmation notification
+   * Extracted to reuse in both verify and webhook paths
+   * 
+   * IMPORTANT: This uses database locking to ensure only ONE notification
+   * is sent per payment, even if called multiple times (verify + webhook race)
+   */
+  async sendBookingNotificationSafe(paymentId: string, bookingId: string): Promise<boolean> {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      // Lock the payment row and check notification_sent flag
+      const paymentResult = await client.query(
+        `SELECT id, user_id, trip_id, hall, notification_sent 
+         FROM payments 
+         WHERE id = $1 
+         FOR UPDATE`,
+        [paymentId]
+      );
+      
+      if (paymentResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        console.log('📧 ⚠️ Payment not found for notification:', paymentId);
+        return false;
+      }
+      
+      const payment = paymentResult.rows[0];
+      
+      // Check if notification already sent
+      if (payment.notification_sent === true) {
+        await client.query('COMMIT');
+        console.log('📧 ⏭️ Notification already sent for payment:', paymentId);
+        return false; // Already sent, no duplicate
+      }
+      
+      // Mark as sent BEFORE actually sending (to prevent race conditions)
+      await client.query(
+        `UPDATE payments SET notification_sent = TRUE, updated_at = NOW() WHERE id = $1`,
+        [paymentId]
+      );
+      
+      await client.query('COMMIT');
+      
+      // Now send the notification (outside transaction)
+      console.log('📧 Sending booking notification for:', { 
+        userId: payment.user_id, 
+        bookingId, 
+        tripId: payment.trip_id 
+      });
+      
+      try {
+        const tripResult = await pool.query(
+          `SELECT t.trip_title, t.trip_date, t.return_time, t.amount_per_person
+           FROM trips t WHERE t.id = $1`,
+          [payment.trip_id]
+        );
+        
+        if (tripResult.rows.length > 0) {
+          const trip = tripResult.rows[0];
+          console.log('📧 Calling notifyBookingConfirmed with:', { 
+            tripTitle: trip.trip_title, 
+            hall: payment.hall 
+          });
+          
+          await notifyBookingConfirmed({
+            userId: payment.user_id,
+            bookingId: bookingId,
+            tripTitle: trip.trip_title,
+            tripDate: new Date(trip.trip_date).toLocaleDateString('en-IN', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
+            tripTime: trip.return_time ? new Date(trip.return_time).toLocaleTimeString('en-IN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }) : undefined,
+            hall: payment.hall || 'Not specified',
+            amount: Number(trip.amount_per_person),
+          });
+          
+          console.log('📧 ✅ Notification sent successfully!');
+          return true;
+        } else {
+          console.log('📧 ⚠️ No trip found for ID:', payment.trip_id);
+          return false;
+        }
+      } catch (err) {
+        console.error('📧 ❌ Failed to send booking notification:', err);
+        // Note: We don't rollback notification_sent flag here
+        // It's better to skip a notification than send duplicates
+        // Admin can manually trigger if needed
+        return false;
+      }
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('📧 ❌ Error in sendBookingNotificationSafe:', error);
+      return false;
     } finally {
       client.release();
     }
@@ -575,14 +699,29 @@ export const paymentService = {
           [payment.trip_id, payment.user_id]
         );
 
+        let bookingId: string;
         if (existingBooking.rows.length === 0) {
-          await client.query(
+          const bookingResult = await client.query(
             `INSERT INTO trip_users (trip_id, user_id, hall, payment_id)
-             VALUES ($1, $2, $3, $4)`,
+             VALUES ($1, $2, $3, $4)
+             RETURNING id`,
             [payment.trip_id, payment.user_id, payment.hall, payment.id]
           );
+          bookingId = bookingResult.rows[0].id;
+        } else {
+          bookingId = existingBooking.rows[0].id;
         }
-      } else if (payment.payment_status === 'confirmed') {
+
+        await client.query('COMMIT');
+        
+        // Send notification (safe from duplicates)
+        console.log('📧 [Webhook] Sending booking notification...');
+        this.sendBookingNotificationSafe(payment.id, bookingId);
+        
+        return { success: true, message: 'Webhook processed and notification sent' };
+      }
+      
+      if (payment.payment_status === 'confirmed') {
         // Already confirmed - just update webhook data if missing
         const fee = event.fee || 0;
         const tax = event.tax || 0;
@@ -607,10 +746,26 @@ export const paymentService = {
            WHERE id = $5`,
           [fee, tax, netAmount, JSON.stringify(updatedMetadata), payment.id]
         );
+
+        // Find booking and try to send notification (safe - will skip if already sent)
+        const existingBooking = await client.query(
+          `SELECT id FROM trip_users WHERE payment_id = $1`,
+          [payment.id]
+        );
+        
+        await client.query('COMMIT');
+        
+        if (existingBooking.rows.length > 0) {
+          console.log('📧 [Webhook] Payment already confirmed, ensuring notification is sent...');
+          this.sendBookingNotificationSafe(payment.id, existingBooking.rows[0].id);
+        }
+        
+        return { success: true, message: 'Webhook processed (payment was already confirmed)' };
       }
 
+      // If we reach here, payment is in an unexpected state
       await client.query('COMMIT');
-      return { success: true, message: 'Webhook processed successfully' };
+      return { success: true, message: `Webhook processed (payment status: ${payment.payment_status})` };
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Webhook processing error:', error);

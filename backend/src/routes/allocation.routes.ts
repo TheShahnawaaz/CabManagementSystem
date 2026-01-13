@@ -4,6 +4,8 @@ import {
   getAllocation,
   submitAllocation,
   clearAllocation,
+  notifyAllocatedUsers,
+  getNotificationStatus,
 } from '../controllers/allocation.controller';
 import { authenticateUser, requireAdmin } from '../middleware/auth.middleware';
 
@@ -60,6 +62,30 @@ router.delete(
   authenticateUser,
   requireAdmin,
   clearAllocation
+);
+
+/**
+ * @route   POST /api/admin/trips/:tripId/allocation/notify
+ * @desc    Send notifications to all allocated users (who haven't been notified)
+ * @access  Admin only
+ */
+router.post(
+  '/admin/trips/:tripId/allocation/notify',
+  authenticateUser,
+  requireAdmin,
+  notifyAllocatedUsers
+);
+
+/**
+ * @route   GET /api/admin/trips/:tripId/allocation/notification-status
+ * @desc    Get notification status for a trip's allocations
+ * @access  Admin only
+ */
+router.get(
+  '/admin/trips/:tripId/allocation/notification-status',
+  authenticateUser,
+  requireAdmin,
+  getNotificationStatus
 );
 
 export default router;

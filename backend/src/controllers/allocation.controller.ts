@@ -5,6 +5,7 @@ import {
   convertHallDemandToRegions,
   REGION_TO_HALL,
 } from '../utils/cabSolver';
+import { notifyCabAllocated } from '../services/notification.service';
 
 /**
  * Allocation Controller
@@ -461,5 +462,180 @@ export const clearAllocation = async (req: Request, res: Response): Promise<void
     });
   } finally {
     client.release();
+  }
+};
+
+// ====================================
+// NOTIFY ALLOCATED USERS
+// ====================================
+
+/**
+ * Send notifications to all allocated users who haven't been notified yet
+ * POST /admin/allocations/:tripId/notify
+ */
+export const notifyAllocatedUsers = async (req: Request, res: Response): Promise<void> => {
+  const client = await pool.connect();
+  
+  try {
+    const { tripId } = req.params;
+
+    if (!tripId) {
+      res.status(400).json({
+        success: false,
+        error: 'Trip ID is required',
+      });
+      return;
+    }
+
+    // Get trip details
+    const tripResult = await pool.query(
+      'SELECT trip_title, trip_date, return_time FROM trips WHERE id = $1',
+      [tripId]
+    );
+
+    if (tripResult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'Trip not found',
+      });
+      return;
+    }
+
+    const trip = tripResult.rows[0];
+
+    // Get all allocations that haven't been notified yet
+    const allocationsResult = await pool.query(`
+      SELECT 
+        ca.id as allocation_id,
+        ca.user_id,
+        tu.hall,
+        c.cab_number,
+        c.pickup_region
+      FROM cab_allocations ca
+      JOIN cabs c ON ca.cab_id = c.id
+      JOIN trip_users tu ON ca.user_id = tu.user_id AND tu.trip_id = $1
+      WHERE ca.trip_id = $1 
+        AND ca.notification_sent = FALSE
+    `, [tripId]);
+
+    if (allocationsResult.rows.length === 0) {
+      res.status(200).json({
+        success: true,
+        message: 'No users to notify (all already notified or no allocations)',
+        data: {
+          notified_count: 0,
+        },
+      });
+      return;
+    }
+
+    const allocations = allocationsResult.rows;
+
+    // Mark all as notified first (to prevent duplicates if this is called twice)
+    await client.query('BEGIN');
+    
+    const allocationIds = allocations.map((a: any) => a.allocation_id);
+    await client.query(`
+      UPDATE cab_allocations 
+      SET notification_sent = TRUE 
+      WHERE id = ANY($1)
+    `, [allocationIds]);
+
+    await client.query('COMMIT');
+
+    // Send notifications (async, don't block response)
+    let notifiedCount = 0;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://fridaycab.com';
+
+    for (const allocation of allocations) {
+      notifyCabAllocated({
+        userId: allocation.user_id,
+        tripTitle: trip.trip_title,
+        tripDate: new Date(trip.trip_date).toLocaleDateString('en-IN', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        tripTime: trip.return_time ? new Date(trip.return_time).toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }) : undefined,
+        cabNumber: allocation.cab_number,
+        pickupRegion: allocation.pickup_region,
+        hall: allocation.hall,
+        allocationId: allocation.allocation_id,
+      }).then(() => {
+        notifiedCount++;
+      }).catch((err) => {
+        console.error(`Failed to send cab allocation notification to user ${allocation.user_id}:`, err);
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Notifications queued for ${allocations.length} users`,
+      data: {
+        notified_count: allocations.length,
+      },
+    });
+  } catch (error: any) {
+    await client.query('ROLLBACK');
+    console.error('Error notifying allocated users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send notifications',
+    });
+  } finally {
+    client.release();
+  }
+};
+
+// ====================================
+// GET NOTIFICATION STATUS
+// ====================================
+
+/**
+ * Get notification status for a trip's allocations
+ * GET /admin/allocations/:tripId/notification-status
+ */
+export const getNotificationStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { tripId } = req.params;
+
+    if (!tripId) {
+      res.status(400).json({
+        success: false,
+        error: 'Trip ID is required',
+      });
+      return;
+    }
+
+    const result = await pool.query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE notification_sent = TRUE) as notified_count,
+        COUNT(*) FILTER (WHERE notification_sent = FALSE) as pending_count,
+        COUNT(*) as total_count
+      FROM cab_allocations
+      WHERE trip_id = $1
+    `, [tripId]);
+
+    const stats = result.rows[0];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        notified_count: parseInt(stats.notified_count) || 0,
+        pending_count: parseInt(stats.pending_count) || 0,
+        total_count: parseInt(stats.total_count) || 0,
+        all_notified: parseInt(stats.pending_count) === 0 && parseInt(stats.total_count) > 0,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error getting notification status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get notification status',
+    });
   }
 };

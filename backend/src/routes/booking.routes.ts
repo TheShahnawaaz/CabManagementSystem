@@ -1,37 +1,21 @@
 import { Router } from 'express';
-import {
-  createBooking,
-  getMyBookings,
-  getBookingById,
-} from '../controllers/booking.controller';
+import { getMyBookings, getBookingById } from '../controllers/booking.controller';
 import { authenticateUser } from '../middleware/auth.middleware';
-import { validateBooking } from '../middleware/validation.middleware';
 
 const router = Router();
 
 /**
  * Booking Routes
  * 
- * All routes require authentication (student or admin)
- * Handles booking creation and viewing
+ * All routes require authentication
+ * 
+ * Note: Booking creation is handled via payment verification flow
+ * (POST /api/payments/initiate → Razorpay → POST /api/payments/verify)
  */
 
 // ====================================
 // BOOKING ROUTES (Protected)
 // ====================================
-
-/**
- * @route   POST /api/bookings
- * @desc    Create a new booking (mock payment)
- * @access  Authenticated users only
- * @body    { trip_id: UUID, hall: string }
- */
-router.post(
-  '/bookings',
-  authenticateUser,
-  validateBooking,
-  createBooking
-);
 
 /**
  * @route   GET /api/bookings
@@ -49,4 +33,3 @@ router.get('/bookings', authenticateUser, getMyBookings);
 router.get('/bookings/:id', authenticateUser, getBookingById);
 
 export default router;
-

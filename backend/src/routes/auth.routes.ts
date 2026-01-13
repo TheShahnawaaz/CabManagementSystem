@@ -14,6 +14,7 @@ const formatUserResponse = (user: any) => ({
   phone_number: user.phone_number,
   profile_picture: user.profile_picture,
   is_admin: user.is_admin,
+  email_notifications: user.email_notifications ?? true, // Default true
   created_at: user.created_at,
   updated_at: user.updated_at
 });
@@ -62,7 +63,7 @@ router.get('/me', authenticateUser, async (req, res) => {
   try {
     const authReq = req as AuthRequest;
     const result = await db.query(
-      'SELECT id, email, name, phone_number, profile_picture, is_admin, created_at, updated_at FROM users WHERE id = $1',
+      'SELECT id, email, name, phone_number, profile_picture, is_admin, email_notifications, created_at, updated_at FROM users WHERE id = $1',
       [authReq.user!.id]
     );
 
@@ -77,11 +78,11 @@ router.get('/me', authenticateUser, async (req, res) => {
   }
 });
 
-// Update current user profile (name + phone number)
+// Update current user profile (name, phone number, email_notifications)
 router.put('/me', authenticateUser, validateProfileUpdate, async (req, res) => {
   try {
     const authReq = req as AuthRequest;
-    const { name, phone_number } = req.body;
+    const { name, phone_number, email_notifications } = req.body;
 
     const updates: string[] = [];
     const values: any[] = [];
@@ -110,6 +111,12 @@ router.put('/me', authenticateUser, validateProfileUpdate, async (req, res) => {
       values.push(normalizedPhone);
     }
 
+    // Handle email notifications preference
+    if (email_notifications !== undefined) {
+      updates.push(`email_notifications = $${paramIndex++}`);
+      values.push(Boolean(email_notifications));
+    }
+
     if (updates.length === 0) {
       return res.status(400).json({
         success: false,
@@ -124,7 +131,7 @@ router.put('/me', authenticateUser, validateProfileUpdate, async (req, res) => {
         UPDATE users
         SET ${updates.join(', ')}, updated_at = NOW()
         WHERE id = $${paramIndex}
-        RETURNING id, email, name, phone_number, profile_picture, is_admin, created_at, updated_at
+        RETURNING id, email, name, phone_number, profile_picture, is_admin, email_notifications, created_at, updated_at
       `,
       values
     );

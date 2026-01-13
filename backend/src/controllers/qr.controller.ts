@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
+import { notifyJourneyLogged } from '../services/notification.service';
 
 /**
  * QR Controller
@@ -276,7 +277,17 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
     // Commit transaction
     await client.query('COMMIT');
 
-    // 9. Return success
+    // 9. Send journey notification (async, don't block response)
+    notifyJourneyLogged({
+      userId: allocation.user_id,
+      tripTitle: allocation.trip_title,
+      cabNumber: scannedCab.cab_number,
+      journeyType: journeyType as 'pickup' | 'return',
+    }).catch((err) => {
+      console.error('Failed to send journey notification:', err);
+    });
+
+    // 10. Return success
     res.status(200).json({
       success: true,
       journey_type: journeyType,
