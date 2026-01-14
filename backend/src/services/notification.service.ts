@@ -281,8 +281,10 @@ export async function notifyJourneyLogged(params: JourneyLoggedParams) {
     emailData: {
       userName: '',
       tripTitle: params.tripTitle,
+      tripDate: params.tripDate,
       cabNumber: params.cabNumber,
       journeyType: params.journeyType,
+      boardedAt: params.journeyTime,
     },
   });
 }

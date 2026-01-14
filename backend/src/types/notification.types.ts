@@ -102,6 +102,8 @@ export interface CabAllocatedParams {
 export interface JourneyLoggedParams {
   userId: string | number;
   tripTitle: string;
+  tripDate: string;
+  journeyTime: string;  // "Boarded at" for pickup, "Arrived at" for return
   cabNumber: string;
   journeyType: 'pickup' | 'return';
 }

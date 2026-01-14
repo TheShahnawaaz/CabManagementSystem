@@ -282,9 +282,23 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
     await client.query('COMMIT');
 
     // 9. Send journey notification (async, don't block response)
+    // Note: 'now' was already declared at line 205 for journey type check
+    const scanTime = new Date();
     notifyJourneyLogged({
       userId: allocation.user_id,
       tripTitle: allocation.trip_title,
+      tripDate: new Date(allocation.trip_date).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Kolkata',
+      }),
+      journeyTime: scanTime.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata',
+      }),
       cabNumber: scannedCab.cab_number,
       journeyType: journeyType as 'pickup' | 'return',
     }).catch((err) => {

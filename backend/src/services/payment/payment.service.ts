@@ -578,10 +578,12 @@ export const paymentService = {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
+              timeZone: 'Asia/Kolkata',
             }),
             tripTime: trip.departure_time ? new Date(trip.departure_time).toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
+              timeZone: 'Asia/Kolkata',
             }) : undefined,
             hall: payment.hall || 'Not specified',
             amount: Number(trip.amount_per_person),

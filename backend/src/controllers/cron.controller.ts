@@ -36,11 +36,15 @@ const sampleData: Record<EmailTemplate, any> = {
   journey_pickup: {
     userName: 'John Doe',
     tripTitle: 'Friday Jummah Trip',
+    tripDate: 'Friday, 17 January 2026',
+    boardedAt: '12:35 pm',
     cabNumber: 'WB-01-X-1234',
   },
   journey_return: {
     userName: 'John Doe',
     tripTitle: 'Friday Jummah Trip',
+    tripDate: 'Friday, 17 January 2026',
+    boardedAt: '2:45 pm',
     cabNumber: 'WB-01-X-1234',
   },
   admin_announcement: {

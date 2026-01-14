@@ -5,6 +5,8 @@ import { EmailLayout, Badge, DetailsCard } from '../components';
 interface JourneyReturnProps {
   userName: string;
   tripTitle: string;
+  tripDate?: string;
+  boardedAt?: string;
   cabNumber: string;
 }
 
@@ -13,6 +15,8 @@ const BRAND_NAME = process.env.EMAIL_BRAND_NAME || "IITKGP Cabs";
 export const JourneyReturn: React.FC<JourneyReturnProps> = ({
   userName,
   tripTitle,
+  tripDate,
+  boardedAt,
   cabNumber,
 }) => {
   return (
@@ -35,6 +39,8 @@ export const JourneyReturn: React.FC<JourneyReturnProps> = ({
         items={[
           { icon: '🚗', label: 'Cab', value: cabNumber },
           { icon: '📍', label: 'Journey', value: 'Mosque → Campus', isSuccess: true },
+          ...(tripDate ? [{ icon: '📅', label: 'Date', value: tripDate }] : []),
+          ...(boardedAt ? [{ icon: '⏰', label: 'Boarded at', value: boardedAt }] : []),
         ]}
       />
 

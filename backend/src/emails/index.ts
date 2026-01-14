@@ -32,6 +32,7 @@ export interface TemplateData {
   tripDate?: string;
   tripTime?: string;
   departureTime?: string;
+  boardedAt?: string;   // For JourneyPickup and JourneyReturn - when student boarded
   hall?: string;
   amount?: number;
   bookingId?: string;

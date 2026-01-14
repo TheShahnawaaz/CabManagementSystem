@@ -5,12 +5,16 @@ import { EmailLayout, Badge, DetailsCard } from '../components';
 interface JourneyPickupProps {
   userName: string;
   tripTitle: string;
+  tripDate?: string;
+  boardedAt?: string;
   cabNumber: string;
 }
 
 export const JourneyPickup: React.FC<JourneyPickupProps> = ({
   userName,
   tripTitle,
+  tripDate,
+  boardedAt,
   cabNumber,
 }) => {
   return (
@@ -33,6 +37,8 @@ export const JourneyPickup: React.FC<JourneyPickupProps> = ({
         items={[
           { icon: '🚗', label: 'Cab', value: cabNumber },
           { icon: '📍', label: 'Journey', value: 'Campus → Mosque', isSuccess: true },
+          ...(tripDate ? [{ icon: '📅', label: 'Date', value: tripDate }] : []),
+          ...(boardedAt ? [{ icon: '⏰', label: 'Boarded at', value: boardedAt }] : []),
         ]}
       />
 
