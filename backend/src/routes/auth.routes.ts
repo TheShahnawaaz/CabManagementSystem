@@ -68,13 +68,19 @@ router.get('/me', authenticateUser, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
     }
 
     res.json(formatUserResponse(result.rows[0]));
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Failed to fetch user' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch user' 
+    });
   }
 });
 
@@ -143,7 +149,10 @@ router.put('/me', authenticateUser, validateProfileUpdate, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating user profile:', error);
-    res.status(500).json({ error: 'Failed to update user profile' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update user profile' 
+    });
   }
 });
 
@@ -161,14 +170,20 @@ router.post('/verify-login', async (req, res) => {
   try {
     // Check if verification login is enabled
     if (process.env.ENABLE_VERIFY_LOGIN !== 'true') {
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Not found' 
+      });
     }
 
     const { email, password } = req.body;
 
     // Validate input
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email and password are required' 
+      });
     }
 
     // Check against environment variables
@@ -177,12 +192,18 @@ router.post('/verify-login', async (req, res) => {
 
     if (!verifyEmail || !verifyPassword) {
       console.error('VERIFY_EMAIL or VERIFY_PASSWORD not configured');
-      return res.status(500).json({ error: 'Verification login not configured' });
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Verification login not configured' 
+      });
     }
 
-    // Validate credentials
+    // Verify credentials
     if (email !== verifyEmail || password !== verifyPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Invalid email or password' 
+      });
     }
 
     // Find user in database
@@ -193,6 +214,7 @@ router.post('/verify-login', async (req, res) => {
 
     if (result.rows.length === 0) {
       return res.status(401).json({ 
+        success: false,
         error: 'User not found. Please ensure the test user exists in the database.' 
       });
     }
@@ -214,7 +236,10 @@ router.post('/verify-login', async (req, res) => {
     });
   } catch (error) {
     console.error('Verify login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Login failed' 
+    });
   }
 });
 

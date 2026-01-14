@@ -321,6 +321,8 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
 // GET CAB DETAILS (for student cab view)
 // ====================================
 export const getCabDetails = async (req: Request, res: Response): Promise<void> => {
+  const client = await pool.connect();
+  
   try {
     const allocationId = req.params.allocationId as string;
 
@@ -335,8 +337,11 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Start transaction for consistent read
+    await client.query('BEGIN');
+
     // Get cab_id from the allocation
-    const allocationResult = await pool.query(
+    const allocationResult = await client.query(
       `SELECT cab_id, trip_id, user_id 
        FROM cab_allocations 
        WHERE id = $1`,
@@ -344,6 +349,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
     );
 
     if (allocationResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       res.status(404).json({
         success: false,
         error: 'not_found',
@@ -355,7 +361,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
     const { cab_id, trip_id, user_id } = allocationResult.rows[0];
 
     // Check if user has paid for this trip
-    const paymentCheck = await pool.query(
+    const paymentCheck = await client.query(
       `SELECT p.payment_status
        FROM trip_users tu
        JOIN payments p ON tu.payment_id = p.id
@@ -364,6 +370,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
     );
 
     if (paymentCheck.rows.length === 0 || paymentCheck.rows[0].payment_status !== 'confirmed') {
+      await client.query('ROLLBACK');
       res.status(403).json({
         success: false,
         error: 'payment_required',
@@ -373,7 +380,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
     }
 
     // Fetch cab details (WITHOUT passkey - students shouldn't see it)
-    const cabResult = await pool.query(
+    const cabResult = await client.query(
       `SELECT 
         c.id,
         c.cab_number,
@@ -388,6 +395,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
     );
 
     if (cabResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       res.status(404).json({
         success: false,
         error: 'not_found',
@@ -399,7 +407,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
     const cab = cabResult.rows[0];
 
     // Fetch all students in this cab
-    const studentsResult = await pool.query(
+    const studentsResult = await client.query(
       `SELECT 
         ca.user_id,
         ca.id as booking_id,
@@ -431,7 +439,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
 
     // Fetch ALL OTHER cabs for this trip (for return journey options)
     // Only return driver details and starting point - no passenger info
-    const otherCabsResult = await pool.query(
+    const otherCabsResult = await client.query(
       `SELECT 
         c.id,
         c.cab_number,
@@ -447,6 +455,9 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
 
     const otherCabs = otherCabsResult.rows;
 
+    // Commit transaction
+    await client.query('COMMIT');
+
     res.status(200).json({
       success: true,
       data: {
@@ -456,6 +467,7 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
       },
     });
   } catch (error: any) {
+    await client.query('ROLLBACK');
     console.error('Error fetching cab details:', error);
     res.status(500).json({
       success: false,
@@ -463,6 +475,8 @@ export const getCabDetails = async (req: Request, res: Response): Promise<void> 
       message: 'Failed to fetch cab details',
       details: error.message,
     });
+  } finally {
+    client.release();
   }
 };
 

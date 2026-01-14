@@ -50,7 +50,10 @@ export const requireWebhookSignature = (
   const signature = req.headers['x-razorpay-signature'];
   
   if (!signature) {
-    res.status(401).json({ error: 'Missing webhook signature' });
+    res.status(401).json({ 
+      success: false, 
+      error: 'Missing webhook signature' 
+    });
     return;
   }
   
@@ -85,7 +88,10 @@ export const webhookRateLimiter = (
 
   if (record.count >= maxRequests) {
     console.warn(`Webhook rate limit exceeded for IP: ${ip}`);
-    res.status(429).json({ error: 'Too many requests' });
+    res.status(429).json({ 
+      success: false, 
+      error: 'Too many requests' 
+    });
     return;
   }
 

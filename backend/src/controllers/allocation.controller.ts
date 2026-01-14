@@ -76,9 +76,21 @@ export const runAllocation = async (req: Request, res: Response): Promise<void> 
     const hallDemand = demandResult.rows;
     const totalStudents = hallDemand.reduce((sum: number, row: any) => sum + row.count, 0);
 
-    // 2. Run solver
+    // 2. Run solver with error handling
     const studentsPerRegion = convertHallDemandToRegions(hallDemand);
-    const solverResult = solveCabAllocation(studentsPerRegion);
+    let solverResult;
+    
+    try {
+      solverResult = solveCabAllocation(studentsPerRegion);
+    } catch (error) {
+      console.error('Solver error:', error);
+      res.status(400).json({
+        success: false,
+        error: 'Unable to create optimal allocation. The booking configuration may not be feasible. Please try manual allocation or contact support.',
+        details: error instanceof Error ? error.message : 'Solver failed',
+      });
+      return;
+    }
 
     // 3. Get all students with details for random assignment
     const studentsResult = await pool.query(
