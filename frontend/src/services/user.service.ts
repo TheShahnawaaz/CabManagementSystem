@@ -90,4 +90,18 @@ export const userManagementApi = {
   async deleteUser(id: string): Promise<ApiResponse<void>> {
     return apiClient.delete(`/admin/users/${id}`);
   },
+
+  /**
+   * Get user statistics (independent of filters)
+   */
+  async getStats(): Promise<
+    ApiResponse<{
+      totalUsers: number;
+      adminCount: number;
+      totalBookings: number;
+      confirmedPayments: number;
+    }>
+  > {
+    return apiClient.get("/admin/users/stats");
+  },
 };

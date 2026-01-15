@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { userManagementApi } from "@/services/user.service";
 import type { UserWithStats } from "@/types/user.types";
-import type { UserManagementState, UserFormState } from "./types";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import type {
+  UserManagementState,
+  UserFormState,
+  UserRoleFilter,
+} from "./types";
 
 const getInitialFormData = (): UserFormState => ({
   name: "",
@@ -15,26 +20,86 @@ export function useUserManagement() {
   const [state, setState] = useState<UserManagementState>({
     users: [],
     loading: true,
+    statsLoading: true,
+    stats: null,
     isSheetOpen: false,
     isDeleteDialogOpen: false,
     editingUser: null,
     deletingUser: null,
     submitting: false,
+    query: {
+      search: "",
+      role: "all",
+      sort: "desc",
+      pageIndex: 0,
+      pageSize: 20,
+    },
+    pagination: {
+      total: 0,
+      limit: 20,
+      offset: 0,
+    },
   });
 
   const [formState, setFormState] =
     useState<UserFormState>(getInitialFormData());
 
+  const debouncedSearch = useDebouncedValue(state.query.search, 300);
+
+  // Fetch stats once on mount
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  // Fetch users when filters change
   useEffect(() => {
     fetchUsers();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    debouncedSearch,
+    state.query.role,
+    state.query.pageIndex,
+    state.query.pageSize,
+    state.query.sort,
+  ]);
+
+  const fetchStats = async () => {
+    try {
+      setState((prev) => ({ ...prev, statsLoading: true }));
+      const response = await userManagementApi.getStats();
+      if (response.success && response.data) {
+        setState((prev) => ({ ...prev, stats: response.data ?? null }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch user stats:", error);
+    } finally {
+      setState((prev) => ({ ...prev, statsLoading: false }));
+    }
+  };
+
+  const getIsAdminFilter = (role: UserRoleFilter): boolean | undefined => {
+    if (role === "admin") return true;
+    if (role === "user") return false;
+    return undefined;
+  };
 
   const fetchUsers = async () => {
     try {
       setState((prev) => ({ ...prev, loading: true }));
-      const response = await userManagementApi.getUsers({ sort: "desc" });
+      const { pageIndex, pageSize, sort } = state.query;
+      const response = await userManagementApi.getUsers({
+        sort,
+        search: debouncedSearch.trim() || undefined,
+        is_admin: getIsAdminFilter(state.query.role),
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+      });
       if (response.success && response.data) {
-        setState((prev) => ({ ...prev, users: response.data || [] }));
+        setState((prev) => ({
+          ...prev,
+          users: response.data || [],
+          pagination: response.pagination ?? prev.pagination,
+        }));
       }
     } catch (error) {
       toast.error("Failed to load users");
@@ -42,6 +107,35 @@ export function useUserManagement() {
     } finally {
       setState((prev) => ({ ...prev, loading: false }));
     }
+  };
+
+  const setSearch = (search: string) => {
+    setState((prev) => ({
+      ...prev,
+      query: { ...prev.query, search, pageIndex: 0 },
+    }));
+  };
+
+  const setRole = (role: UserRoleFilter) => {
+    setState((prev) => ({
+      ...prev,
+      query: { ...prev.query, role, pageIndex: 0 },
+    }));
+  };
+
+  const setPageIndex = (pageIndex: number) => {
+    setState((prev) => ({
+      ...prev,
+      query: { ...prev.query, pageIndex },
+    }));
+  };
+
+  const setPageSize = (pageSize: number) => {
+    setState((prev) => ({
+      ...prev,
+      query: { ...prev.query, pageSize, pageIndex: 0 },
+      pagination: { ...prev.pagination, limit: pageSize, offset: 0 },
+    }));
   };
 
   const handleSubmit = async () => {
@@ -82,6 +176,7 @@ export function useUserManagement() {
           toast.success("User created successfully!");
           closeSheet();
           fetchUsers();
+          fetchStats(); // Refresh stats after creating user
         }
       }
     } catch (error) {
@@ -129,6 +224,7 @@ export function useUserManagement() {
           deletingUser: null,
         }));
         fetchUsers();
+        fetchStats(); // Refresh stats after deleting user
       }
     } catch (error) {
       const message =
@@ -168,6 +264,7 @@ export function useUserManagement() {
           `Admin privileges ${action === "grant" ? "granted to" : "revoked from"} ${user.name}`
         );
         fetchUsers();
+        fetchStats(); // Refresh stats after toggling admin
       }
     } catch (error) {
       const message =
@@ -229,6 +326,10 @@ export function useUserManagement() {
     state,
     formState,
     updateFormState,
+    setSearch,
+    setRole,
+    setPageIndex,
+    setPageSize,
     handleSubmit,
     handleDelete,
     handleToggleAdmin,

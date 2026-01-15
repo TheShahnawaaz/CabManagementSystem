@@ -18,17 +18,31 @@ import {
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
+  startRow: number;
+  endRow: number;
+  total: number;
 }
 
 export function DataTablePagination<TData>({
   table,
+  startRow,
+  endRow,
+  total,
 }: DataTablePaginationProps<TData>) {
   return (
     <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row sm:items-center sm:justify-between">
-      {/* Selection Count */}
+      {/* Showing X-Y of Z */}
       <div className="text-muted-foreground text-sm">
-        {table.getFilteredSelectedRowModel().rows.length} of{" "}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
+        {total === 0 ? (
+          "No results"
+        ) : (
+          <>
+            Showing{" "}
+            <span className="font-medium text-foreground">{startRow}</span>–
+            <span className="font-medium text-foreground">{endRow}</span> of{" "}
+            <span className="font-medium text-foreground">{total}</span> results
+          </>
+        )}
       </div>
 
       {/* Pagination Controls */}

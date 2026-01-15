@@ -1,22 +1,13 @@
 import { Users, Shield, Calendar, CreditCard } from "lucide-react";
 import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
-import type { UserWithStats } from "@/types/user.types";
+import type { UserStatsData } from "./types";
 
 interface UserStatsProps {
-  users: UserWithStats[];
+  stats: UserStatsData;
 }
 
-export function UserStats({ users }: UserStatsProps) {
-  const totalUsers = users.length;
-  const adminCount = users.filter((u) => u.is_admin).length;
-  const totalBookings = users.reduce(
-    (sum, u) => sum + (Number(u.booking_count) || 0),
-    0
-  );
-  const totalPayments = users.reduce(
-    (sum, u) => sum + (Number(u.payment_count) || 0),
-    0
-  );
+export function UserStats({ stats }: UserStatsProps) {
+  const { totalUsers, adminCount, totalBookings, confirmedPayments } = stats;
 
   return (
     <StatCardGrid columns={4} className="mb-6">
@@ -53,11 +44,11 @@ export function UserStats({ users }: UserStatsProps) {
         variant="stacked"
       />
       <StatCard
-        value={totalPayments}
+        value={confirmedPayments}
         label="Confirmed Payments"
         description={
           totalBookings > 0
-            ? `${((totalPayments / totalBookings) * 100).toFixed(1)}% completion`
+            ? `${((confirmedPayments / totalBookings) * 100).toFixed(1)}% completion`
             : "0% completion"
         }
         icon={CreditCard}

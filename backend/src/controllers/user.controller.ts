@@ -1,17 +1,115 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
+import type { AuthRequest } from '../middleware/auth.middleware';
 
 /**
  * User Controller
  * Handles all user management operations (Admin only)
  */
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+function sendInternalError(res: Response, error: unknown, safeMessage: string) {
+  const details =
+    error && typeof error === 'object' && 'message' in error
+      ? String((error as any).message)
+      : undefined;
+
+  res.status(500).json({
+    success: false,
+    error: safeMessage,
+    ...(isProduction ? {} : { details }),
+  });
+}
+
+function parseOptionalBoolean(value: unknown): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return undefined;
+}
+
+function parseOptionalInt(value: unknown): number | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || value.trim() === '') return undefined;
+  const n = Number(value);
+  if (!Number.isInteger(n)) return undefined;
+  return n;
+}
+
+// ====================================
+// GET USER STATS (Independent of filters)
+// ====================================
+export const getUserStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*)::int AS total_users,
+        COUNT(*) FILTER (WHERE is_admin = TRUE)::int AS admin_count,
+        (SELECT COUNT(*)::int FROM trip_users) AS total_bookings,
+        (SELECT COUNT(*)::int FROM payments WHERE payment_status = 'confirmed') AS confirmed_payments
+      FROM users
+    `);
+
+    const stats = result.rows[0];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalUsers: stats.total_users,
+        adminCount: stats.admin_count,
+        totalBookings: stats.total_bookings,
+        confirmedPayments: stats.confirmed_payments,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching user stats:', error);
+    sendInternalError(res, error, 'Failed to fetch user stats');
+  }
+};
+
 // ====================================
 // GET ALL USERS
 // ====================================
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { is_admin, search, sort = 'desc', limit = 50, offset = 0 } = req.query;
+    const { is_admin, search, sort = 'desc', limit = '50', offset = '0' } =
+      req.query;
+
+    // Validate and normalize query params
+    const errors: string[] = [];
+
+    const isAdminFilter = parseOptionalBoolean(is_admin);
+    if (is_admin !== undefined && isAdminFilter === undefined) {
+      errors.push('is_admin must be "true" or "false"');
+    }
+
+    const sortDirection = sort === 'asc' ? 'ASC' : sort === 'desc' ? 'DESC' : null;
+    if (!sortDirection) {
+      errors.push('sort must be "asc" or "desc"');
+    }
+
+    const parsedLimit = parseOptionalInt(limit) ?? 50;
+    const parsedOffset = parseOptionalInt(offset) ?? 0;
+
+    if (parsedLimit < 1 || parsedLimit > 200) {
+      errors.push('limit must be between 1 and 200');
+    }
+    if (parsedOffset < 0) {
+      errors.push('offset must be >= 0');
+    }
+
+    const normalizedSearch =
+      typeof search === 'string' ? search.trim().slice(0, 120) : '';
+
+    if (errors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors,
+      });
+      return;
+    }
 
     let query = `
       SELECT 
@@ -21,11 +119,24 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
         u.phone_number,
         u.profile_picture,
         u.is_admin,
+        u.email_notifications,
         u.created_at,
         u.updated_at,
-        (SELECT COUNT(*)::int FROM trip_users WHERE user_id = u.id) as booking_count,
-        (SELECT COUNT(*)::int FROM payments WHERE user_id = u.id AND payment_status = 'confirmed') as payment_count
+        COALESCE(b.booking_count, 0)::int as booking_count,
+        COALESCE(p.payment_count, 0)::int as payment_count,
+        COUNT(*) OVER()::int AS total_count
       FROM users u
+      LEFT JOIN (
+        SELECT user_id, COUNT(*)::int AS booking_count
+        FROM trip_users
+        GROUP BY user_id
+      ) b ON b.user_id = u.id
+      LEFT JOIN (
+        SELECT user_id, COUNT(*)::int AS payment_count
+        FROM payments
+        WHERE payment_status = 'confirmed'
+        GROUP BY user_id
+      ) p ON p.user_id = u.id
     `;
 
     const params: any[] = [];
@@ -33,15 +144,17 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     let paramIndex = 1;
 
     // Filter by admin status
-    if (is_admin !== undefined) {
+    if (isAdminFilter !== undefined) {
       whereClauses.push(`u.is_admin = $${paramIndex++}`);
-      params.push(is_admin === 'true');
+      params.push(isAdminFilter);
     }
 
-    // Search by name or email
-    if (search && typeof search === 'string' && search.trim()) {
-      whereClauses.push(`(LOWER(u.name) LIKE $${paramIndex} OR LOWER(u.email) LIKE $${paramIndex})`);
-      params.push(`%${search.toLowerCase()}%`);
+    // Search by name, email, or ID
+    if (normalizedSearch) {
+      whereClauses.push(
+        `(LOWER(u.name) LIKE $${paramIndex} OR LOWER(u.email) LIKE $${paramIndex} OR u.id::text LIKE $${paramIndex})`
+      );
+      params.push(`%${normalizedSearch.toLowerCase()}%`);
       paramIndex++;
     }
 
@@ -51,40 +164,31 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Add sorting
-    const sortDirection = sort === 'asc' ? 'ASC' : 'DESC';
     query += ` ORDER BY u.created_at ${sortDirection}`;
 
     // Add pagination
-    params.push(limit, offset);
+    params.push(parsedLimit, parsedOffset);
     query += ` LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
 
     const result = await pool.query(query, params);
+    const total =
+      result.rows.length > 0 ? Number(result.rows[0].total_count) : 0;
 
-    // Get total count for pagination
-    let countQuery = `SELECT COUNT(*) FROM users u`;
-    let countParams: any[] = [];
-    if (whereClauses.length > 0) {
-      countQuery += ` WHERE ${whereClauses.join(' AND ')}`;
-      countParams = params.slice(0, params.length - 2); // Exclude limit and offset
-    }
-    const countResult = await pool.query(countQuery, countParams);
+    // Remove total_count from each row (it’s duplicated per row)
+    const data = result.rows.map(({ total_count, ...row }) => row);
 
     res.status(200).json({
       success: true,
-      data: result.rows,
+      data,
       pagination: {
-        total: parseInt(countResult.rows[0].count),
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
+        total,
+        limit: parsedLimit,
+        offset: parsedOffset,
       },
     });
   } catch (error: any) {
     console.error('Error fetching users:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch users',
-      details: error.message,
-    });
+    sendInternalError(res, error, 'Failed to fetch users');
   }
 };
 
@@ -104,6 +208,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
         u.phone_number,
         u.profile_picture,
         u.is_admin,
+        u.email_notifications,
         u.created_at,
         u.updated_at,
         (SELECT COUNT(*)::int FROM trip_users WHERE user_id = u.id) as booking_count,
@@ -150,11 +255,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     });
   } catch (error: any) {
     console.error('Error fetching user:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch user',
-      details: error.message,
-    });
+    sendInternalError(res, error, 'Failed to fetch user');
   }
 };
 
@@ -183,7 +284,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     const result = await pool.query(
       `INSERT INTO users (email, name, phone_number, is_admin)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, email, name, phone_number, profile_picture, is_admin, created_at, updated_at`,
+      RETURNING id, email, name, phone_number, profile_picture, is_admin, email_notifications, created_at, updated_at`,
       [email, name, normalizedPhone, is_admin]
     );
 
@@ -204,11 +305,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create user',
-      details: error.message,
-    });
+    sendInternalError(res, error, 'Failed to create user');
   }
 };
 
@@ -267,7 +364,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       UPDATE users 
       SET ${updates.join(', ')}, updated_at = NOW()
       WHERE id = $${paramIndex}
-      RETURNING id, email, name, phone_number, profile_picture, is_admin, created_at, updated_at
+      RETURNING id, email, name, phone_number, profile_picture, is_admin, email_notifications, created_at, updated_at
     `;
 
     const result = await pool.query(updateQuery, values);
@@ -289,11 +386,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update user',
-      details: error.message,
-    });
+    sendInternalError(res, error, 'Failed to update user');
   }
 };
 
@@ -301,11 +394,20 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 // TOGGLE ADMIN STATUS
 // ====================================
 export const toggleAdminStatus = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Prevent self-lockout
+    if (req.user?.id === id) {
+      res.status(400).json({
+        success: false,
+        error: 'You cannot change your own admin status',
+      });
+      return;
+    }
 
     // Check if user exists and get current status
     const checkResult = await pool.query(
@@ -324,12 +426,28 @@ export const toggleAdminStatus = async (
     const user = checkResult.rows[0];
     const newAdminStatus = !user.is_admin;
 
+    // Prevent revoking the last admin
+    if (user.is_admin && !newAdminStatus) {
+      const adminCountResult = await pool.query(
+        'SELECT COUNT(*)::int AS admin_count FROM users WHERE is_admin = TRUE AND id <> $1',
+        [id]
+      );
+      const remainingAdmins = adminCountResult.rows[0]?.admin_count ?? 0;
+      if (remainingAdmins <= 0) {
+        res.status(400).json({
+          success: false,
+          error: 'Cannot revoke admin status from the last admin user',
+        });
+        return;
+      }
+    }
+
     // Update admin status
     const result = await pool.query(
       `UPDATE users 
       SET is_admin = $1, updated_at = NOW()
       WHERE id = $2
-      RETURNING id, email, name, phone_number, profile_picture, is_admin, created_at, updated_at`,
+      RETURNING id, email, name, phone_number, profile_picture, is_admin, email_notifications, created_at, updated_at`,
       [newAdminStatus, id]
     );
 
@@ -340,11 +458,7 @@ export const toggleAdminStatus = async (
     });
   } catch (error: any) {
     console.error('Error toggling admin status:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update admin status',
-      details: error.message,
-    });
+    sendInternalError(res, error, 'Failed to update admin status');
   }
 };
 
@@ -354,6 +468,16 @@ export const toggleAdminStatus = async (
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Prevent deleting yourself (admin self-lockout)
+    const authReq = req as AuthRequest;
+    if (authReq.user?.id === id) {
+      res.status(400).json({
+        success: false,
+        error: 'You cannot delete your own user account',
+      });
+      return;
+    }
 
     // Check if user exists
     const checkResult = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
@@ -391,11 +515,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     });
   } catch (error: any) {
     console.error('Error deleting user:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete user',
-      details: error.message,
-    });
+    sendInternalError(res, error, 'Failed to delete user');
   }
 };
 

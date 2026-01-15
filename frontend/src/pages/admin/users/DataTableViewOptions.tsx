@@ -12,6 +12,17 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+// Map column IDs to display labels (matching table headers)
+const columnLabels: Record<string, string> = {
+  id: "ID",
+  name: "User",
+  phone_number: "Phone",
+  is_admin: "Role",
+  booking_count: "Bookings",
+  payment_count: "Payments",
+  created_at: "Joined",
+};
+
 export function DataTableViewOptions<TData>({
   table,
 }: {
@@ -42,11 +53,10 @@ export function DataTableViewOptions<TData>({
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
-                className="capitalize"
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {columnLabels[column.id] || column.id}
               </DropdownMenuCheckboxItem>
             );
           })}

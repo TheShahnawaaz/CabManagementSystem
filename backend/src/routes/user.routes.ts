@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getAllUsers,
+  getUserStats,
   getUserById,
   createUser,
   updateUser,
@@ -34,6 +35,13 @@ const router = Router();
  * @query   is_admin (boolean), search (string), sort (asc|desc), limit, offset
  */
 router.get('/admin/users', authenticateUser, requireAdmin, getAllUsers);
+
+/**
+ * @route   GET /api/admin/users/stats
+ * @desc    Get user statistics (totals independent of filters)
+ * @access  Admin only
+ */
+router.get('/admin/users/stats', authenticateUser, requireAdmin, getUserStats);
 
 /**
  * @route   GET /api/admin/users/:id

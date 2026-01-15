@@ -3,13 +3,10 @@
 import * as React from "react";
 import {
   type ColumnDef,
-  type ColumnFiltersState,
   type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -29,67 +26,90 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableViewOptions } from "./DataTableViewOptions";
+import type { UserRoleFilter } from "./types";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  loading?: boolean;
+  search: string;
+  onSearchChange: (value: string) => void;
+  role: UserRoleFilter;
+  onRoleChange: (value: UserRoleFilter) => void;
+  pageIndex: number;
+  pageSize: number;
+  total: number;
+  onPageIndexChange: (pageIndex: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  loading = false,
+  search,
+  onSearchChange,
+  role,
+  onRoleChange,
+  pageIndex,
+  pageSize,
+  total,
+  onPageIndexChange,
+  onPageSizeChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [roleFilter, setRoleFilter] = React.useState<string>("all");
+    React.useState<VisibilityState>({
+      payment_count: false, // Hidden by default
+    });
+
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   const table = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    manualPagination: true,
+    pageCount,
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({ pageIndex, pageSize })
+          : updater;
+      if (next.pageIndex !== pageIndex) onPageIndexChange(next.pageIndex);
+      if (next.pageSize !== pageSize) onPageSizeChange(next.pageSize);
+    },
     state: {
       sorting,
-      columnFilters,
       columnVisibility,
-      rowSelection,
+      pagination: { pageIndex, pageSize },
     },
   });
 
-  // Handle role filter
-  React.useEffect(() => {
-    if (roleFilter === "all") {
-      table.getColumn("is_admin")?.setFilterValue(undefined);
-    } else {
-      table.getColumn("is_admin")?.setFilterValue(roleFilter === "admin");
-    }
-  }, [roleFilter, table]);
+  // Calculate visible range for "Showing X-Y of Z"
+  const startRow = total === 0 ? 0 : pageIndex * pageSize + 1;
+  const endRow = Math.min((pageIndex + 1) * pageSize, total);
 
   return (
     <div className="w-full space-y-4">
+      {/* Always visible controls */}
       <div className="flex items-center gap-4">
         <Input
           placeholder="Search by name or email..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
+          value={search}
+          onChange={(event) => onSearchChange(event.target.value)}
           className="max-w-sm"
         />
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
+        <Select
+          value={role}
+          onValueChange={(v) => onRoleChange(v as UserRoleFilter)}
+        >
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
@@ -101,6 +121,8 @@ export function DataTable<TData, TValue>({
         </Select>
         <DataTableViewOptions table={table} />
       </div>
+
+      {/* Table */}
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
@@ -122,12 +144,20 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              // Skeleton rows when loading
+              Array.from({ length: pageSize }).map((_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                  {columns.map((_, j) => (
+                    <TableCell key={`skeleton-cell-${i}-${j}`}>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -151,7 +181,14 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+
+      {/* Pagination with "Showing X-Y of Z" */}
+      <DataTablePagination
+        table={table}
+        startRow={startRow}
+        endRow={endRow}
+        total={total}
+      />
     </div>
   );
 }

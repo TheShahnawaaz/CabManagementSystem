@@ -2,7 +2,6 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserStats } from "./UserStats";
 import { UserStatsSkeleton } from "./UserStatsSkeleton";
-import { UserTableSkeleton } from "./UserTableSkeleton";
 import { UserFormSheet } from "./UserFormSheet";
 import { DeleteUserDialog } from "./DeleteUserDialog";
 import { DataTable } from "./DataTable";
@@ -14,6 +13,10 @@ export default function UserManagement() {
     state,
     formState,
     updateFormState,
+    setSearch,
+    setRole,
+    setPageIndex,
+    setPageSize,
     handleSubmit,
     handleDelete,
     handleToggleAdmin,
@@ -46,19 +49,28 @@ export default function UserManagement() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      {state.loading ? (
+      {/* Stats Cards - only skeleton on initial load */}
+      {state.statsLoading ? (
         <UserStatsSkeleton />
-      ) : (
-        <UserStats users={state.users} />
-      )}
+      ) : state.stats ? (
+        <UserStats stats={state.stats} />
+      ) : null}
 
-      {/* Data Table */}
-      {state.loading ? (
-        <UserTableSkeleton />
-      ) : (
-        <DataTable columns={columns} data={state.users} />
-      )}
+      {/* Data Table - always show controls, skeleton only for table body */}
+      <DataTable
+        columns={columns}
+        data={state.users}
+        loading={state.loading}
+        search={state.query.search}
+        onSearchChange={setSearch}
+        role={state.query.role}
+        onRoleChange={setRole}
+        pageIndex={state.query.pageIndex}
+        pageSize={state.query.pageSize}
+        total={state.pagination.total}
+        onPageIndexChange={setPageIndex}
+        onPageSizeChange={setPageSize}
+      />
 
       {/* Create/Edit Sheet */}
       <UserFormSheet
