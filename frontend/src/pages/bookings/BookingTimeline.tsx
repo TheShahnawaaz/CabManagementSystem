@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface BookingTimelineProps {
-  createdAt: string;
+  bookingStartTime: string;
   paymentDate: string;
   bookingEndTime: string;
   allocationId?: string | null;
@@ -27,7 +27,7 @@ interface BookingTimelineProps {
 }
 
 export function BookingTimeline({
-  createdAt,
+  bookingStartTime,
   paymentDate,
   bookingEndTime,
   allocationId,
@@ -58,9 +58,9 @@ export function BookingTimeline({
   const events = [
     {
       label: "Booking Window Opened",
-      time: formatTime(createdAt),
+      time: formatTime(bookingStartTime),
       icon: Calendar,
-      completed: true,
+      completed: now >= new Date(bookingStartTime),
     },
     {
       label: "Payment Confirmed",

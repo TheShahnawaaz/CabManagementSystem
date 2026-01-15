@@ -150,7 +150,7 @@ export function BookingCard({
       <div className="-mx-6 border-t my-4" />
 
       <BookingTimeline
-        createdAt={booking.created_at}
+        bookingStartTime={booking.booking_start_time}
         paymentDate={booking.payment_date}
         bookingEndTime={booking.booking_end_time}
         allocationId={booking.allocation_id}
