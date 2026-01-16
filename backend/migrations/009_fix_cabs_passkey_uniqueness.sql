@@ -5,6 +5,8 @@
 -- Issue: Duplicate passkeys within same trip could allow drivers to validate wrong students
 -- Fix: Add UNIQUE constraint to ensure passkeys are unique per trip
 
+ALTER TABLE cabs DROP CONSTRAINT IF EXISTS uq_cabs_trip_passkey;
+
 -- Add the missing UNIQUE constraint on (trip_id, passkey)
 ALTER TABLE cabs 
 ADD CONSTRAINT uq_cabs_trip_passkey 
