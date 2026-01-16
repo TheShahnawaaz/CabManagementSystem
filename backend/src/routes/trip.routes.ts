@@ -11,6 +11,7 @@ import {
   getTripDemand,
   getTripJourneys,
 } from '../controllers/trip.controller';
+import { getReportByTrip } from '../controllers/report.controller';
 import { authenticateUser, requireAdmin } from '../middleware/auth.middleware';
 import {
   validateTripData,
@@ -114,6 +115,18 @@ router.get(
   authenticateUser,
   requireAdmin,
   getTripJourneys
+);
+
+/**
+ * @route   GET /api/admin/trips/:tripId/report
+ * @desc    Get report for a specific trip (or check if exists)
+ * @access  Admin only
+ */
+router.get(
+  '/admin/trips/:tripId/report',
+  authenticateUser,
+  requireAdmin,
+  getReportByTrip
 );
 
 // ====================================

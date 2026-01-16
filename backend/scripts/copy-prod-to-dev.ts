@@ -40,6 +40,9 @@ const TABLES_INSERT_ORDER = [
   'journeys',
   'notifications',
   'email_queue',
+  'reports',
+  'report_adjustments',
+  'report_history',
 ];
 
 interface UserMapping {
