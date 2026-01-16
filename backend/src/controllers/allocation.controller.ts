@@ -114,6 +114,18 @@ export const runAllocation = async (req: Request, res: Response): Promise<void> 
     // 4. Create suggested cab allocations
     const cabs: any[] = [];
     let cabCounter = 1;
+    
+    // Track assigned students to prevent duplicates
+    const assignedStudentIds = new Set<string>();
+    
+    // Group students by hall for efficient lookup
+    const studentsByHall: Record<string, any[]> = {};
+    for (const student of allStudents) {
+      if (!studentsByHall[student.hall]) {
+        studentsByHall[student.hall] = [];
+      }
+      studentsByHall[student.hall].push(student);
+    }
 
     for (let regionIdx = 0; regionIdx < 7; regionIdx++) {
       const numCabs = solverResult.numCabsPerRegion[regionIdx];
@@ -129,8 +141,18 @@ export const runAllocation = async (req: Request, res: Response): Promise<void> 
         const count = solverResult.assignments[originIdx][regionIdx];
         if (count > 0) {
           const originHall = REGION_TO_HALL[originIdx];
-          const studentsFromOrigin = allStudents.filter(s => s.hall === originHall);
-          studentsForRegion.push(...studentsFromOrigin.splice(0, count));
+          const availableStudents = (studentsByHall[originHall] || [])
+            .filter(s => !assignedStudentIds.has(s.user_id));
+          
+          // Take only the required count of unassigned students
+          const studentsToAssign = availableStudents.slice(0, count);
+          
+          // Mark these students as assigned
+          for (const student of studentsToAssign) {
+            assignedStudentIds.add(student.user_id);
+          }
+          
+          studentsForRegion.push(...studentsToAssign);
         }
       }
 
