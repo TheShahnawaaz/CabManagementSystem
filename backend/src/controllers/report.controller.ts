@@ -429,7 +429,7 @@ export const updateReport = async (req: Request, res: Response): Promise<void> =
     );
 
     // Log history
-    await logReportUpdated(id, userId, currentData, { cab_cost, notes });
+    await logReportUpdated(id as string, userId, currentData, { cab_cost, notes });
 
     res.status(200).json({
       success: true,
@@ -568,7 +568,7 @@ export const addAdjustment = async (req: Request, res: Response): Promise<void> 
     );
 
     // Log history
-    await logAdjustmentAdded(reportId, userId, {
+    await logAdjustmentAdded(reportId as string, userId, {
       id: adjustmentId,
       adjustment_type,
       category: category.trim(),
@@ -682,7 +682,7 @@ export const updateAdjustment = async (req: Request, res: Response): Promise<voi
     );
 
     // Log history
-    await logAdjustmentUpdated(reportId, userId, adjustmentId, currentData, {
+    await logAdjustmentUpdated(reportId as string, userId, adjustmentId as string, currentData, {
       category: category?.trim(),
       description,
       amount,
@@ -751,7 +751,7 @@ export const deleteAdjustment = async (req: Request, res: Response): Promise<voi
     );
 
     // Log history
-    await logAdjustmentRemoved(reportId, userId, adjustment);
+    await logAdjustmentRemoved(reportId as string, userId, adjustment);
 
     res.status(200).json({
       success: true,
