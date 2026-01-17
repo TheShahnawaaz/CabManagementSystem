@@ -178,6 +178,12 @@ export interface StatCardProps {
   };
   /** Enable/disable counter animation for numeric values (default: true) */
   animate?: boolean;
+  /**
+   * Optional formatter function for animated values.
+   * Pass a numeric value and this formatter to enable animation with custom formatting.
+   * @example formatter={(n) => `₹${n.toLocaleString('en-IN')}`}
+   */
+  formatter?: (value: number) => string;
 }
 
 export function StatCard({
@@ -202,6 +208,7 @@ export function StatCard({
   loading = false,
   trend,
   animate = true,
+  formatter,
 }: StatCardProps) {
   const theme = COLOR_THEMES[color];
 
@@ -211,7 +218,19 @@ export function StatCard({
     isNumericValue && animate ? value : 0,
     1000 // 1.0 seconds animation duration
   );
-  const displayValue = isNumericValue && animate ? animatedValue : value;
+
+  // Determine display value:
+  // 1. If formatter provided and value is numeric, format the animated value
+  // 2. If numeric and animate, show animated value
+  // 3. Otherwise show raw value
+  let displayValue: string | number;
+  if (isNumericValue && animate && formatter) {
+    displayValue = formatter(animatedValue);
+  } else if (isNumericValue && animate) {
+    displayValue = animatedValue;
+  } else {
+    displayValue = value;
+  }
 
   // Auto-set border radius based on variant
   const defaultRadius = variant === "stacked" ? "rounded-full" : "rounded-xl";
@@ -243,15 +262,13 @@ export function StatCard({
 
   if (loading) {
     return (
-      <Card className={cn("p-4", className)}>
-        <div className="flex items-center gap-2.5">
-          <div className={cn(iconContainerClasses, "animate-pulse bg-muted")} />
-          <div className="space-y-1.5 flex-1">
-            <div className="h-3 w-20 bg-muted animate-pulse rounded" />
-            <div className="h-6 w-16 bg-muted animate-pulse rounded" />
-            {description && (
-              <div className="h-3 w-24 bg-muted animate-pulse rounded" />
-            )}
+      <Card className={cn("p-2.5 sm:p-4", className)}>
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <div className="p-1.5 sm:p-2.5 rounded-full bg-muted animate-pulse w-7 h-7 sm:w-10 sm:h-10" />
+          <div className="space-y-1 sm:space-y-1.5 flex-1">
+            <div className="h-2.5 sm:h-3 w-16 sm:w-20 bg-muted animate-pulse rounded" />
+            <div className="h-4 sm:h-6 w-12 sm:w-16 bg-muted animate-pulse rounded" />
+            <div className="h-2.5 sm:h-3 w-20 sm:w-24 bg-muted animate-pulse rounded" />
           </div>
         </div>
       </Card>
@@ -260,22 +277,51 @@ export function StatCard({
 
   // Stacked variant (like Journey Tracking cards) - icon LEFT, value+label RIGHT
   if (variant === "stacked") {
+    // Responsive classes for mobile optimization
+    const mobileValueClasses = cn(
+      "text-base sm:text-lg md:text-2xl", // Smaller on mobile
+      "font-bold truncate",
+      valueColor || theme.valueColor
+    );
+
+    const mobileLabelClasses = cn(
+      "text-[10px] sm:text-xs", // Smaller label on mobile
+      "text-muted-foreground truncate"
+    );
+
+    const mobileDescClasses = cn(
+      "text-[10px] sm:text-xs", // Smaller description on mobile
+      "text-muted-foreground truncate mt-0.5"
+    );
+
+    const mobileIconClasses = cn(
+      "w-4 h-4 sm:w-5 sm:h-5", // Smaller icon on mobile
+      iconColor || theme.iconColor
+    );
+
+    const mobileIconContainerClasses = cn(
+      "p-1.5 sm:p-2.5", // Smaller padding on mobile
+      finalRadius,
+      iconBg || theme.iconBg,
+      "flex-shrink-0"
+    );
+
     return (
-      <Card className={cardClasses} onClick={onClick}>
-        <div className="flex items-center gap-2.5">
+      <Card className={cn(cardClasses, "p-2.5 sm:p-4")} onClick={onClick}>
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {Icon && (
-            <div className={iconContainerClasses}>
-              <Icon className={iconClasses} />
+            <div className={mobileIconContainerClasses}>
+              <Icon className={mobileIconClasses} />
             </div>
           )}
-          <div className="min-w-0 flex-1">
-            <p className={cn(labelClasses, "truncate")}>{label}</p>
-            <div className="flex items-baseline gap-1.5">
-              <p className={valueClasses}>{displayValue}</p>
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <p className={mobileLabelClasses}>{label}</p>
+            <div className="flex items-baseline gap-1 min-w-0">
+              <p className={mobileValueClasses}>{displayValue}</p>
               {trend && (
                 <span
                   className={cn(
-                    "text-xs font-medium",
+                    "text-[10px] sm:text-xs font-medium flex-shrink-0",
                     trend.isPositive ? "text-green-500" : "text-red-500"
                   )}
                 >
@@ -283,11 +329,7 @@ export function StatCard({
                 </span>
               )}
             </div>
-            {description && (
-              <p className={cn(descriptionClasses, "truncate mt-0.5")}>
-                {description}
-              </p>
-            )}
+            {description && <p className={mobileDescClasses}>{description}</p>}
           </div>
         </div>
       </Card>
@@ -356,21 +398,21 @@ export interface StatCardGridProps {
 export function StatCardGrid({
   children,
   columns = 4,
-  gap = "gap-4",
+  gap = "gap-2 sm:gap-4",
   className,
 }: StatCardGridProps) {
   const gridColsClass = {
-    2: "lg:grid-cols-2",
-    3: "lg:grid-cols-3",
-    4: "lg:grid-cols-4",
-    5: "lg:grid-cols-5",
-    6: "lg:grid-cols-6",
+    2: "md:grid-cols-2",
+    3: "md:grid-cols-3",
+    4: "md:grid-cols-4",
+    5: "md:grid-cols-3 lg:grid-cols-5",
+    6: "md:grid-cols-3 lg:grid-cols-6",
   }[columns];
 
   return (
     <div
       className={cn(
-        "grid grid-cols-2 md:grid-cols-4",
+        "grid grid-cols-2", // 2 columns on mobile
         gridColsClass,
         gap,
         className
