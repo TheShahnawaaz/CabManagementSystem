@@ -74,4 +74,22 @@ export const allocationApi = {
   > {
     return apiClient.post(`/admin/trips/${tripId}/allocation/notify`, {});
   },
+
+  /**
+   * Update individual cab details (admin only)
+   */
+  async updateCab(
+    tripId: string,
+    cabId: string,
+    data: {
+      cab_number: string;
+      cab_type: string;
+      cab_owner_name: string;
+      cab_owner_phone: string;
+      pickup_region: string;
+      passkey: string;
+    }
+  ): Promise<ApiResponse<{ message: string }>> {
+    return apiClient.put(`/admin/trips/${tripId}/cabs/${cabId}`, data);
+  },
 };
