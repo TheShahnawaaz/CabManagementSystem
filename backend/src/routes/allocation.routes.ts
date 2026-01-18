@@ -6,6 +6,7 @@ import {
   clearAllocation,
   notifyAllocatedUsers,
   getNotificationStatus,
+  updateCab,
 } from '../controllers/allocation.controller';
 import { authenticateUser, requireAdmin } from '../middleware/auth.middleware';
 
@@ -86,6 +87,18 @@ router.get(
   authenticateUser,
   requireAdmin,
   getNotificationStatus
+);
+
+/**
+ * @route   PUT /api/admin/trips/:tripId/cabs/:cabId
+ * @desc    Update individual cab details (after allocation submitted)
+ * @access  Admin only
+ */
+router.put(
+  '/admin/trips/:tripId/cabs/:cabId',
+  authenticateUser,
+  requireAdmin,
+  updateCab
 );
 
 export default router;
