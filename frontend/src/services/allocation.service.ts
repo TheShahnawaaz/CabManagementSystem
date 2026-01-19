@@ -90,6 +90,6 @@ export const allocationApi = {
       passkey: string;
     }
   ): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.put(`/admin/trips/${tripId}/cabs/${cabId}`, data);
+    return apiClient.patch(`/admin/trips/${tripId}/cabs/${cabId}`, data);
   },
 };

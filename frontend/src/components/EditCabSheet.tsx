@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { allocationApi } from "@/services/allocation.service";
-import type { CabAllocation } from "@/types/allocation.types";
+import type { CabAllocation, Hall } from "@/types/allocation.types";
 import { HALLS } from "@/types/booking.types";
 import { isValidIndianPhone } from "@/lib/utils";
 
@@ -39,12 +39,19 @@ export function EditCabSheet({
   onSuccess,
 }: EditCabSheetProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    cab_number: string;
+    cab_type: string;
+    cab_owner_name: string;
+    cab_owner_phone: string;
+    pickup_region: Hall | "";
+    passkey: string;
+  }>({
     cab_number: "",
     cab_type: "",
     cab_owner_name: "",
     cab_owner_phone: "",
-    pickup_region: "" as any,
+    pickup_region: "",
     passkey: "",
   });
 
@@ -53,7 +60,7 @@ export function EditCabSheet({
     if (cab && open) {
       setFormData({
         cab_number: cab.cab_number || "",
-        cab_type: cab.cab_type || "Omni",
+        cab_type: cab.cab_type || "omni",
         cab_owner_name: cab.driver_name || "",
         cab_owner_phone: cab.driver_phone || "",
         pickup_region: cab.pickup_region || "RK",
@@ -93,7 +100,7 @@ export function EditCabSheet({
       }
     } catch (error: any) {
       console.error("Error updating cab:", error);
-      toast.error(error.response?.data?.error || "Failed to update cab");
+      toast.error((error as any).message || "Failed to update cab");
     } finally {
       setLoading(false);
     }
@@ -195,7 +202,7 @@ export function EditCabSheet({
             </Label>
             <Select
               value={formData.pickup_region}
-              onValueChange={(value: any) =>
+              onValueChange={(value: Hall) =>
                 setFormData({ ...formData, pickup_region: value })
               }
             >
@@ -221,8 +228,10 @@ export function EditCabSheet({
               id="passkey"
               type="text"
               value={formData.passkey}
-              onChange={(e) =>
-                setFormData({ ...formData, passkey: e.target.value })
+              onChange={(e) => {
+                const digitsOnly = e.target.value.replace(/\D/g, "");
+                setFormData({ ...formData, passkey: digitsOnly });
+              }
               }
               placeholder="4-digit code"
               maxLength={4}
