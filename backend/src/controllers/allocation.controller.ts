@@ -682,7 +682,7 @@ export const getNotificationStatus = async (req: Request, res: Response): Promis
 
 /**
  * Update individual cab details (after allocation is submitted)
- * PUT /admin/trips/:tripId/cabs/:cabId
+ * PATCH /admin/trips/:tripId/cabs/:cabId
  */
 export const updateCab = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -729,8 +729,8 @@ export const updateCab = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Validate phone number format (basic check) (10 digits, must not contain country code)
-    if(!cab_owner_phone || cab_owner_phone.trim() === '' || !/^\d{10}$/.test(cab_owner_phone)) {
+    // Validate the indian phone number format (basic check) (10 digits, must not contain country code)
+    if(!cab_owner_phone || cab_owner_phone.trim() === '' || !/^[6-9]\d{9}$/.test(cab_owner_phone)) {
       res.status(400).json({
         success: false,
         error: 'Cab owner phone must be a valid 10-digit number',

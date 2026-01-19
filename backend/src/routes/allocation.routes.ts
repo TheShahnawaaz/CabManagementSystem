@@ -94,7 +94,7 @@ router.get(
  * @desc    Update individual cab details (after allocation submitted)
  * @access  Admin only
  */
-router.put(
+router.patch(
   '/admin/trips/:tripId/cabs/:cabId',
   authenticateUser,
   requireAdmin,
