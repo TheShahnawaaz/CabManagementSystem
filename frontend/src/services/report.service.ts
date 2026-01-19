@@ -62,14 +62,19 @@ export const reportApi = {
   /**
    * Create a new report for a trip
    */
-  async createReport(data: CreateReportDTO): Promise<ApiResponse<{ id: string }>> {
+  async createReport(
+    data: CreateReportDTO
+  ): Promise<ApiResponse<{ id: string }>> {
     return apiClient.post("/admin/reports", data);
   },
 
   /**
    * Update an existing report
    */
-  async updateReport(id: string, data: UpdateReportDTO): Promise<ApiResponse<void>> {
+  async updateReport(
+    id: string,
+    data: UpdateReportDTO
+  ): Promise<ApiResponse<void>> {
     return apiClient.patch(`/admin/reports/${id}`, data);
   },
 

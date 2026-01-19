@@ -95,7 +95,11 @@ export function useReportsList() {
       try {
         const response = await reportApi.createReport(data);
         toast.success("Report created successfully");
-        await Promise.all([fetchReports(), fetchSummary(), fetchPendingTrips()]);
+        await Promise.all([
+          fetchReports(),
+          fetchSummary(),
+          fetchPendingTrips(),
+        ]);
         return response.data!.id;
       } catch (error: unknown) {
         const message =

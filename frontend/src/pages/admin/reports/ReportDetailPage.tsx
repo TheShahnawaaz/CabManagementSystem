@@ -223,7 +223,10 @@ export default function ReportDetailPage() {
             <div className="flex items-center justify-between py-2 px-3 text-sm text-muted-foreground">
               <span className="ml-11">Gateway fees</span>
               <span className="text-red-600">
-                -{formatCurrency(Number(report.gateway_fees) + Number(report.gateway_tax))}
+                -
+                {formatCurrency(
+                  Number(report.gateway_fees) + Number(report.gateway_tax)
+                )}
               </span>
             </div>
 

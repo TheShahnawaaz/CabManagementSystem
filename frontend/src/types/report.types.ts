@@ -7,14 +7,14 @@
 // ENUMS
 // ====================================
 
-export type AdjustmentType = 'income' | 'expense';
+export type AdjustmentType = "income" | "expense";
 
 export type ReportHistoryAction =
-  | 'report_created'
-  | 'report_updated'
-  | 'adjustment_added'
-  | 'adjustment_updated'
-  | 'adjustment_removed';
+  | "report_created"
+  | "report_updated"
+  | "adjustment_added"
+  | "adjustment_updated"
+  | "adjustment_removed";
 
 // ====================================
 // USER TYPE
