@@ -675,3 +675,162 @@ export const getNotificationStatus = async (req: Request, res: Response): Promis
     });
   }
 };
+
+// ====================================
+// UPDATE INDIVIDUAL CAB
+// ====================================
+
+/**
+ * Update individual cab details (after allocation is submitted)
+ * PATCH /admin/trips/:tripId/cabs/:cabId
+ */
+export const updateCab = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { tripId, cabId } = req.params;
+    const { 
+      cab_number, 
+      cab_type, 
+      cab_owner_name, 
+      cab_owner_phone, 
+      pickup_region, 
+      passkey 
+    } = req.body;
+
+    if (!tripId || !cabId) {
+      res.status(400).json({
+        success: false,
+        error: 'Trip ID and Cab ID are required',
+      });
+      return;
+    }
+
+    // Validate each field individually
+    if(!cab_number || cab_number.trim() === '' ) {
+      res.status(400).json({
+        success: false,
+        error: 'Cab number is required',
+      });
+      return;
+    } 
+
+    if(!cab_type || cab_type.trim() === '' ) {
+      res.status(400).json({
+        success: false,
+        error: 'Cab type is required',
+      });
+      return;
+    } 
+    
+    if(!cab_owner_name || cab_owner_name.trim() === '' ) {
+      res.status(400).json({
+        success: false, 
+        error: 'Cab owner name is required',
+      });
+      return;
+    }
+
+    // Validate the indian phone number format (basic check) (10 digits, must not contain country code)
+    if(!cab_owner_phone || cab_owner_phone.trim() === '' || !/^[6-9]\d{9}$/.test(cab_owner_phone)) {
+      res.status(400).json({
+        success: false,
+        error: 'Cab owner phone must be a valid 10-digit number',
+      });
+      return;
+    }
+
+    if (!pickup_region || pickup_region.trim() === '') {
+      res.status(400).json({
+        success: false,
+        error: 'Pickup region is required',
+      });
+      return;
+    }
+
+    // Validate passkey format (4 digits)
+    if (!/^\d{4}$/.test(passkey)) {
+      res.status(400).json({
+        success: false,
+        error: 'Passkey must be exactly 4 digits',
+      });
+      return;
+    }
+
+    // Check if cab exists and belongs to the trip
+    const cabCheck = await pool.query(
+      'SELECT id FROM cabs WHERE id = $1 AND trip_id = $2',
+      [cabId, tripId]
+    );
+
+    if (cabCheck.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'Cab not found for this trip',
+      });
+      return;
+    }
+
+    // Check for duplicate cab_number within the same trip (excluding current cab)
+    const duplicateCabNumber = await pool.query(
+      'SELECT id FROM cabs WHERE trip_id = $1 AND cab_number = $2 AND id != $3',
+      [tripId, cab_number, cabId]
+    );
+
+    if (duplicateCabNumber.rows.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: `Cab number "${cab_number}" is already used in this trip`,
+      });
+      return;
+    }
+
+    // Check for duplicate passkey within the same trip (excluding current cab)
+    const duplicatePasskey = await pool.query(
+      'SELECT id FROM cabs WHERE trip_id = $1 AND passkey = $2 AND id != $3',
+      [tripId, passkey, cabId]
+    );
+
+    if (duplicatePasskey.rows.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: `Passkey "${passkey}" is already used in this trip`,
+      });
+      return;
+    }
+
+    // Update the cab (capacity is NOT updated)
+    const result = await pool.query(
+      `UPDATE cabs 
+       SET cab_number = $1, 
+           cab_type = $2, 
+           cab_owner_name = $3, 
+           cab_owner_phone = $4, 
+           pickup_region = $5, 
+           passkey = $6,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7 AND trip_id = $8
+       RETURNING *`,
+      [cab_number, cab_type, cab_owner_name, cab_owner_phone, pickup_region, passkey, cabId, tripId]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Cab updated successfully',
+      data: {
+        id: result.rows[0].id,
+        cab_number: result.rows[0].cab_number,
+        cab_type: result.rows[0].cab_type,
+        driver_name: result.rows[0].cab_owner_name,
+        driver_phone: result.rows[0].cab_owner_phone,
+        capacity: result.rows[0].cab_capacity,
+        pickup_region: result.rows[0].pickup_region,
+        passkey: result.rows[0].passkey,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error updating cab:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update cab',
+    });
+  }
+};

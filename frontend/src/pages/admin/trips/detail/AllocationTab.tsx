@@ -8,6 +8,7 @@ import {
   Bell,
   CheckCircle2,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
 import { allocationApi } from "@/services/allocation.service";
 import { DemandSummaryCards } from "./allocation/DemandSummaryCards";
 import { VehicleSeatViewer } from "@/components/VehicleSeatViewer";
+import { EditCabSheet } from "@/components/EditCabSheet";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { mapStudentsToSeats } from "@/utils/allocation.utils";
@@ -55,6 +57,8 @@ export default function AllocationTab() {
 
   // Dialogs
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [editingCab, setEditingCab] = useState<CabAllocation | null>(null);
+  const [showEditSheet, setShowEditSheet] = useState(false);
 
   // Notification state
   const [notificationStatus, setNotificationStatus] = useState<{
@@ -171,6 +175,15 @@ export default function AllocationTab() {
     } finally {
       setNotifying(false);
     }
+  };
+
+  const handleEditCab = (cab: CabAllocation) => {
+    setEditingCab(cab);
+    setShowEditSheet(true);
+  };
+
+  const handleEditSuccess = () => {
+    fetchAllocationData();
   };
 
   if (loading) {
@@ -344,6 +357,16 @@ export default function AllocationTab() {
                     {cab.assigned_students.length}/7 seats filled
                   </p>
                 </div>
+                {/* Edit Icon Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEditCab(cab)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Pencil className="h-4 w-4" />
+                  <span className="sr-only">Edit cab details</span>
+                </Button>
               </div>
 
               <div className="p-4 sm:p-6">
@@ -443,6 +466,15 @@ export default function AllocationTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Cab Sheet */}
+      <EditCabSheet
+        tripId={tripId!}
+        cab={editingCab}
+        open={showEditSheet}
+        onOpenChange={setShowEditSheet}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }
