@@ -101,4 +101,51 @@ export const tripApi = {
   async getTripJourneys(tripId: string): Promise<ApiResponse<TripJourneyData>> {
     return apiClient.get(`/admin/trips/${tripId}/journeys`);
   },
+
+  /**
+   * Admin board student (admin only)
+   * Manually board a student without QR scan or passkey
+   * - Pickup: Student can only board their assigned cab
+   * - Dropoff: Student can board any cab
+   */
+  async adminBoardStudent(
+    tripId: string,
+    data: {
+      user_id: string;
+      cab_id: string;
+      journey_type: "pickup" | "dropoff";
+    }
+  ): Promise<
+    ApiResponse<{
+      student_name: string;
+      student_email: string;
+      student_hall: string;
+      cab_number: string;
+      journey_type: string;
+      boarded_at: string;
+      boarded_by: string;
+    }>
+  > {
+    return apiClient.post(`/admin/trips/${tripId}/board-student`, data);
+  },
+
+  /**
+   * Admin unboard student (admin only)
+   * Undo admin boarding for return journey only
+   * - Only works if the student was boarded by admin (not driver QR scan)
+   */
+  async adminUnboardStudent(
+    tripId: string,
+    userId: string
+  ): Promise<
+    ApiResponse<{
+      student_name: string;
+      cab_number: string;
+      unboarded_at: string;
+    }>
+  > {
+    return apiClient.post(`/admin/trips/${tripId}/unboard-student`, {
+      user_id: userId,
+    });
+  },
 };

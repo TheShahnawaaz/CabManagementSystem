@@ -26,6 +26,7 @@ export interface ReturnStudent {
   hall: Hall;
   seat_position: number | string; // Backend returns string from ROW_NUMBER()
   scan_time: string; // Scan timestamp
+  boarded_by: "driver" | "admin"; // Who initiated the boarding
 }
 
 // Student allocated but didn't board outbound

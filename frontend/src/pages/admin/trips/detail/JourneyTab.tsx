@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   Car,
@@ -24,11 +24,12 @@ import {
 } from "@/components/ui/accordion";
 import { tripApi } from "@/services/trip.service";
 import { VehicleJourneyViewer } from "./allocation/VehicleJourneyViewer";
-import { StudentInfoCard } from "@/components/StudentInfoCard";
+import { StudentInfoCard, type BoardingCab } from "@/components/StudentInfoCard";
 import type {
   TripJourneyData,
   JourneyCab,
   GlobalNoShowStudent,
+  OutboundNoShowStudent,
 } from "@/types/journey.types";
 
 // Hall colors for cab header
@@ -64,6 +65,27 @@ export default function JourneyTab() {
     fetchJourneys();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId]);
+
+  // Build cab lookup map for boarding (cab_number -> cab_id)
+  const cabLookupByNumber = useMemo(() => {
+    if (!data) return new Map<string, string>();
+    const map = new Map<string, string>();
+    data.cabs.forEach((cab) => {
+      map.set(cab.cab_number, cab.cab_id);
+    });
+    return map;
+  }, [data]);
+
+  // Build available cabs list for dropoff boarding
+  const availableCabs: BoardingCab[] = useMemo(() => {
+    if (!data) return [];
+    return data.cabs.map((cab) => ({
+      cab_id: cab.cab_id,
+      cab_number: cab.cab_number,
+      pickup_region: cab.pickup_region,
+      driver_name: cab.driver_name,
+    }));
+  }, [data]);
 
   if (loading) {
     return (
@@ -180,6 +202,11 @@ export default function JourneyTab() {
             <NoShowAccordion
               students={data.outbound_no_shows}
               title="Outbound No-Shows"
+              tripId={tripId!}
+              journeyType="pickup"
+              cabLookupByNumber={cabLookupByNumber}
+              availableCabs={availableCabs}
+              onBoardingSuccess={fetchJourneys}
             />
           )}
 
@@ -190,6 +217,10 @@ export default function JourneyTab() {
                 key={cab.cab_id}
                 cab={cab}
                 journeyType="outbound"
+                tripId={tripId!}
+                cabLookupByNumber={cabLookupByNumber}
+                availableCabs={availableCabs}
+                onBoardingSuccess={fetchJourneys}
               />
             ))}
           </div>
@@ -202,13 +233,26 @@ export default function JourneyTab() {
             <NoShowAccordion
               students={data.return_no_shows}
               title="Return No-Shows"
+              tripId={tripId!}
+              journeyType="dropoff"
+              cabLookupByNumber={cabLookupByNumber}
+              availableCabs={availableCabs}
+              onBoardingSuccess={fetchJourneys}
             />
           )}
 
           {/* Per-Cab Journey Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {data.cabs.map((cab) => (
-              <CabJourneyCard key={cab.cab_id} cab={cab} journeyType="return" />
+              <CabJourneyCard
+                key={cab.cab_id}
+                cab={cab}
+                journeyType="return"
+                tripId={tripId!}
+                cabLookupByNumber={cabLookupByNumber}
+                availableCabs={availableCabs}
+                onBoardingSuccess={fetchJourneys}
+              />
             ))}
           </div>
         </TabsContent>
@@ -221,9 +265,19 @@ export default function JourneyTab() {
 function NoShowAccordion({
   students,
   title,
+  tripId,
+  journeyType,
+  cabLookupByNumber,
+  availableCabs,
+  onBoardingSuccess,
 }: {
   students: GlobalNoShowStudent[];
   title: string;
+  tripId: string;
+  journeyType: "pickup" | "dropoff";
+  cabLookupByNumber: Map<string, string>;
+  availableCabs: BoardingCab[];
+  onBoardingSuccess: () => void;
 }) {
   return (
     <Card>
@@ -247,6 +301,13 @@ function NoShowAccordion({
                   showPhone={true}
                   showAllocatedCab={true}
                   compact
+                  // Boarding props
+                  boardingEnabled={true}
+                  tripId={tripId}
+                  journeyType={journeyType}
+                  assignedCabId={cabLookupByNumber.get(student.allocated_cab_number)}
+                  availableCabs={availableCabs}
+                  onBoardingSuccess={onBoardingSuccess}
                 />
               ))}
             </div>
@@ -261,9 +322,17 @@ function NoShowAccordion({
 function CabJourneyCard({
   cab,
   journeyType,
+  tripId,
+  cabLookupByNumber,
+  availableCabs,
+  onBoardingSuccess,
 }: {
   cab: JourneyCab;
   journeyType: "outbound" | "return";
+  tripId: string;
+  cabLookupByNumber: Map<string, string>;
+  availableCabs: BoardingCab[];
+  onBoardingSuccess: () => void;
 }) {
   const students =
     journeyType === "outbound" ? cab.outbound_students : cab.return_students;
@@ -276,6 +345,9 @@ function CabJourneyCard({
 
   const hallColor = HALL_COLORS[cab.pickup_region] || "bg-gray-500";
   const isFull = students.length === cab.capacity;
+
+  // Map journey type to boarding type
+  const boardingJourneyType = journeyType === "outbound" ? "pickup" : "dropoff";
 
   return (
     <Card className="overflow-hidden h-fit">
@@ -316,7 +388,12 @@ function CabJourneyCard({
       {/* Vehicle Viewer */}
       <div className="p-4">
         {students.length > 0 ? (
-          <VehicleJourneyViewer students={students} journeyType={journeyType} />
+          <VehicleJourneyViewer
+            students={students}
+            journeyType={journeyType}
+            tripId={tripId}
+            onUnboardSuccess={onBoardingSuccess}
+          />
         ) : (
           <div className="py-12 text-center text-muted-foreground">
             <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -343,11 +420,22 @@ function CabJourneyCard({
                   {noShows.map((student) => (
                     <StudentInfoCard
                       key={student.user_id}
-                      student={student}
+                      student={{
+                        ...student,
+                        allocated_cab_number: cab.cab_number,
+                        allocated_cab_region: cab.pickup_region,
+                      }}
                       showEmail={true}
                       showPhone={true}
                       showSeat={true}
                       compact
+                      // Boarding props
+                      boardingEnabled={true}
+                      tripId={tripId}
+                      journeyType={boardingJourneyType}
+                      assignedCabId={cab.cab_id}
+                      availableCabs={availableCabs}
+                      onBoardingSuccess={onBoardingSuccess}
                     />
                   ))}
                 </div>
