@@ -50,6 +50,9 @@ export class RazorpayAdapter implements IPaymentGateway {
     this.keySecret = config.keySecret;
     this.webhookSecret = config.webhookSecret || '';
 
+    console.log('RazorpayAdapter initialized with keyId:', this.keyId);
+    console.log('RazorpayAdapter initialized with keySecret:', this.keySecret);
+
     // Initialize Razorpay client
     this.client = new Razorpay({
       key_id: this.keyId,

@@ -270,11 +270,11 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
 
     // 7. RETURN: Any valid passkey accepted (already validated above)
 
-    // 8. Log journey with the ACTUAL cab that scanned
+    // 8. Log journey with the ACTUAL cab that scanned (boarded_by='driver')
     await client.query(
       `INSERT INTO journeys (
-        trip_id, user_id, cab_id, journey_type, journey_date_time
-      ) VALUES ($1, $2, $3, $4, NOW())`,
+        trip_id, user_id, cab_id, journey_type, journey_date_time, boarded_by
+      ) VALUES ($1, $2, $3, $4, NOW(), 'driver')`,
       [allocation.trip_id, allocation.user_id, scannedCab.id, journeyType]
     );
 
@@ -324,6 +324,324 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
       success: false,
       error: 'server_error',
       message: 'Failed to validate QR code',
+      details: error.message,
+    });
+  } finally {
+    client.release();
+  }
+};
+
+// ====================================
+// ADMIN BOARD STUDENT (without QR/passkey)
+// ====================================
+/**
+ * Admin can board any student directly without QR scan or passkey
+ * - Pickup (outbound): Student can only board their assigned cab
+ * - Dropoff (return): Student can board any cab
+ */
+export const adminBoardStudent = async (req: Request, res: Response): Promise<void> => {
+  const client = await pool.connect();
+
+  try {
+    const { tripId } = req.params;
+    const { user_id, cab_id, journey_type } = req.body;
+
+    // 1. Validate inputs
+    if (!tripId || !user_id || !cab_id || !journey_type) {
+      res.status(400).json({
+        success: false,
+        error: 'missing_fields',
+        message: 'tripId, user_id, cab_id, and journey_type are required',
+      });
+      return;
+    }
+
+    // 2. Validate journey_type
+    if (!['pickup', 'dropoff'].includes(journey_type)) {
+      res.status(400).json({
+        success: false,
+        error: 'invalid_journey_type',
+        message: 'journey_type must be "pickup" or "dropoff"',
+      });
+      return;
+    }
+
+    // Start transaction
+    await client.query('BEGIN');
+
+    // 3. Check if trip exists
+    const tripResult = await client.query(
+      'SELECT id, trip_title, trip_date FROM trips WHERE id = $1',
+      [tripId]
+    );
+
+    if (tripResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      res.status(404).json({
+        success: false,
+        error: 'trip_not_found',
+        message: 'Trip not found',
+      });
+      return;
+    }
+
+    const trip = tripResult.rows[0];
+
+    // 4. Check if student has a confirmed booking for this trip
+    const bookingResult = await client.query(
+      `SELECT tu.*, u.name as student_name, u.email as student_email, p.payment_status
+       FROM trip_users tu
+       JOIN users u ON u.id = tu.user_id
+       JOIN payments p ON p.id = tu.payment_id
+       WHERE tu.trip_id = $1 AND tu.user_id = $2`,
+      [tripId, user_id]
+    );
+
+    if (bookingResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      res.status(404).json({
+        success: false,
+        error: 'booking_not_found',
+        message: 'Student does not have a booking for this trip',
+      });
+      return;
+    }
+
+    const booking = bookingResult.rows[0];
+
+    // 5. Check payment status
+    if (booking.payment_status !== 'confirmed') {
+      await client.query('ROLLBACK');
+      res.status(400).json({
+        success: false,
+        error: 'payment_pending',
+        message: 'Payment not confirmed for this booking',
+      });
+      return;
+    }
+
+    // 6. Check if cab exists and belongs to this trip
+    const cabResult = await client.query(
+      'SELECT * FROM cabs WHERE id = $1 AND trip_id = $2',
+      [cab_id, tripId]
+    );
+
+    if (cabResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      res.status(404).json({
+        success: false,
+        error: 'cab_not_found',
+        message: 'Cab not found for this trip',
+      });
+      return;
+    }
+
+    const cab = cabResult.rows[0];
+
+    // 7. Check if student is already boarded for this journey type
+    const existingScanResult = await client.query(
+      `SELECT * FROM journeys
+       WHERE trip_id = $1 AND user_id = $2 AND journey_type = $3`,
+      [tripId, user_id, journey_type]
+    );
+
+    if (existingScanResult.rows.length > 0) {
+      const scan = existingScanResult.rows[0];
+      await client.query('ROLLBACK');
+      res.status(409).json({
+        success: false,
+        error: 'already_boarded',
+        message: `Student already boarded for ${journey_type}`,
+        details: {
+          previous_scan_time: scan.journey_date_time,
+        },
+      });
+      return;
+    }
+
+    // 8. Get student's cab allocation (assigned cab)
+    const allocationResult = await client.query(
+      `SELECT ca.*, c.cab_number as assigned_cab_number
+       FROM cab_allocations ca
+       JOIN cabs c ON c.id = ca.cab_id
+       WHERE ca.trip_id = $1 AND ca.user_id = $2`,
+      [tripId, user_id]
+    );
+
+    if (allocationResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      res.status(400).json({
+        success: false,
+        error: 'no_allocation',
+        message: 'Student has no cab allocation for this trip',
+      });
+      return;
+    }
+
+    const allocation = allocationResult.rows[0];
+
+    // 9. PICKUP: Check if selected cab matches assigned cab
+    if (journey_type === 'pickup') {
+      if (cab_id !== allocation.cab_id) {
+        await client.query('ROLLBACK');
+        res.status(400).json({
+          success: false,
+          error: 'wrong_cab',
+          message: 'For pickup, student must board their assigned cab',
+          details: {
+            assigned_cab_id: allocation.cab_id,
+            assigned_cab_number: allocation.assigned_cab_number,
+            selected_cab_number: cab.cab_number,
+          },
+        });
+        return;
+      }
+    }
+
+    // 10. DROPOFF: Any cab is allowed (no additional check needed)
+
+    // 11. Insert journey record (with boarded_by='admin')
+    await client.query(
+      `INSERT INTO journeys (
+        trip_id, user_id, cab_id, journey_type, journey_date_time, boarded_by
+      ) VALUES ($1, $2, $3, $4, NOW(), 'admin')`,
+      [tripId, user_id, cab_id, journey_type]
+    );
+
+    // Commit transaction
+    await client.query('COMMIT');
+
+    // 12. Send notification (async, don't block response)
+    const scanTime = new Date();
+    notifyJourneyLogged({
+      userId: user_id,
+      tripTitle: trip.trip_title,
+      tripDate: new Date(trip.trip_date).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Kolkata',
+      }),
+      journeyTime: scanTime.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata',
+      }),
+      cabNumber: cab.cab_number,
+      journeyType: journey_type as 'pickup' | 'return',
+    }).catch((err) => {
+      console.error('Failed to send journey notification:', err);
+    });
+
+    // 13. Return success
+    res.status(200).json({
+      success: true,
+      message: `Student boarded successfully for ${journey_type}`,
+      data: {
+        student_name: booking.student_name,
+        student_email: booking.student_email,
+        student_hall: booking.hall,
+        cab_number: cab.cab_number,
+        journey_type: journey_type,
+        boarded_at: scanTime.toISOString(),
+        boarded_by: 'admin',
+      },
+    });
+  } catch (error: any) {
+    await client.query('ROLLBACK');
+    console.error('Error in admin board student:', error);
+    res.status(500).json({
+      success: false,
+      error: 'server_error',
+      message: 'Failed to board student',
+      details: error.message,
+    });
+  } finally {
+    client.release();
+  }
+};
+
+// ====================================
+// ADMIN UNBOARD STUDENT (undo admin boarding for return only)
+// ====================================
+/**
+ * Admin can unboard a student they previously boarded (return journey only)
+ * - Only allows unboarding if boarded_by = 'admin'
+ * - Only for return/dropoff journeys
+ */
+export const adminUnboardStudent = async (req: Request, res: Response): Promise<void> => {
+  const client = await pool.connect();
+
+  try {
+    const { tripId } = req.params;
+    const { user_id } = req.body;
+
+    // 1. Validate inputs
+    if (!tripId || !user_id) {
+      res.status(400).json({
+        success: false,
+        error: 'missing_fields',
+        message: 'tripId and user_id are required',
+      });
+      return;
+    }
+
+    // Start transaction
+    await client.query('BEGIN');
+
+    // 2. Find the journey record (must be return/dropoff and boarded by admin)
+    const journeyResult = await client.query(
+      `SELECT j.*, c.cab_number, u.name as student_name
+       FROM journeys j
+       JOIN cabs c ON c.id = j.cab_id
+       JOIN users u ON u.id = j.user_id
+       WHERE j.trip_id = $1 
+         AND j.user_id = $2 
+         AND j.journey_type = 'dropoff'
+         AND j.boarded_by = 'admin'`,
+      [tripId, user_id]
+    );
+
+    if (journeyResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      res.status(404).json({
+        success: false,
+        error: 'journey_not_found',
+        message: 'No admin-boarded return journey found for this student',
+      });
+      return;
+    }
+
+    const journey = journeyResult.rows[0];
+
+    // 3. Delete the journey record
+    await client.query(
+      `DELETE FROM journeys 
+       WHERE trip_id = $1 AND user_id = $2 AND journey_type = 'dropoff'`,
+      [tripId, user_id]
+    );
+
+    // Commit transaction
+    await client.query('COMMIT');
+
+    // 4. Return success
+    res.status(200).json({
+      success: true,
+      message: `Student unboarded successfully from return journey`,
+      data: {
+        student_name: journey.student_name,
+        cab_number: journey.cab_number,
+        unboarded_at: new Date().toISOString(),
+      },
+    });
+  } catch (error: any) {
+    await client.query('ROLLBACK');
+    console.error('Error in admin unboard student:', error);
+    res.status(500).json({
+      success: false,
+      error: 'server_error',
+      message: 'Failed to unboard student',
       details: error.message,
     });
   } finally {

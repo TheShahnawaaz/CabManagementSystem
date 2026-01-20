@@ -661,6 +661,7 @@ export const getTripJourneys = async (
             u.profile_picture,
             tu.hall,
             j.journey_date_time as scan_time,
+            j.boarded_by,
             ROW_NUMBER() OVER (ORDER BY j.journey_date_time) as seat_position
           FROM journeys j
           JOIN users u ON u.id = j.user_id

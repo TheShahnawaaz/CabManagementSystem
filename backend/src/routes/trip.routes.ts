@@ -12,6 +12,7 @@ import {
   getTripJourneys,
 } from '../controllers/trip.controller';
 import { getReportByTrip } from '../controllers/report.controller';
+import { adminBoardStudent, adminUnboardStudent } from '../controllers/qr.controller';
 import { authenticateUser, requireAdmin } from '../middleware/auth.middleware';
 import {
   validateTripData,
@@ -127,6 +128,32 @@ router.get(
   authenticateUser,
   requireAdmin,
   getReportByTrip
+);
+
+/**
+ * @route   POST /api/admin/trips/:tripId/board-student
+ * @desc    Admin manually boards a student (without QR/passkey)
+ * @access  Admin only
+ * @body    { user_id: UUID, cab_id: UUID, journey_type: 'pickup' | 'dropoff' }
+ */
+router.post(
+  '/admin/trips/:tripId/board-student',
+  authenticateUser,
+  requireAdmin,
+  adminBoardStudent
+);
+
+/**
+ * @route   POST /api/admin/trips/:tripId/unboard-student
+ * @desc    Admin unboards a student from return journey (only if admin-boarded)
+ * @access  Admin only
+ * @body    { user_id: UUID }
+ */
+router.post(
+  '/admin/trips/:tripId/unboard-student',
+  authenticateUser,
+  requireAdmin,
+  adminUnboardStudent
 );
 
 // ====================================
