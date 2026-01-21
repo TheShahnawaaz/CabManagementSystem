@@ -6,7 +6,13 @@ import type {
   UpdateTripData,
   HallDemand,
 } from "../types/trip.types";
-import type { TripJourneyData } from "../types/journey.types";
+import type {
+  TripJourneyData,
+  AdminBoardStudentRequest,
+  AdminBoardStudentResponse,
+  AdminUnboardStudentResponse,
+  JourneyType,
+} from "../types/journey.types";
 
 // ====================================
 // TRIP API SERVICE
@@ -100,5 +106,34 @@ export const tripApi = {
    */
   async getTripJourneys(tripId: string): Promise<ApiResponse<TripJourneyData>> {
     return apiClient.get(`/admin/trips/${tripId}/journeys`);
+  },
+
+  /**
+   * Admin board student (admin only)
+   * Manually board a student without QR scan or passkey
+   * - Pickup: Student can only board their assigned cab
+   * - Dropoff: Student can board any cab
+   */
+  async adminBoardStudent(
+    tripId: string,
+    data: AdminBoardStudentRequest
+  ): Promise<ApiResponse<AdminBoardStudentResponse>> {
+    return apiClient.post(`/admin/trips/${tripId}/board-student`, data);
+  },
+
+  /**
+   * Admin unboard student (admin only)
+   * Undo admin boarding for pickup or return journey
+   * - Only works if the student was boarded by admin (not driver QR scan)
+   */
+  async adminUnboardStudent(
+    tripId: string,
+    userId: string,
+    journeyType: JourneyType
+  ): Promise<ApiResponse<AdminUnboardStudentResponse>> {
+    return apiClient.post(`/admin/trips/${tripId}/unboard-student`, {
+      user_id: userId,
+      journey_type: journeyType,
+    });
   },
 };

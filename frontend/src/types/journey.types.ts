@@ -14,6 +14,11 @@ export interface OutboundStudent {
   hall: Hall;
   seat_position: number | string; // Backend returns string from ROW_NUMBER()
   scan_time: string; // Scan timestamp
+  boarded_by: "driver" | "admin"; // Who initiated the boarding
+  boarded_by_user_id: string | null; // Admin's user_id if boarded by admin
+  boarded_by_admin_name: string | null; // Admin's name if boarded by admin
+  boarded_by_admin_email: string | null; // Admin's email if boarded by admin
+  boarded_by_admin_profile_picture: string | null; // Admin's profile picture if boarded by admin
 }
 
 // Student who boarded return (can be from ANY allocation)
@@ -26,6 +31,11 @@ export interface ReturnStudent {
   hall: Hall;
   seat_position: number | string; // Backend returns string from ROW_NUMBER()
   scan_time: string; // Scan timestamp
+  boarded_by: "driver" | "admin"; // Who initiated the boarding
+  boarded_by_user_id: string | null; // Admin's user_id if boarded by admin
+  boarded_by_admin_name: string | null; // Admin's name if boarded by admin
+  boarded_by_admin_email: string | null; // Admin's email if boarded by admin
+  boarded_by_admin_profile_picture: string | null; // Admin's profile picture if boarded by admin
 }
 
 // Student allocated but didn't board outbound
@@ -90,4 +100,39 @@ export interface TripJourneyData {
   cabs: JourneyCab[];
   outbound_no_shows: GlobalNoShowStudent[]; // All students allocated but didn't board outbound
   return_no_shows: GlobalNoShowStudent[]; // All students who didn't board any cab for return
+}
+
+// ====================================
+// ADMIN BOARDING TYPES
+// ====================================
+
+export type JourneyType = "pickup" | "dropoff";
+
+// Request payload for admin board student
+export interface AdminBoardStudentRequest {
+  user_id: string;
+  cab_id: string;
+  journey_type: JourneyType;
+}
+
+// Response data from admin board student
+export interface AdminBoardStudentResponse {
+  student_hall: string;
+  cab_number: string;
+  journey_type: JourneyType;
+  boarded_at: string;
+  boarded_by: "admin";
+  boarded_by_user_id: string;
+}
+
+// Request payload for admin unboard student
+export interface AdminUnboardStudentRequest {
+  user_id: string;
+  journey_type: JourneyType;
+}
+
+// Response data from admin unboard student
+export interface AdminUnboardStudentResponse {
+  journey_type: JourneyType;
+  unboarded_at: string;
 }

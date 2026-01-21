@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Item,
   ItemContent,
@@ -7,8 +9,26 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
-import { Mail, Phone, Car, Armchair } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Mail, Phone, Car, Armchair, UserPlus, Loader2 } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/utils";
+import { toast } from "sonner";
+import { tripApi } from "@/services/trip.service";
 
 // Hall color mapping
 const HALL_COLORS: Record<
@@ -64,6 +84,16 @@ export interface StudentInfo {
   allocated_cab_region?: string;
 }
 
+// Cab info for boarding selection
+export interface BoardingCab {
+  cab_id: string;
+  cab_number: string;
+  pickup_region: string;
+  driver_name: string;
+  capacity: number;
+  current_count: number; // Number of students already boarded for return
+}
+
 interface StudentInfoCardProps {
   student: StudentInfo;
   /** Show email row */
@@ -78,6 +108,18 @@ interface StudentInfoCardProps {
   compact?: boolean;
   /** Custom className for the wrapper */
   className?: string;
+  /** Enable boarding functionality */
+  boardingEnabled?: boolean;
+  /** Trip ID for boarding */
+  tripId?: string;
+  /** Journey type for boarding */
+  journeyType?: "pickup" | "dropoff";
+  /** Assigned cab ID (for pickup - auto board to this cab) */
+  assignedCabId?: string;
+  /** Available cabs (for dropoff - select from list) */
+  availableCabs?: BoardingCab[];
+  /** Callback after successful boarding */
+  onBoardingSuccess?: () => void;
 }
 
 export function StudentInfoCard({
@@ -88,7 +130,16 @@ export function StudentInfoCard({
   showAllocatedCab = false,
   compact = false,
   className = "",
+  boardingEnabled = false,
+  tripId,
+  journeyType,
+  assignedCabId,
+  availableCabs = [],
+  onBoardingSuccess,
 }: StudentInfoCardProps) {
+  const [loading, setLoading] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
   const hallColors = HALL_COLORS[student.hall] || {
     avatar: "bg-gray-500",
     text: "text-gray-950 dark:text-gray-50",
@@ -101,6 +152,67 @@ export function StudentInfoCard({
     .join("")
     .substring(0, 2)
     .toUpperCase();
+
+  // Handle boarding for pickup (assigned cab)
+  const handlePickupBoard = async () => {
+    if (!tripId || !assignedCabId) {
+      toast.error("Missing trip or cab information");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await tripApi.adminBoardStudent(tripId, {
+        user_id: student.user_id,
+        cab_id: assignedCabId,
+        journey_type: "pickup",
+      });
+
+      if (response.success && response.data) {
+        toast.success(
+          `${student.name} boarded ${response.data.cab_number} for pickup`
+        );
+        onBoardingSuccess?.();
+      }
+    } catch (error: any) {
+      console.error("Error boarding student:", error);
+      // Use the message from the API response, fallback to generic message
+      const errorMessage = error.message || error.error || "Failed to board student";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle boarding for dropoff (select cab)
+  const handleDropoffBoard = async (cabId: string, cabNumber: string) => {
+    if (!tripId) {
+      toast.error("Missing trip information");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await tripApi.adminBoardStudent(tripId, {
+        user_id: student.user_id,
+        cab_id: cabId,
+        journey_type: "dropoff",
+      });
+
+      if (response.success && response.data) {
+        toast.success(`${student.name} boarded ${cabNumber} for dropoff`);
+        setPopoverOpen(false);
+        onBoardingSuccess?.();
+      }
+    } catch (error: any) {
+      console.error("Error boarding student:", error);
+      // Use the message from the API response, fallback to generic message
+      const errorMessage = error.message || error.error || "Failed to board student";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Item variant="outline" className={`${compact ? "py-2" : ""} ${className}`}>
@@ -167,6 +279,103 @@ export function StudentInfoCard({
           )}
         </ItemDescription>
       </ItemContent>
+
+      {/* Boarding Button */}
+      {boardingEnabled && tripId && journeyType && (
+        <div className="flex-shrink-0 ml-2">
+          {journeyType === "pickup" ? (
+            // Pickup: Confirmation Dialog
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 h-8 text-xs"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <UserPlus className="w-3 h-3" />
+                  )}
+                  Board
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Board Student for Pickup</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Board <strong>{student.name}</strong> to their assigned cab{" "}
+                    <strong>{student.allocated_cab_number}</strong>?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handlePickupBoard}>
+                    Confirm Board
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            // Dropoff: Popover with Cab List
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 h-8 text-xs"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <UserPlus className="w-3 h-3" />
+                  )}
+                  Board
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-2" align="end">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium px-2 py-1">
+                    Select cab for {student.name}
+                  </p>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {availableCabs.map((cab) => {
+                      const isFull = cab.current_count >= cab.capacity;
+                      return (
+                        <Button
+                          key={cab.cab_id}
+                          variant="ghost"
+                          size="sm"
+                          className={`w-full justify-between h-auto py-2 px-2 ${isFull ? "opacity-50" : ""}`}
+                          onClick={() =>
+                            handleDropoffBoard(cab.cab_id, cab.cab_number)
+                          }
+                          disabled={loading || isFull}
+                        >
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium">{cab.cab_number}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {cab.pickup_region} - {cab.driver_name}
+                            </span>
+                          </div>
+                          <Badge
+                            variant={isFull ? "default" : "secondary"}
+                            className={`font-mono text-xs ${isFull ? "bg-red-500 hover:bg-red-600" : ""}`}
+                          >
+                            {cab.current_count}/{cab.capacity}
+                          </Badge>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      )}
     </Item>
   );
 }

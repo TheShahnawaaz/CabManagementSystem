@@ -1,11 +1,23 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Item,
   ItemContent,
@@ -13,8 +25,10 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
-import { Lock, Mail, Phone, Armchair, Clock, CheckCircle2 } from "lucide-react";
+import { Lock, Mail, Phone, Armchair, Clock, CheckCircle2, UserMinus, Loader2, User } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/utils";
+import { toast } from "sonner";
+import { tripApi } from "@/services/trip.service";
 import type { OutboundStudent, ReturnStudent } from "@/types/journey.types";
 import { format } from "date-fns";
 
@@ -87,11 +101,15 @@ type SeatMeta = {
 interface VehicleJourneyViewerProps {
   students: OutboundStudent[] | ReturnStudent[];
   journeyType: "outbound" | "return";
+  tripId?: string;
+  onUnboardSuccess?: () => void;
 }
 
 export function VehicleJourneyViewer({
   students,
   journeyType,
+  tripId,
+  onUnboardSuccess,
 }: VehicleJourneyViewerProps) {
   const driverSeat = { x: 192, y: 130, rot: 0 };
 
@@ -458,6 +476,8 @@ export function VehicleJourneyViewer({
                 student={getStudentForSeat(s.id)}
                 small={s.size === "sm"}
                 journeyType={journeyType}
+                tripId={tripId}
+                onUnboardSuccess={onUnboardSuccess}
               />
             </div>
           ))}
@@ -473,19 +493,56 @@ function SeatDisplay({
   student,
   small = false,
   journeyType,
+  tripId,
+  onUnboardSuccess,
 }: {
   seatId: string;
   label: string;
   student: OutboundStudent | ReturnStudent | undefined;
   small?: boolean;
   journeyType: "outbound" | "return";
+  tripId?: string;
+  onUnboardSuccess?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [unboardLoading, setUnboardLoading] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState<ReturnType<
     typeof setTimeout
   > | null>(null);
 
   const isAssigned = !!student;
+  
+  // Check if this student was boarded by admin (can be unboarded for both outbound and return)
+  const canUnboard =
+    student &&
+    "boarded_by" in student &&
+    student.boarded_by === "admin" &&
+    tripId &&
+    onUnboardSuccess;
+
+  // Handle unboard
+  const handleUnboard = async () => {
+    if (!tripId || !student || !onUnboardSuccess) return;
+
+    // Map frontend journeyType to backend journey_type
+    const backendJourneyType = journeyType === "outbound" ? "pickup" : "dropoff";
+
+    try {
+      setUnboardLoading(true);
+      const response = await tripApi.adminUnboardStudent(tripId, student.user_id, backendJourneyType);
+      if (response.success) {
+        toast.success(`${student.name} has been unboarded from ${journeyType}`);
+        setIsOpen(false);
+        onUnboardSuccess();
+      }
+    } catch (error: any) {
+      console.error("Error unboarding student:", error);
+      toast.error(error.message || "Failed to unboard student");
+    } finally {
+      setUnboardLoading(false);
+    }
+  };
+
   // Mobile stays same, desktop increased by ~30%
   const outer = small
     ? "w-[48px] h-[46px] md:w-[72px] md:h-[70px]"
@@ -682,6 +739,60 @@ function SeatDisplay({
                   {format(new Date(student.scan_time), "hh:mm:ss a")}
                 </span>
               </div>
+
+              {/* Boarded by indicator */}
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <User className="w-3 h-3 flex-shrink-0" />
+                <span>
+                  Boarded by{" "}
+                  {student.boarded_by === "admin" && student.boarded_by_admin_name
+                    ? <span className="font-medium text-foreground">{student.boarded_by_admin_name}</span>
+                    : <span className="font-medium text-foreground">Driver</span>
+                  }
+                </span>
+              </div>
+
+              {/* Unboard button for admin-boarded students */}
+              {canUnboard && (
+                <div className="pt-2 mt-2 border-t border-border/50">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                        disabled={unboardLoading}
+                      >
+                        {unboardLoading ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <UserMinus className="w-3 h-3" />
+                        )}
+                        Unboard Student
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Unboard Student</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to unboard{" "}
+                          <strong>{student.name}</strong> from the {journeyType}{" "}
+                          journey? This will undo the admin boarding.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleUnboard}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Unboard
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
             </ItemDescription>
           </ItemContent>
         </Item>
