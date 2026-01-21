@@ -638,6 +638,11 @@ export const getTripJourneys = async (
             u.profile_picture,
             tu.hall,
             j.journey_date_time as scan_time,
+            j.boarded_by,
+            j.boarded_by_user_id,
+            admin_user.name as boarded_by_admin_name,
+            admin_user.email as boarded_by_admin_email,
+            admin_user.profile_picture as boarded_by_admin_profile_picture,
             ROW_NUMBER() OVER (ORDER BY ca.created_at) as seat_position
           FROM cab_allocations ca
           JOIN users u ON u.id = ca.user_id
@@ -646,6 +651,7 @@ export const getTripJourneys = async (
             AND j.cab_id = ca.cab_id 
             AND j.trip_id = ca.trip_id 
             AND j.journey_type = 'pickup'
+          LEFT JOIN users admin_user ON admin_user.id = j.boarded_by_user_id
           WHERE ca.cab_id = $1 AND ca.trip_id = $2
           ORDER BY ca.created_at ASC`,
           [cab.cab_id, tripId]
@@ -661,10 +667,16 @@ export const getTripJourneys = async (
             u.profile_picture,
             tu.hall,
             j.journey_date_time as scan_time,
+            j.boarded_by,
+            j.boarded_by_user_id,
+            admin_user.name as boarded_by_admin_name,
+            admin_user.email as boarded_by_admin_email,
+            admin_user.profile_picture as boarded_by_admin_profile_picture,
             ROW_NUMBER() OVER (ORDER BY j.journey_date_time) as seat_position
           FROM journeys j
           JOIN users u ON u.id = j.user_id
           JOIN trip_users tu ON tu.user_id = j.user_id AND tu.trip_id = j.trip_id
+          LEFT JOIN users admin_user ON admin_user.id = j.boarded_by_user_id
           WHERE j.cab_id = $1 
             AND j.trip_id = $2 
             AND j.journey_type = 'dropoff'
