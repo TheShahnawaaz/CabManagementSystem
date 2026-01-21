@@ -147,7 +147,7 @@ router.post(
  * @route   POST /api/admin/trips/:tripId/unboard-student
  * @desc    Admin unboards a student from return journey (only if admin-boarded)
  * @access  Admin only
- * @body    { user_id: UUID }
+ * @body    { user_id: UUID, journey_type: 'pickup' | 'dropoff' }
  */
 router.post(
   '/admin/trips/:tripId/unboard-student',

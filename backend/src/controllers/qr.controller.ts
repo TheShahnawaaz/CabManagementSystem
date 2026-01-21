@@ -271,7 +271,7 @@ export const validateQR = async (req: Request, res: Response): Promise<void> => 
     // 7. RETURN: Any valid passkey accepted (already validated above)
 
 
-    // 8. Number of scanned for a jouney type for a cab should not exceed cab capacity
+    // 8. Number of scanned for a journey type for a cab should not exceed cab capacity
     const cabCapacity = scannedCab.cab_capacity;
     const cabScanCountResult = await client.query(
       `SELECT COUNT(*) FROM journeys
@@ -366,14 +366,41 @@ export const adminBoardStudent = async (req: Request, res: Response): Promise<vo
   const client = await pool.connect();
 
   try {
-    const { tripId } = req.params;
+    const tripId = req.params.tripId as string;
     const { user_id, cab_id, journey_type } = req.body;
 
-    // 1. Validate inputs
+    // 1. Validate inputs and UUID formats
     if (!tripId || !user_id || !cab_id || !journey_type) {
       res.status(400).json({
         success: false,
         error: 'tripId, user_id, cab_id, and journey_type are required',
+      });
+      return;
+    }
+
+    // Validate UUID format for tripId, user_id, and cab_id
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tripId)) {
+      res.status(400).json({
+        success: false,
+        error: 'invalid_format',
+        message: 'Invalid trip ID format',
+      });
+      return;
+    }
+    if (!uuidRegex.test(user_id)) {
+      res.status(400).json({
+        success: false,
+        error: 'invalid_format',
+        message: 'Invalid user ID format',
+      });
+      return;
+    }
+    if (!uuidRegex.test(cab_id)) {
+      res.status(400).json({
+        success: false,
+        error: 'invalid_format',
+        message: 'Invalid cab ID format',
       });
       return;
     }
@@ -512,7 +539,7 @@ export const adminBoardStudent = async (req: Request, res: Response): Promise<vo
     // 10. DROPOFF: Any cab is allowed (no additional check needed)
 
 
-    // 11. Number of scanned for a jouney type for a cab should not exceed cab capacity
+    // 11. Number of scanned for a journey type for a cab should not exceed cab capacity
     const cabCapacity = cab.cab_capacity;
     const cabScanCountResult = await client.query(
       `SELECT COUNT(*) FROM journeys
@@ -607,7 +634,7 @@ export const adminUnboardStudent = async (req: Request, res: Response): Promise<
   const client = await pool.connect();
 
   try {
-    const { tripId } = req.params;
+    const tripId = req.params.tripId as string;
     const { user_id, journey_type } = req.body;
 
     // 1. Validate inputs
@@ -615,6 +642,25 @@ export const adminUnboardStudent = async (req: Request, res: Response): Promise<
       res.status(400).json({
         success: false,
         error: 'tripId, user_id, and journey_type are required',
+      });
+      return;
+    }
+
+    // Validate UUID format for tripId and user_id
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tripId)) {
+      res.status(400).json({
+        success: false,
+        error: 'invalid_format',
+        message: 'Invalid trip ID format',
+      });
+      return;
+    }
+    if (!uuidRegex.test(user_id)) {
+      res.status(400).json({
+        success: false,
+        error: 'invalid_format',
+        message: 'Invalid user ID format',
       });
       return;
     }
@@ -632,11 +678,21 @@ export const adminUnboardStudent = async (req: Request, res: Response): Promise<
     await client.query('BEGIN');
 
     // 3. Delete the journey record
-    await client.query(
+    const deleteResult = await client.query(
       `DELETE FROM journeys 
        WHERE trip_id = $1 AND user_id = $2 AND journey_type = $3`,
       [tripId, user_id, journey_type]
     );
+    // If no journey record was deleted, roll back and return an error
+    if (!deleteResult || deleteResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      res.status(404).json({
+        success: false,
+        error: 'journey_not_found',
+        message: 'No matching journey record found to unboard for the given trip, user, and journey_type',
+      });
+      return;
+    }
 
     // Commit transaction
     await client.query('COMMIT');

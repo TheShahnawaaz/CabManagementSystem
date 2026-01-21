@@ -742,14 +742,36 @@ function SeatDisplay({
 
               {/* Boarded by indicator */}
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <User className="w-3 h-3 flex-shrink-0" />
-                <span>
-                  Boarded by{" "}
-                  {student.boarded_by === "admin" && student.boarded_by_admin_name
-                    ? <span className="font-medium text-foreground">{student.boarded_by_admin_name}</span>
-                    : <span className="font-medium text-foreground">Driver</span>
-                  }
-                </span>
+                {student.boarded_by === "admin" && student.boarded_by_admin_name ? (
+                  <>
+                    <Avatar className="w-4 h-4">
+                      <AvatarImage
+                        src={student.boarded_by_admin_profile_picture || undefined}
+                        alt={student.boarded_by_admin_name}
+                      />
+                      <AvatarFallback className="text-[8px] bg-primary text-primary-foreground">
+                        {student.boarded_by_admin_name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .substring(0, 2)
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>
+                      Boarded by{" "}
+                      <span className="font-medium text-foreground">{student.boarded_by_admin_name}</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <User className="w-3 h-3 flex-shrink-0" />
+                    <span>
+                      Boarded by{" "}
+                      <span className="font-medium text-foreground">Driver</span>
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Unboard button for admin-boarded students */}
