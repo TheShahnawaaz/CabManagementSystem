@@ -280,6 +280,7 @@ export default function AllocationTab() {
               variant="outline"
               size="sm"
               onClick={() => navigate(`/admin/trips/${tripId}/allocation/edit`)}
+              disabled={notificationStatus?.all_notified}
               className="flex-1 sm:flex-none"
             >
               <Edit className="w-4 h-4 mr-2" />
@@ -289,6 +290,7 @@ export default function AllocationTab() {
               variant="outline"
               size="sm"
               onClick={() => setShowClearDialog(true)}
+              disabled={notificationStatus?.all_notified}
               className="flex-1 sm:flex-none"
             >
               <Trash2 className="w-4 h-4 mr-2" />
