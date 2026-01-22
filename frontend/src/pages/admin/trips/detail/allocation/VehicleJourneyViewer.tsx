@@ -512,13 +512,8 @@ function SeatDisplay({
 
   const isAssigned = !!student;
   
-  // Check if this student was boarded by admin (can be unboarded for both outbound and return)
-  const canUnboard =
-    student &&
-    "boarded_by" in student &&
-    student.boarded_by === "admin" &&
-    tripId &&
-    onUnboardSuccess;
+  // Allow unboarding any boarded student (admin or driver boarded)
+  const canUnboard = student && tripId && onUnboardSuccess;
 
   // Handle unboard
   const handleUnboard = async () => {
@@ -535,9 +530,13 @@ function SeatDisplay({
         setIsOpen(false);
         onUnboardSuccess();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error unboarding student:", error);
-      toast.error(error.message || "Failed to unboard student");
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to unboard student");
+      } else {
+        toast.error("Failed to unboard student");
+      }
     } finally {
       setUnboardLoading(false);
     }
@@ -723,7 +722,12 @@ function SeatDisplay({
               {student.phone_number && (
                 <div className="flex items-center gap-1.5 text-xs">
                   <Phone className="w-3 h-3 flex-shrink-0" />
-                  <span>{formatPhoneNumber(student.phone_number)}</span>
+                  <a
+                    href={`tel:${student.phone_number}`}
+                    className="hover:text-primary hover:underline"
+                  >
+                    {formatPhoneNumber(student.phone_number)}
+                  </a>
                 </div>
               )}
 

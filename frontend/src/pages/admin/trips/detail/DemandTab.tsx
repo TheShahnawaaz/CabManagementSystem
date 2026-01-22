@@ -144,7 +144,12 @@ export default function DemandTab() {
                       </ItemDescription>
                       <ItemDescription className="text-sm flex items-center gap-2">
                         <Phone className="w-3 h-3 text-muted-foreground" />
-                        <span>{formatPhoneNumber(student.phone_number)}</span>
+                        <a
+                          href={`tel:${student.phone_number}`}
+                          className="hover:text-primary hover:underline"
+                        >
+                          {formatPhoneNumber(student.phone_number)}
+                        </a>
                       </ItemDescription>
                       <ItemDescription className="text-xs mt-1 text-muted-foreground">
                         Booked:{" "}

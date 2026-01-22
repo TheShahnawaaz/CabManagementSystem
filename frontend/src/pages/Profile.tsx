@@ -200,7 +200,16 @@ export default function ProfilePage() {
                         <Phone className="w-5 h-5" /> Phone Number
                       </Label>
                       <p className="text-base font-semibold">
-                        {formatPhoneNumber(user.phone_number)}
+                        {user.phone_number ? (
+                          <a
+                            href={`tel:${user.phone_number}`}
+                            className="text-primary hover:underline"
+                          >
+                            {formatPhoneNumber(user.phone_number)}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">Not provided</span>
+                        )}
                       </p>
                     </div>
 

@@ -279,16 +279,6 @@ export default function DriverScanPage() {
                 </p>
               </div>
             </div>
-
-            <Separator />
-
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={() => window.location.reload()}
-            >
-              🔄 Scan Next Student
-            </Button>
           </div>
         </Card>
       </div>
@@ -474,26 +464,18 @@ export default function DriverScanPage() {
                 )}
             </div>
 
-            <Separator />
-
-            <div className="flex gap-2 w-full">
-              {isInvalidPasskey && (
+            {isInvalidPasskey && (
+              <>
+                <Separator />
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="w-full"
                   onClick={handleReset}
                 >
                   ⬅️ Try Again
                 </Button>
-              )}
-              <Button
-                variant="default"
-                className="flex-1"
-                onClick={() => window.location.reload()}
-              >
-                🔄 Scan Next Student
-              </Button>
-            </div>
+              </>
+            )}
           </div>
         </Card>
       </div>

@@ -41,6 +41,7 @@ import {
   HISTORY_ACTION_LABELS,
   formatCurrency,
 } from "@/constants/report.constants";
+import { formatPhoneNumber } from "@/lib/utils";
 import type { ReportHistory, ReportUser } from "@/types/report.types";
 import { cn } from "@/lib/utils";
 
@@ -240,7 +241,12 @@ function UserPopover({ user }: { user: ReportUser }) {
                 {user.phone_number && (
                   <div className="flex items-center gap-1.5 text-xs">
                     <Phone className="w-3 h-3 flex-shrink-0" />
-                    <span>{user.phone_number}</span>
+                    <a
+                      href={`tel:${user.phone_number}`}
+                      className="hover:text-primary hover:underline"
+                    >
+                      {formatPhoneNumber(user.phone_number)}
+                    </a>
                   </div>
                 )}
               </ItemDescription>

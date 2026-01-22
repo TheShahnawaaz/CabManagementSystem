@@ -28,7 +28,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
+import { cn, formatPhoneNumber } from "@/lib/utils";
 
 interface CabDetailsSheetProps {
   booking: Booking;
@@ -179,7 +179,12 @@ export function CabDetailsSheet({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Driver Phone</Label>
                   <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
-                    {cabDetails.driver_phone}
+                    <a
+                      href={`tel:${cabDetails.driver_phone}`}
+                      className="text-primary hover:underline"
+                    >
+                      {formatPhoneNumber(cabDetails.driver_phone)}
+                    </a>
                   </div>
                 </div>
 
@@ -305,9 +310,9 @@ function OtherCabCard({ cab }: OtherCabCardProps) {
           <Phone className="w-4 h-4 shrink-0" />
           <a
             href={`tel:${cab.driver_phone}`}
-            className="hover:text-primary transition-colors"
+            className="hover:text-primary hover:underline transition-colors"
           >
-            {cab.driver_phone}
+            {formatPhoneNumber(cab.driver_phone)}
           </a>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">

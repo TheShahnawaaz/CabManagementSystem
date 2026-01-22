@@ -31,6 +31,7 @@ import { EditCabSheet } from "@/components/EditCabSheet";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { mapStudentsToSeats } from "@/utils/allocation.utils";
+import { formatPhoneNumber } from "@/lib/utils";
 import type { Trip } from "@/types/trip.types";
 import type { TripDetailStatus } from "./utils";
 import type { CabAllocation, DemandSummary } from "@/types/allocation.types";
@@ -280,6 +281,7 @@ export default function AllocationTab() {
               variant="outline"
               size="sm"
               onClick={() => navigate(`/admin/trips/${tripId}/allocation/edit`)}
+              disabled={notificationStatus?.all_notified}
               className="flex-1 sm:flex-none"
             >
               <Edit className="w-4 h-4 mr-2" />
@@ -289,6 +291,7 @@ export default function AllocationTab() {
               variant="outline"
               size="sm"
               onClick={() => setShowClearDialog(true)}
+              disabled={notificationStatus?.all_notified}
               className="flex-1 sm:flex-none"
             >
               <Trash2 className="w-4 h-4 mr-2" />
@@ -403,7 +406,12 @@ export default function AllocationTab() {
                         Driver Phone
                       </Label>
                       <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center text-sm">
-                        {cab.driver_phone}
+                        <a
+                          href={`tel:${cab.driver_phone}`}
+                          className="text-primary hover:underline"
+                        >
+                          {formatPhoneNumber(cab.driver_phone)}
+                        </a>
                       </div>
                     </div>
 
