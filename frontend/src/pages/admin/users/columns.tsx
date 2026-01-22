@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { UserWithStats } from "@/types/user.types";
 import { DataTableColumnHeader } from "./DataTableColumnHeader";
+import { formatPhoneNumber } from "@/lib/utils";
 
 export const createColumns = (
   onEdit: (user: UserWithStats) => void,
@@ -112,7 +113,12 @@ export const createColumns = (
       return (
         <div className="text-sm">
           {phone ? (
-            `+91 ${phone}`
+            <a
+              href={`tel:${phone}`}
+              className="text-primary hover:underline"
+            >
+              {formatPhoneNumber(phone)}
+            </a>
           ) : (
             <span className="text-muted-foreground">Not provided</span>
           )}

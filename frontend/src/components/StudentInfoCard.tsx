@@ -251,7 +251,12 @@ export function StudentInfoCard({
           {showPhone && student.phone_number && (
             <div className="flex items-center gap-1.5 text-xs">
               <Phone className="w-3 h-3 flex-shrink-0" />
-              <span>{formatPhoneNumber(student.phone_number)}</span>
+              <a
+                href={`tel:${student.phone_number}`}
+                className="hover:text-primary hover:underline"
+              >
+                {formatPhoneNumber(student.phone_number)}
+              </a>
             </div>
           )}
 
