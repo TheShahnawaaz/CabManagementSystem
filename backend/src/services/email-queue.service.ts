@@ -93,13 +93,11 @@ export async function processEmailQueue(): Promise<{
         console.error(`❌ Email failed: ${email.id}`, error.message);
         
         const newStatus = email.attempts >= email.max_attempts ? 'failed' : 'pending';
-        const backoffMinutes = Math.min(5 * Math.pow(2, email.attempts - 1), 30);
         
         await pool.query(`
           UPDATE email_queue 
           SET status = $1, 
-              last_error = $2,
-              scheduled_for = NOW() + INTERVAL '${backoffMinutes} minutes'
+              last_error = $2
           WHERE id = $3
         `, [newStatus, error.message, email.id]);
         
