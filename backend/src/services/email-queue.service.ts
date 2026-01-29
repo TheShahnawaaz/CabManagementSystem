@@ -9,6 +9,57 @@ import pool from '../config/database';
 import { sendEmail } from '../config/email';
 
 // ====================================
+// CONSTANTS
+// ====================================
+
+const MAX_RETRY_ATTEMPTS = 3;
+
+// ====================================
+// SEND SINGLE EMAIL WITH RETRIES
+// ====================================
+
+/**
+ * Attempts to send a single email with immediate retries
+ * Retries consecutively without any delay between attempts
+ * 
+ * @param email - Email record from database
+ * @returns Result object with success status and final attempt count
+ */
+async function sendEmailWithRetry(email: any): Promise<{
+  success: boolean;
+  attempts: number;
+  error?: string;
+}> {
+  let lastError = '';
+  
+  for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+    try {
+      const result = await sendEmail({
+        to: email.to_email,
+        subject: email.subject,
+        html: email.body_html,
+      });
+      
+      if (result.success) {
+        console.log(`✅ Email sent: ${email.id} to ${email.to_email} (attempt ${attempt})`);
+        return { success: true, attempts: attempt };
+      }
+      
+      lastError = result.error || 'Unknown send error';
+      console.warn(`⚠️ Email attempt ${attempt} failed: ${email.id} - ${lastError}`);
+      
+    } catch (error: any) {
+      lastError = error.message || 'Unknown error';
+      console.warn(`⚠️ Email attempt ${attempt} failed: ${email.id} - ${lastError}`);
+    }
+  }
+  
+  // All attempts exhausted
+  console.error(`❌ Email failed after ${MAX_RETRY_ATTEMPTS} attempts: ${email.id}`);
+  return { success: false, attempts: MAX_RETRY_ATTEMPTS, error: lastError };
+}
+
+// ====================================
 // PROCESS EMAIL QUEUE
 // ====================================
 
@@ -20,6 +71,7 @@ import { sendEmail } from '../config/email';
  * - Configurable batch size via EMAIL_BATCH_SIZE env var
  * - Parallel sending for speed
  * - Configurable timeout via EMAIL_TIMEOUT env var
+ * - Immediate retries (no backoff delay)
  * 
  * Environment Variables:
  * - EMAIL_BATCH_SIZE: Number of emails per batch (default: 25)
@@ -43,12 +95,11 @@ export async function processEmailQueue(): Promise<{
     // 1. Grab pending emails (with locking to prevent duplicates)
     const result = await pool.query(`
       UPDATE email_queue
-      SET status = 'sending', attempts = attempts + 1
+      SET status = 'sending'
       WHERE id IN (
         SELECT id FROM email_queue
         WHERE status = 'pending'
           AND scheduled_for <= NOW()
-          AND attempts < max_attempts
         ORDER BY priority ASC, scheduled_for ASC
         LIMIT $1
         FOR UPDATE SKIP LOCKED
@@ -61,48 +112,37 @@ export async function processEmailQueue(): Promise<{
       // Check if we're running out of time
       if (Date.now() - startTime > MAX_EXECUTION_TIME) {
         console.log(`⏰ Timeout approaching, skipping email ${email.id}`);
-        // Reset to pending for next run
         await pool.query(`
           UPDATE email_queue 
-          SET status = 'pending', attempts = attempts - 1
+          SET status = 'pending'
           WHERE id = $1
         `, [email.id]);
         return { success: false, skipped: true };
       }
       
-      try {
-        const sendResult = await sendEmail({
-          to: email.to_email,
-          subject: email.subject,
-          html: email.body_html,
-        });
-        
-        if (sendResult.success) {
-          await pool.query(`
-            UPDATE email_queue 
-            SET status = 'sent', sent_at = NOW() 
-            WHERE id = $1
-          `, [email.id]);
-          console.log(`✅ Email sent: ${email.id} to ${email.to_email}`);
-          return { success: true };
-        } else {
-          throw new Error(sendResult.error || 'Unknown send error');
-        }
-        
-      } catch (error: any) {
-        console.error(`❌ Email failed: ${email.id}`, error.message);
-        
-        const newStatus = email.attempts >= email.max_attempts ? 'failed' : 'pending';
-        const backoffMinutes = Math.min(5 * Math.pow(2, email.attempts - 1), 30);
-        
+      // Send with immediate retries
+      const sendResult = await sendEmailWithRetry(email);
+      
+      if (sendResult.success) {
+        // Mark as sent
         await pool.query(`
           UPDATE email_queue 
-          SET status = $1, 
-              last_error = $2,
-              scheduled_for = NOW() + INTERVAL '${backoffMinutes} minutes'
-          WHERE id = $3
-        `, [newStatus, error.message, email.id]);
+          SET status = 'sent', 
+              sent_at = NOW(),
+              attempts = $1
+          WHERE id = $2
+        `, [sendResult.attempts, email.id]);
+        return { success: true };
         
+      } else {
+        // Mark as failed after all retries exhausted
+        await pool.query(`
+          UPDATE email_queue 
+          SET status = 'failed', 
+              last_error = $1,
+              attempts = $2
+          WHERE id = $3
+        `, [sendResult.error, sendResult.attempts, email.id]);
         return { success: false };
       }
     });
@@ -217,6 +257,3 @@ export async function cleanupOldEmails(daysToKeep: number = 7): Promise<number> 
   
   return result.rowCount || 0;
 }
-
-
-
