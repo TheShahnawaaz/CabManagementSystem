@@ -1,30 +1,64 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Phone, Users } from "lucide-react";
-import { format } from "date-fns";
+import { Users } from "lucide-react";
 import { toast } from "sonner";
-import { formatPhoneNumber } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemMedia,
-  ItemSeparator,
-  ItemTitle,
-} from "@/components/ui/item";
+import { ItemGroup, ItemSeparator } from "@/components/ui/item";
 import { tripApi } from "@/services/trip.service";
 import type { HallDemand } from "@/types/trip.types";
+import { DemandTrendCard } from "./demand/components/DemandTrendCard";
+import { DemandTabSkeleton } from "./demand/components/DemandTabSkeleton";
+import { StudentDemandRow } from "./demand/components/StudentDemandRow";
+import type {
+  ChartType,
+  Granularity,
+  StudentDemandWithHall,
+  TrendMode,
+} from "./demand/types";
+import {
+  buildBookingTrend,
+  flattenStudentsByNewest,
+  sortDemandsByNewest,
+} from "./demand/utils";
 
 export default function DemandTab() {
   const { tripId } = useParams<{ tripId: string }>();
   const [demands, setDemands] = useState<HallDemand[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedHall, setSelectedHall] = useState<string>("all");
+  const [chartType, setChartType] = useState<ChartType>("area");
+  const [trendMode, setTrendMode] = useState<TrendMode>("interval");
+  const [granularity, setGranularity] = useState<Granularity>("30m");
+
+  const sortedDemands = useMemo(() => sortDemandsByNewest(demands), [demands]);
+
+  const allStudents = useMemo(
+    () => flattenStudentsByNewest(sortedDemands),
+    [sortedDemands]
+  );
+
+  const totalStudents = useMemo(
+    () => sortedDemands.reduce((sum, demand) => sum + demand.student_count, 0),
+    [sortedDemands]
+  );
+
+  const hallOptions = useMemo(
+    () => sortedDemands.map((demand) => demand.hall),
+    [sortedDemands]
+  );
+
+  const filteredStudents = useMemo(() => {
+    if (selectedHall === "all") {
+      return allStudents;
+    }
+    return allStudents.filter((student) => student.hall === selectedHall);
+  }, [allStudents, selectedHall]);
+
+  const bookingTrend = useMemo(
+    () => buildBookingTrend(filteredStudents, granularity, trendMode, hallOptions),
+    [filteredStudents, granularity, trendMode, hallOptions]
+  );
 
   const fetchDemand = async () => {
     try {
@@ -47,39 +81,7 @@ export default function DemandTab() {
   }, [tripId]);
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        {/* Header Skeleton */}
-        <div className="flex justify-between items-center">
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-72" />
-          </div>
-          <Skeleton className="h-10 w-36 rounded-md" />
-        </div>
-
-        {/* Tabs Skeleton */}
-        <Skeleton className="h-10 w-80 rounded-lg" />
-
-        {/* Student List Skeleton */}
-        <Card className="rounded-lg border overflow-hidden">
-          {[...Array(5)].map((_, i) => (
-            <div key={i}>
-              <div className="flex items-center gap-4 p-4">
-                <Skeleton className="h-12 w-12 rounded-full flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-5 w-40" />
-                  <Skeleton className="h-4 w-56" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-                <Skeleton className="h-6 w-20 rounded-md" />
-              </div>
-              {i !== 4 && <div className="border-t" />}
-            </div>
-          ))}
-        </Card>
-      </div>
-    );
+    return <DemandTabSkeleton />;
   }
 
   if (demands.length === 0) {
@@ -98,76 +100,76 @@ export default function DemandTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Student Demand</h2>
-          <p className="text-muted-foreground mt-1">
-            Hall-wise breakdown of student bookings
-          </p>
-        </div>
-        <Badge variant="outline" className="text-lg px-4 py-2">
-          Total: {demands.reduce((sum, d) => sum + d.student_count, 0)} students
-        </Badge>
+      <div>
+        <h2 className="text-2xl font-bold">Student Demand</h2>
+        <p className="text-muted-foreground mt-1">
+          Hall-wise breakdown of student bookings
+        </p>
       </div>
 
-      <Tabs defaultValue={demands[0]?.hall} className="w-full">
-        <TabsList>
-          {demands.map((demand) => (
-            <TabsTrigger key={demand.hall} value={demand.hall}>
-              {demand.hall} ({demand.student_count})
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <DemandTrendCard
+        hallOptions={hallOptions}
+        selectedHall={selectedHall}
+        chartType={chartType}
+        trendMode={trendMode}
+        granularity={granularity}
+        bookingTrend={bookingTrend}
+        onHallChange={setSelectedHall}
+        onChartTypeChange={setChartType}
+        onTrendModeChange={setTrendMode}
+        onGranularityChange={setGranularity}
+      />
 
-        {demands.map((demand) => (
+      <Tabs defaultValue="all" className="w-full">
+        <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:overflow-visible">
+          <TabsList className="w-max whitespace-nowrap">
+            <TabsTrigger value="all" className="gap-2 shrink-0">
+              All
+              <span className="rounded-full bg-muted-foreground/15 px-2 py-0.5 text-xs leading-none">
+                {totalStudents}
+              </span>
+            </TabsTrigger>
+            {sortedDemands.map((demand) => (
+              <TabsTrigger
+                key={demand.hall}
+                value={demand.hall}
+                className="gap-2 shrink-0"
+              >
+                {demand.hall}
+                <span className="rounded-full bg-muted-foreground/15 px-2 py-0.5 text-xs leading-none">
+                  {demand.student_count}
+                </span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+
+        <TabsContent value="all" className="mt-6">
+          <ItemGroup className="rounded-lg border">
+            {allStudents.map((student, index) => (
+              <div key={`${student.booking_id}-${student.hall}`}>
+                <StudentDemandRow student={student} showHallInline />
+                {index !== allStudents.length - 1 && <ItemSeparator />}
+              </div>
+            ))}
+          </ItemGroup>
+        </TabsContent>
+
+        {sortedDemands.map((demand) => (
           <TabsContent key={demand.hall} value={demand.hall} className="mt-6">
             <ItemGroup className="rounded-lg border">
-              {demand.students.map((student, index) => (
-                <div key={student.id}>
-                  <Item className="p-4">
-                    <ItemMedia>
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage
-                          src={student.profile_picture || undefined}
-                        />
-                        <AvatarFallback className="text-lg">
-                          {student.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </ItemMedia>
-                    <ItemContent className="gap-0.5">
-                      <ItemTitle className="text-base font-semibold">
-                        {student.name}
-                      </ItemTitle>
-                      <ItemDescription className="text-sm">
-                        {student.email}
-                      </ItemDescription>
-                      <ItemDescription className="text-sm flex items-center gap-2">
-                        <Phone className="w-3 h-3 text-muted-foreground" />
-                        <a
-                          href={`tel:${student.phone_number}`}
-                          className="hover:text-primary hover:underline"
-                        >
-                          {formatPhoneNumber(student.phone_number)}
-                        </a>
-                      </ItemDescription>
-                      <ItemDescription className="text-xs mt-1 text-muted-foreground">
-                        Booked:{" "}
-                        {format(
-                          new Date(student.created_at),
-                          "dd MMM yyyy, HH:mm"
-                        )}
-                      </ItemDescription>
-                    </ItemContent>
-                    <ItemContent className="flex-none items-end">
-                      <Badge variant="outline" className="font-mono text-xs">
-                        #{student.booking_id}
-                      </Badge>
-                    </ItemContent>
-                  </Item>
-                  {index !== demand.students.length - 1 && <ItemSeparator />}
-                </div>
-              ))}
+              {demand.students.map((student, index) => {
+                const studentWithHall: StudentDemandWithHall = {
+                  ...student,
+                  hall: demand.hall,
+                };
+                return (
+                  <div key={student.id}>
+                    <StudentDemandRow student={studentWithHall} />
+                    {index !== demand.students.length - 1 && <ItemSeparator />}
+                  </div>
+                );
+              })}
             </ItemGroup>
           </TabsContent>
         ))}

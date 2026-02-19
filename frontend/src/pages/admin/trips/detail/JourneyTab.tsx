@@ -25,19 +25,12 @@ import {
 import { tripApi } from "@/services/trip.service";
 import { VehicleJourneyViewer } from "./allocation/VehicleJourneyViewer";
 import { StudentInfoCard, type BoardingCab } from "@/components/StudentInfoCard";
+import { HALL_COLORS } from "./hallColors";
 import type {
   TripJourneyData,
   JourneyCab,
   GlobalNoShowStudent,
 } from "@/types/journey.types";
-
-// Hall colors for cab header
-const HALL_COLORS: Record<string, string> = {
-  RK: "bg-blue-500",
-  VS: "bg-purple-500",
-  LBS: "bg-green-500",
-  PAN: "bg-orange-500",
-};
 
 export default function JourneyTab() {
   const { tripId } = useParams<{ tripId: string }>();
