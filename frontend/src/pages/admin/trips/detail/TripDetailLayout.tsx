@@ -21,6 +21,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { tripApi } from "@/services/trip.service";
 import type { Trip } from "@/types/trip.types";
 import { getTripDetailStatus, canAccessTab, getDefaultTab } from "./utils";
@@ -34,12 +40,11 @@ export default function TripDetailLayout() {
 
   // Determine current tab from URL
   const pathSegments = location.pathname.split("/");
-  const currentTab = pathSegments.includes("allocation")
-    ? "allocation"
-    : pathSegments.includes("journey")
-      ? "journey"
-      : pathSegments.includes("demand")
-        ? "demand"
+  const currentTab: "demand" | "journey" | "allocation" =
+    pathSegments.includes("allocation")
+      ? "allocation"
+      : pathSegments.includes("journey")
+        ? "journey"
         : "demand";
 
   useEffect(() => {
@@ -85,7 +90,7 @@ export default function TripDetailLayout() {
     }
 
     // Check if current tab is accessible
-    if (!canAccessTab(currentTab as any, status, trip)) {
+    if (!canAccessTab(currentTab, status, trip)) {
       // Redirect to default accessible tab
       const defaultTab = getDefaultTab(status, trip);
       navigate(`/admin/trips/${tripId}/${defaultTab}`, { replace: true });
@@ -96,17 +101,18 @@ export default function TripDetailLayout() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Card className="p-6 mb-6">
-          <Skeleton className="h-10 w-3/4 mb-4" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-6 w-32" />
-              </div>
-            ))}
+        <Card className="p-4 sm:p-6 mb-6">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-9 w-2/3" />
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+            <Skeleton className="h-6 w-6 rounded-md" />
           </div>
-          <Skeleton className="h-10 w-full" />
+
+          <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <Skeleton className="h-10 w-[320px] rounded-lg" />
+          </div>
         </Card>
         <Skeleton className="h-[400px] w-full" />
       </div>
@@ -134,79 +140,85 @@ export default function TripDetailLayout() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Trip Info Card */}
-      <Card className="p-6 mb-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{trip.trip_title}</h1>
-            {getStatusBadge()}
-          </div>
-        </div>
+      <Card className="p-4 sm:p-6 mb-6">
+        <Accordion type="single" collapsible>
+          <AccordionItem value="trip-overview" className="border-none">
+            <AccordionTrigger className="py-0 hover:no-underline [&>svg]:h-6 [&>svg]:w-6 [&>svg]:rounded-md [&>svg]:border [&>svg]:border-border [&>svg]:p-0.5">
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+                  {trip.trip_title}
+                </h1>
+                <div className="mt-2">{getStatusBadge()}</div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4 pb-0">
+              {/* Trip Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Trip Date</p>
+                    <p className="font-medium">
+                      {format(new Date(trip.trip_date), "dd MMM, yyyy")}
+                    </p>
+                  </div>
+                </div>
 
-        {/* Trip Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* Row 1 */}
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Trip Date</p>
-              <p className="font-medium">
-                {format(new Date(trip.trip_date), "dd MMM, yyyy")}
-              </p>
-            </div>
-          </div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Bookings</p>
+                    <p className="font-medium">{trip.booking_count || 0} students</p>
+                  </div>
+                </div>
 
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Total Bookings</p>
-              <p className="font-medium">{trip.booking_count || 0} students</p>
-            </div>
-          </div>
+                <div className="flex items-center gap-2">
+                  <IndianRupee className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Amount</p>
+                    <p className="font-medium">₹{trip.amount_per_person}</p>
+                  </div>
+                </div>
 
-          <div className="flex items-center gap-2">
-            <IndianRupee className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Amount</p>
-              <p className="font-medium">₹{trip.amount_per_person}</p>
-            </div>
-          </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Booking Window</p>
+                    <p className="font-medium text-sm">
+                      {format(new Date(trip.booking_start_time), "dd MMM, HH:mm")} -{" "}
+                      {format(new Date(trip.booking_end_time), "dd MMM, HH:mm")}
+                    </p>
+                  </div>
+                </div>
 
-          {/* Row 2 */}
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Booking Window</p>
-              <p className="font-medium text-sm">
-                {format(new Date(trip.booking_start_time), "dd MMM, HH:mm")} -{" "}
-                {format(new Date(trip.booking_end_time), "dd MMM, HH:mm")}
-              </p>
-            </div>
-          </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">End Time</p>
+                    <p className="font-medium text-sm">
+                      {format(new Date(trip.end_time), "dd MMM, HH:mm")}
+                    </p>
+                  </div>
+                </div>
 
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">End Time</p>
-              <p className="font-medium text-sm">
-                {format(new Date(trip.end_time), "dd MMM, HH:mm")}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Departure Time</p>
-              <p className="font-medium text-sm">
-                {format(new Date(trip.departure_time), "dd MMM, HH:mm")}
-              </p>
-            </div>
-          </div>
-        </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Departure Time</p>
+                    <p className="font-medium text-sm">
+                      {format(new Date(trip.departure_time), "dd MMM, HH:mm")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
         {/* Tabs */}
-        <Tabs value={currentTab}>
-          <TabsList className="grid grid-cols-3 w-fit">
+        <Tabs value={currentTab} className="mt-4">
+          <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="grid grid-cols-3 w-max whitespace-nowrap">
             {canAccessTab("demand", status, trip) && (
               <TabsTrigger value="demand" asChild>
                 <Link
@@ -240,7 +252,8 @@ export default function TripDetailLayout() {
                 </Link>
               </TabsTrigger>
             )}
-          </TabsList>
+            </TabsList>
+          </div>
         </Tabs>
       </Card>
 
