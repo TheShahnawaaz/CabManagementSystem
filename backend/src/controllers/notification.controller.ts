@@ -7,7 +7,7 @@
 import { Response } from 'express';
 import pool from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { sendAdminAnnouncement } from '../services/notification.service';
+import { sendAdminAnnouncement, notifyBookingReminder } from '../services/notification.service';
 
 // ====================================
 // USER: GET NOTIFICATIONS
@@ -250,3 +250,118 @@ export const sendAnnouncement = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+// ====================================
+// ADMIN: SEND BOOKING REMINDER
+// ====================================
+
+export const sendBookingReminder = async (req: AuthRequest, res: Response) => {
+  try {
+    const { tripId, reminderType } = req.body;
+    
+    if (!tripId || !reminderType) {
+      return res.status(400).json({
+        success: false,
+        error: 'tripId and reminderType are required',
+      });
+    }
+    
+    if (!['reminder', 'final_reminder'].includes(reminderType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'reminderType must be "reminder" or "final_reminder"',
+      });
+    }
+    
+    // Verify trip exists and booking is currently open
+    const tripResult = await pool.query(
+      'SELECT id, trip_title, trip_date, departure_time, booking_start_time, booking_end_time, amount_per_person FROM trips WHERE id = $1',
+      [tripId]
+    );
+    
+    if (tripResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Trip not found',
+      });
+    }
+    
+    const trip = tripResult.rows[0];
+    const now = new Date();
+    const bookingStart = new Date(trip.booking_start_time);
+    const bookingEnd = new Date(trip.booking_end_time);
+    
+    if (now < bookingStart || now > bookingEnd) {
+      return res.status(400).json({
+        success: false,
+        error: 'Booking window is not currently open for this trip',
+      });
+    }
+    
+    // Get ALL registered user emails
+    const usersResult = await pool.query('SELECT email FROM users WHERE email_notifications != false');
+    const allEmails = usersResult.rows.map((r: any) => r.email).filter(Boolean);
+    
+    if (allEmails.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No users found to send reminder to',
+      });
+    }
+    
+    // Format trip details for the template
+    const isFinalReminder = reminderType === 'final_reminder';
+    
+    const tripDate = new Date(trip.trip_date).toLocaleDateString('en-IN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    
+    const departureTime = trip.departure_time
+      ? new Date(trip.departure_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+      : undefined;
+    
+    const bookingDeadline = trip.booking_end_time
+      ? new Date(trip.booking_end_time).toLocaleString('en-IN', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : undefined;
+    
+    // Send via notification service
+    const result = await notifyBookingReminder({
+      recipients: allEmails,
+      tripTitle: trip.trip_title,
+      tripDate,
+      departureTime,
+      amount: trip.amount_per_person,
+      bookingDeadline,
+      isFinalReminder,
+    });
+    
+    const typeLabel = isFinalReminder ? 'Final reminder' : 'Reminder';
+    
+    res.json({
+      success: true,
+      message: `${typeLabel} queued for ${result.emailsSent} users`,
+      data: {
+        notifications_sent: 0,
+        emails_queued: result.emailsSent,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error sending booking reminder:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send booking reminder',
+      details: error.message,
+    });
+  }
+};
+
+

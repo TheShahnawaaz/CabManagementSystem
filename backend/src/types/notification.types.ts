@@ -115,3 +115,28 @@ export interface AdminAnnouncementParams {
   message: string;
   actionUrl?: string;
 }
+
+/** Parameters for booking reminder notification */
+export interface BookingReminderParams {
+  recipients: string[];
+  tripTitle: string;
+  tripDate: string;
+  departureTime?: string;
+  amount: number;
+  bookingDeadline?: string;
+  isFinalReminder: boolean;
+}
+
+/** Parameters for sending a BCC email to multiple recipients */
+export interface BccEmailParams {
+  recipients: string[];
+  emailTemplate: EmailTemplate;
+  emailData: TemplateData;
+  category?: string;
+  priority?: number;
+}
+
+/** Result of a BCC email send */
+export interface BccEmailResult {
+  emailsSent: number;
+}

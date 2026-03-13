@@ -64,6 +64,7 @@ export class SmtpProvider implements EmailProvider {
         subject: params.subject,
         html: params.html,
         replyTo: params.replyTo,
+        bcc: params.bcc,
       });
 
       console.log(`✅ Email sent: ${result.messageId} → ${params.to}`);
