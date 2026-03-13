@@ -298,14 +298,25 @@ export const sendBookingReminder = async (req: AuthRequest, res: Response) => {
       });
     }
     
-    // Get ALL registered user emails
-    const usersResult = await pool.query('SELECT email FROM users WHERE email_notifications != false');
+    // Get registered user emails who have NOT booked this trip yet
+    const usersResult = await pool.query(
+      `SELECT u.email
+       FROM users u
+       WHERE u.email_notifications != false
+         AND NOT EXISTS (
+           SELECT 1
+           FROM trip_users tu
+           WHERE tu.user_id = u.id
+             AND tu.trip_id = $1
+         )`,
+      [tripId]
+    );
     const allEmails = usersResult.rows.map((r: any) => r.email).filter(Boolean);
     
     if (allEmails.length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'No users found to send reminder to',
+        error: 'No eligible users found to send reminder to',
       });
     }
     
@@ -369,5 +380,4 @@ export const sendBookingReminder = async (req: AuthRequest, res: Response) => {
     });
   }
 };
-
 
