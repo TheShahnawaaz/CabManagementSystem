@@ -14,10 +14,14 @@ import {
   BarChart3,
   Navigation,
   Target,
+  Bell,
+  BellRing,
+  AlarmClock,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,7 +31,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { tripApi } from "@/services/trip.service";
+import { sendBookingReminder } from "@/services";
 import type { Trip } from "@/types/trip.types";
 import { getTripDetailStatus, canAccessTab, getDefaultTab } from "./utils";
 
@@ -73,6 +84,29 @@ export default function TripDetailLayout() {
       navigate("/admin/trips");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendReminder = async (
+    reminderType: "reminder" | "final_reminder"
+  ) => {
+    if (!trip) return;
+    const typeLabel =
+      reminderType === "final_reminder" ? "Final reminder" : "Reminder";
+
+    try {
+      const result = await sendBookingReminder({
+        tripId: String(trip.id),
+        reminderType,
+      });
+
+      toast.success(`${typeLabel} Sent!`, {
+        description: `Sent to ${result.notifications_sent} users, ${result.emails_queued} emails queued`,
+      });
+    } catch (error: any) {
+      toast.error(`${typeLabel} Failed`, {
+        description: error.message || "Failed to send reminder",
+      });
     }
   };
 
@@ -148,7 +182,44 @@ export default function TripDetailLayout() {
                 <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
                   {trip.trip_title}
                 </h1>
-                <div className="mt-2">{getStatusBadge()}</div>
+                <div className="mt-2 flex items-center gap-1.5">
+                  {getStatusBadge()}
+                  {status === "active-booking-open" && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="ml-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <BellRing className="h-4 w-4 mr-2" />
+                          Send Reminder
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-48">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSendReminder("reminder");
+                          }}
+                        >
+                          <Bell className="mr-2 h-4 w-4" />
+                          Send Reminder
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSendReminder("final_reminder");
+                          }}
+                        >
+                          <AlarmClock className="mr-2 h-4 w-4" />
+                          Send Final Reminder
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-4 pb-0">

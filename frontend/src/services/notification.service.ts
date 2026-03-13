@@ -79,3 +79,20 @@ export async function sendAnnouncement(params: {
   );
   return response.data;
 }
+
+/**
+ * Send booking reminder to all users (Admin only)
+ */
+export async function sendBookingReminder(params: {
+  tripId: string;
+  reminderType: "reminder" | "final_reminder";
+}): Promise<{
+  notifications_sent: number;
+  emails_queued: number;
+}> {
+  const response = await apiClient.post(
+    "/admin/notifications/send-booking-reminder",
+    params
+  );
+  return response.data;
+}
