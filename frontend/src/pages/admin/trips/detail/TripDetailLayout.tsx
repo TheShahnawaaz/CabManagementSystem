@@ -48,6 +48,7 @@ export default function TripDetailLayout() {
   const location = useLocation();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sendingReminder, setSendingReminder] = useState(false);
 
   // Determine current tab from URL
   const pathSegments = location.pathname.split("/");
@@ -90,10 +91,11 @@ export default function TripDetailLayout() {
   const handleSendReminder = async (
     reminderType: "reminder" | "final_reminder"
   ) => {
-    if (!trip) return;
+    if (!trip || sendingReminder) return;
     const typeLabel =
       reminderType === "final_reminder" ? "Final reminder" : "Reminder";
 
+    setSendingReminder(true);
     try {
       const result = await sendBookingReminder({
         tripId: String(trip.id),
@@ -101,12 +103,14 @@ export default function TripDetailLayout() {
       });
 
       toast.success(`${typeLabel} Sent!`, {
-        description: `Sent to ${result.notifications_sent} users, ${result.emails_queued} emails queued`,
+        description: `Email queued for ${result.emails_queued} users`,
       });
     } catch (error: any) {
       toast.error(`${typeLabel} Failed`, {
         description: error.message || "Failed to send reminder",
       });
+    } finally {
+      setSendingReminder(false);
     }
   };
 
@@ -191,14 +195,16 @@ export default function TripDetailLayout() {
                           variant="outline"
                           size="sm"
                           className="ml-2"
+                          disabled={sendingReminder}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <BellRing className="h-4 w-4 mr-2" />
-                          Send Reminder
+                          {sendingReminder ? "Sending..." : "Send Reminder"}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-48">
                         <DropdownMenuItem
+                          disabled={sendingReminder}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleSendReminder("reminder");
@@ -208,6 +214,7 @@ export default function TripDetailLayout() {
                           Send Reminder
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          disabled={sendingReminder}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleSendReminder("final_reminder");
