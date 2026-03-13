@@ -317,10 +317,15 @@ export const sendBookingReminder = async (req: AuthRequest, res: Response) => {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'Asia/Kolkata',
     });
     
     const departureTime = trip.departure_time
-      ? new Date(trip.departure_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+      ? new Date(trip.departure_time).toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Kolkata',
+        })
       : undefined;
     
     const bookingDeadline = trip.booking_end_time
@@ -330,6 +335,7 @@ export const sendBookingReminder = async (req: AuthRequest, res: Response) => {
           day: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
+          timeZone: 'Asia/Kolkata',
         })
       : undefined;
     
