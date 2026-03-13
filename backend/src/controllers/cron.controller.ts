@@ -53,6 +53,14 @@ const sampleData: Record<EmailTemplate, any> = {
     message: 'We have updated our pickup timing for this Friday. Please check the app for the new schedule.\n\nThank you for your cooperation!',
     actionUrl: 'https://fridaycab.com/bookings',
   },
+  booking_reminder: {
+    tripTitle: 'Friday Jummah Trip',
+    tripDate: 'Friday, January 17, 2026',
+    departureTime: '12:30 PM',
+    amount: 50,
+    bookingDeadline: 'Fri, Jan 17, 10:00 AM',
+    isFinalReminder: false,
+  },
 };
 
 // ====================================

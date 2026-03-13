@@ -12,6 +12,7 @@ import {
   JourneyPickup,
   JourneyReturn,
   AdminAnnouncement,
+  BookingReminder,
 } from './templates';
 
 // ====================================
@@ -23,10 +24,11 @@ export type EmailTemplate =
   | 'cab_allocated'
   | 'journey_pickup'
   | 'journey_return'
-  | 'admin_announcement';
+  | 'admin_announcement'
+  | 'booking_reminder';
 
 export interface TemplateData {
-  userName: string;
+  userName?: string;
   userEmail?: string;
   tripTitle?: string;
   tripDate?: string;
@@ -58,6 +60,7 @@ const templates: Record<EmailTemplate, React.FC<any>> = {
   journey_pickup: JourneyPickup,
   journey_return: JourneyReturn,
   admin_announcement: AdminAnnouncement,
+  booking_reminder: BookingReminder,
 };
 
 // ====================================
@@ -98,6 +101,10 @@ export function getEmailSubject(template: EmailTemplate, data: TemplateData): st
       return `✓ Journey Completed - ${data.tripTitle}`;
     case 'admin_announcement':
       return `📢 ${data.subject || 'Important Update from Friday Cab'}`;
+    case 'booking_reminder':
+      return data.isFinalReminder
+        ? `⏰ Last Chance to Book - ${data.tripTitle}`
+        : `🔔 Booking Open - ${data.tripTitle}`;
     default:
       return 'Friday Cab Notification';
   }

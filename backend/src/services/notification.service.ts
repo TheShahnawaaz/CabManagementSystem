@@ -16,6 +16,9 @@ import {
   CabAllocatedParams,
   JourneyLoggedParams,
   AdminAnnouncementParams,
+  BookingReminderParams,
+  BccEmailParams,
+  BccEmailResult,
 } from '../types/notification.types';
 
 // Re-export types for external use
@@ -312,6 +315,80 @@ export async function sendAdminAnnouncement(params: AdminAnnouncementParams) {
       subject: params.subject,
       message: params.message,
       actionUrl: params.actionUrl,
+    },
+  });
+}
+
+// ====================================
+// SEND BCC EMAIL (Bulk Email via BCC)
+// ====================================
+
+/**
+ * Queue a single email to multiple recipients via BCC
+ * Used for general announcements and reminders where personalization is not needed
+ * Renders the template once and queues for cron processing
+ */
+
+export async function sendBccEmail(params: BccEmailParams): Promise<BccEmailResult> {
+  try {
+    const validEmails = params.recipients.filter(Boolean);
+    
+    if (validEmails.length === 0) {
+      return { emailsSent: 0 };
+    }
+    
+    // 1. Render template once (no per-user personalization)
+    const subject = getEmailSubject(params.emailTemplate, params.emailData);
+    const html = await renderEmailTemplate(params.emailTemplate, params.emailData);
+    
+    // 2. Queue the BCC email for cron processing
+    const emailFrom = process.env.EMAIL_SUPPORT || process.env.EMAIL_FROM || 'Friday Cab <noreply@fridaycab.com>';
+    
+    await pool.query(`
+      INSERT INTO email_queue (
+        to_email, to_name, subject, body_html,
+        template, template_data, category, priority,
+        bcc_emails, email_type
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'bcc')
+    `, [
+      emailFrom,
+      'All Users',
+      subject,
+      html,
+      params.emailTemplate,
+      JSON.stringify(params.emailData),
+      params.category || 'reminder',
+      params.priority || 5,
+      validEmails,
+    ]);
+    
+    console.log(`📧 BCC email queued (${params.emailTemplate}) for ${validEmails.length} recipients`);
+    
+    return { emailsSent: validEmails.length };
+  } catch (error) {
+    console.error('Error queuing BCC email:', error);
+    throw error;
+  }
+}
+
+// ====================================
+// HELPER: SEND BOOKING REMINDER
+// ====================================
+
+export async function notifyBookingReminder(params: BookingReminderParams) {
+  const frontendUrl = process.env.FRONTEND_URL || 'https://fridaycab.com';
+  
+  return sendBccEmail({
+    recipients: params.recipients,
+    emailTemplate: 'booking_reminder',
+    emailData: {
+      tripTitle: params.tripTitle,
+      tripDate: params.tripDate,
+      departureTime: params.departureTime,
+      amount: params.amount,
+      bookingDeadline: params.bookingDeadline,
+      isFinalReminder: params.isFinalReminder,
+      actionUrl: `${frontendUrl}/trips`,
     },
   });
 }

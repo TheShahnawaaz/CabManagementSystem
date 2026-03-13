@@ -75,6 +75,7 @@ export async function processEmailQueue(): Promise<{
           to: email.to_email,
           subject: email.subject,
           html: email.body_html,
+          bcc: email.bcc_emails || undefined,
         });
         
         if (sendResult.success) {

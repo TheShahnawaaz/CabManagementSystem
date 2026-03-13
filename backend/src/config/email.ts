@@ -27,6 +27,7 @@ export interface EmailParams {
   subject: string;
   html: string;
   replyTo?: string;
+  bcc?: string[];
 }
 
 export interface EmailResult {

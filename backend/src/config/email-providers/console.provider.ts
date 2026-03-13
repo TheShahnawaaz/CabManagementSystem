@@ -15,6 +15,9 @@ export class ConsoleProvider implements EmailProvider {
     console.log('   EMAIL (Development Mode - Not Actually Sent)');
     console.log('══════════════════════════════════════════════════════════');
     console.log(`   To:      ${params.to}`);
+    if (params.bcc && params.bcc.length > 0) {
+      console.log(`   BCC:     ${params.bcc.length} recipients`);
+    }
     console.log(`   Subject: ${params.subject}`);
     console.log(`   Reply:   ${params.replyTo || 'N/A'}`);
     console.log('──────────────────────────────────────────────────────────');
