@@ -2,6 +2,8 @@
 
 A full-stack web platform to run **weekly Friday prayer transportation** end-to-end: from trip creation and bookings to optimization-based cab allocation, QR/passkey boarding validation, notifications, and post-trip financial reporting.
 
+🌐 **Live Application:** [cab-management-system-ochre.vercel.app](https://cab-management-system-ochre.vercel.app)
+
 ---
 
 ## Why this project exists
