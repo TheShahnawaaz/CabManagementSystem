@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
+import { logActivity } from '../services/activity.service';
 
 /**
  * Trip Controller
@@ -135,6 +136,15 @@ export const createTrip = async (req: Request, res: Response): Promise<void> => 
       success: true,
       message: 'Trip created successfully',
       data: result.rows[0],
+    });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'TRIP_CREATED',
+      entityType: 'trip',
+      entityId: result.rows[0].id,
+      details: { trip_title, trip_date },
     });
   } catch (error: any) {
     console.error('Error creating trip:', error);
@@ -367,6 +377,53 @@ export const updateTrip = async (req: Request, res: Response): Promise<void> => 
       message: 'Trip updated successfully',
       data: result.rows[0],
     });
+
+    // Log activity (fire-and-forget)
+    const oldTrip = checkResult.rows[0];
+    const changes: Record<string, { from: any; to: any }> = {};
+    const timestampFields = ['booking_start_time', 'booking_end_time', 'departure_time', 'prayer_time', 'end_time'];
+    const fieldsToCheck = ['trip_title', 'trip_date', ...timestampFields, 'amount_per_person'];
+    for (const field of fieldsToCheck) {
+      if (req.body[field] === undefined) continue;
+      const oldVal = oldTrip[field];
+      const newVal = req.body[field];
+
+      if (field === 'trip_date') {
+        // Compare date-only using local timezone (toISOString converts to UTC which shifts the date)
+        const toLocalDate = (v: any): string | null => {
+          if (!v) return null;
+          const d = new Date(v);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+        const oldDate = toLocalDate(oldVal);
+        const newDate = newVal ? String(newVal).slice(0, 10) : null;
+        if (oldDate !== newDate) {
+          changes[field] = { from: oldVal, to: newVal };
+        }
+      } else if (timestampFields.includes(field)) {
+        // Compare timestamps at second-level precision (ignore ms differences)
+        const oldSec = oldVal ? Math.floor(new Date(oldVal).getTime() / 1000) : null;
+        const newSec = newVal ? Math.floor(new Date(newVal).getTime() / 1000) : null;
+        if (oldSec !== newSec) {
+          changes[field] = { from: oldVal, to: newVal };
+        }
+      } else if (field === 'amount_per_person') {
+        if (Number(oldVal) !== Number(newVal)) {
+          changes[field] = { from: oldVal, to: newVal };
+        }
+      } else {
+        if (String(oldVal ?? '') !== String(newVal ?? '')) {
+          changes[field] = { from: oldVal, to: newVal };
+        }
+      }
+    }
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'TRIP_UPDATED',
+      entityType: 'trip',
+      entityId: id as string,
+      details: { trip_title: oldTrip.trip_title, changes },
+    });
   } catch (error: any) {
     console.error('Error updating trip:', error);
 
@@ -440,6 +497,15 @@ export const deleteTrip = async (req: Request, res: Response): Promise<void> => 
     res.status(200).json({
       success: true,
       message: 'Trip deleted successfully',
+    });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'TRIP_DELETED',
+      entityType: 'trip',
+      entityId: id as string,
+      details: { trip_title: checkResult.rows[0].trip_title || id },
     });
   } catch (error: any) {
     console.error('Error deleting trip:', error);

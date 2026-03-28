@@ -8,6 +8,7 @@ import { Response } from 'express';
 import pool from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { sendAdminAnnouncement, notifyBookingReminder } from '../services/notification.service';
+import { logActivity } from '../services/activity.service';
 
 // ====================================
 // USER: GET NOTIFICATIONS
@@ -241,6 +242,14 @@ export const sendAnnouncement = async (req: AuthRequest, res: Response) => {
         emails_queued: result.emailsQueued,
       },
     });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: req.user?.id,
+      actionType: 'ANNOUNCEMENT_SENT',
+      entityType: 'notification',
+      details: { subject, target_type: targetType, recipient_count: userIds.length },
+    });
   } catch (error: any) {
     console.error('Error sending announcement:', error);
     res.status(500).json({
@@ -370,6 +379,15 @@ export const sendBookingReminder = async (req: AuthRequest, res: Response) => {
         notifications_sent: 0,
         emails_queued: result.emailsSent,
       },
+    });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: req.user?.id,
+      actionType: 'REMINDER_SENT',
+      entityType: 'notification',
+      entityId: tripId,
+      details: { trip_title: trip.trip_title, reminder_type: reminderType, recipient_count: allEmails.length },
     });
   } catch (error: any) {
     console.error('Error sending booking reminder:', error);

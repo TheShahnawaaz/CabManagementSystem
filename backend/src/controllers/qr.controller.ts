@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
 import { notifyJourneyLogged } from '../services/notification.service';
+import { logActivity } from '../services/activity.service';
 
 /**
  * QR Controller
@@ -609,6 +610,16 @@ export const adminBoardStudent = async (req: Request, res: Response): Promise<vo
         boarded_by_user_id: adminUserId,
       },
     });
+
+    // 15. Log activity (fire-and-forget)
+    logActivity({
+      userId: adminUserId,
+      targetUserId: user_id,
+      actionType: 'USER_BOARDED',
+      entityType: 'journey',
+      entityId: tripId,
+      details: { journey_type, cab_number: cab.cab_number },
+    });
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('Error in admin board student:', error);
@@ -705,6 +716,16 @@ export const adminUnboardStudent = async (req: Request, res: Response): Promise<
         journey_type: journey_type,
         unboarded_at: new Date().toISOString(),
       },
+    });
+
+    // 5. Log activity (fire-and-forget)
+    logActivity({
+      userId: req.user?.id,
+      targetUserId: user_id,
+      actionType: 'USER_UNBOARDED',
+      entityType: 'journey',
+      entityId: tripId,
+      details: { journey_type },
     });
   } catch (error: any) {
     await client.query('ROLLBACK');

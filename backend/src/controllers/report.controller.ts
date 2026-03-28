@@ -12,6 +12,7 @@ import {
   logAdjustmentUpdated,
   logAdjustmentRemoved,
 } from '../services/report-history.service';
+import { logActivity } from '../services/activity.service';
 import type {
   CreateReportDTO,
   UpdateReportDTO,
@@ -337,6 +338,15 @@ export const createReport = async (req: Request, res: Response): Promise<void> =
       },
       message: 'Report created successfully',
     });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId,
+      actionType: 'REPORT_CREATED',
+      entityType: 'report',
+      entityId: reportId,
+      details: { trip_id, cab_cost },
+    });
   } catch (error: any) {
     console.error('Error creating report:', error);
     res.status(500).json({
@@ -434,6 +444,22 @@ export const updateReport = async (req: Request, res: Response): Promise<void> =
     res.status(200).json({
       success: true,
       message: 'Report updated successfully',
+    });
+
+    // Log activity (fire-and-forget)
+    const changes: Record<string, { from: any; to: any }> = {};
+    if (cab_cost !== undefined && currentData.cab_cost !== cab_cost) {
+      changes['cab_cost'] = { from: currentData.cab_cost, to: cab_cost };
+    }
+    if (notes !== undefined && currentData.notes !== notes) {
+      changes['notes'] = { from: currentData.notes, to: notes };
+    }
+    logActivity({
+      userId,
+      actionType: 'REPORT_UPDATED',
+      entityType: 'report',
+      entityId: id as string,
+      details: { changes },
     });
   } catch (error: any) {
     console.error('Error updating report:', error);
@@ -583,6 +609,15 @@ export const addAdjustment = async (req: Request, res: Response): Promise<void> 
       },
       message: 'Adjustment added successfully',
     });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId,
+      actionType: 'ADJUSTMENT_ADDED',
+      entityType: 'report_adjustment',
+      entityId: reportId as string,
+      details: { adjustment_type, category: category.trim(), amount },
+    });
   } catch (error: any) {
     console.error('Error adding adjustment:', error);
     res.status(500).json({
@@ -692,6 +727,25 @@ export const updateAdjustment = async (req: Request, res: Response): Promise<voi
       success: true,
       message: 'Adjustment updated successfully',
     });
+
+    // Log activity (fire-and-forget)
+    const changes: Record<string, { from: any; to: any }> = {};
+    if (category !== undefined && currentData.category !== category.trim()) {
+      changes['category'] = { from: currentData.category, to: category.trim() };
+    }
+    if (description !== undefined && currentData.description !== description) {
+      changes['description'] = { from: currentData.description, to: description };
+    }
+    if (amount !== undefined && Number(currentData.amount) !== amount) {
+      changes['amount'] = { from: currentData.amount, to: amount };
+    }
+    logActivity({
+      userId,
+      actionType: 'ADJUSTMENT_UPDATED',
+      entityType: 'report_adjustment',
+      entityId: reportId as string,
+      details: { adjustment_id: adjustmentId, changes },
+    });
   } catch (error: any) {
     console.error('Error updating adjustment:', error);
     res.status(500).json({
@@ -756,6 +810,15 @@ export const deleteAdjustment = async (req: Request, res: Response): Promise<voi
     res.status(200).json({
       success: true,
       message: 'Adjustment deleted successfully',
+    });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId,
+      actionType: 'ADJUSTMENT_DELETED',
+      entityType: 'report_adjustment',
+      entityId: reportId as string,
+      details: { category: adjustment.category, amount: adjustment.amount },
     });
   } catch (error: any) {
     console.error('Error deleting adjustment:', error);

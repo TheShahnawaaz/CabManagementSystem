@@ -23,6 +23,7 @@ import webhookRoutes from './routes/webhook.routes';
 import cronRoutes from './routes/cron.routes';
 import notificationRoutes from './routes/notification.routes';
 import reportRoutes from './routes/report.routes';
+import activityRoutes from './routes/activity.routes';
 import { runMigrations } from './config/migrations';
 
 const app: Application = express();
@@ -115,6 +116,7 @@ app.use('/api', paymentRoutes);
 app.use('/api', cronRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api/admin/reports', reportRoutes);
+app.use('/api/admin', activityRoutes);
 
 // Start server with migrations
 async function startServer() {

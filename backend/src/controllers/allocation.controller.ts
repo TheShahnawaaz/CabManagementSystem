@@ -6,6 +6,7 @@ import {
   REGION_TO_HALL,
 } from '../utils/cabSolver';
 import { notifyCabAllocated } from '../services/notification.service';
+import { logActivity } from '../services/activity.service';
 
 /**
  * Allocation Controller
@@ -194,6 +195,15 @@ export const runAllocation = async (req: Request, res: Response): Promise<void> 
         solver_cost: solverResult.objectiveValue,
         cabs,
       },
+    });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'ALLOCATION_RUN',
+      entityType: 'allocation',
+      entityId: tripId as string,
+      details: { total_students: totalStudents, total_cabs: cabs.length },
     });
   } catch (error: any) {
     console.error('Error running allocation:', error);
@@ -447,6 +457,15 @@ export const submitAllocation = async (req: Request, res: Response): Promise<voi
       success: true,
       message: 'Allocation saved successfully',
     });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'ALLOCATION_SUBMITTED',
+      entityType: 'allocation',
+      entityId: tripId as string,
+      details: { cab_count: cabs.length, student_count: assignedStudentIds.length },
+    });
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('Error submitting allocation:', error);
@@ -486,6 +505,14 @@ export const clearAllocation = async (req: Request, res: Response): Promise<void
     res.status(200).json({
       success: true,
       message: 'Allocation cleared successfully',
+    });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'ALLOCATION_CLEARED',
+      entityType: 'allocation',
+      entityId: tripId as string,
     });
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -614,6 +641,15 @@ export const notifyAllocatedUsers = async (req: Request, res: Response): Promise
       data: {
         notified_count: allocations.length,
       },
+    });
+
+    // Log activity (fire-and-forget)
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'ALLOCATION_NOTIFIED',
+      entityType: 'notification',
+      entityId: tripId as string,
+      details: { user_count: allocations.length, trip_title: trip.trip_title },
     });
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -757,7 +793,7 @@ export const updateCab = async (req: Request, res: Response): Promise<void> => {
 
     // Check if cab exists and belongs to the trip
     const cabCheck = await pool.query(
-      'SELECT id FROM cabs WHERE id = $1 AND trip_id = $2',
+      'SELECT * FROM cabs WHERE id = $1 AND trip_id = $2',
       [cabId, tripId]
     );
 
@@ -825,6 +861,31 @@ export const updateCab = async (req: Request, res: Response): Promise<void> => {
         pickup_region: result.rows[0].pickup_region,
         passkey: result.rows[0].passkey,
       },
+    });
+
+    // Log activity (fire-and-forget)
+    const oldCab = cabCheck.rows[0];
+    const changes: Record<string, { from: any; to: any }> = {};
+    const fieldMap: Record<string, string> = {
+      cab_number: 'cab_number',
+      cab_type: 'cab_type',
+      cab_owner_name: 'cab_owner_name',
+      cab_owner_phone: 'cab_owner_phone',
+      pickup_region: 'pickup_region',
+      passkey: 'passkey',
+    };
+    for (const [bodyKey, dbKey] of Object.entries(fieldMap)) {
+      const newVal = (req.body as any)[bodyKey];
+      if (newVal !== undefined && String(oldCab[dbKey]) !== String(newVal)) {
+        changes[bodyKey] = { from: oldCab[dbKey], to: newVal };
+      }
+    }
+    logActivity({
+      userId: (req as any).user?.id,
+      actionType: 'CAB_UPDATED',
+      entityType: 'cab',
+      entityId: cabId as string,
+      details: { cab_number: result.rows[0].cab_number, changes },
     });
   } catch (error: any) {
     console.error('Error updating cab:', error);

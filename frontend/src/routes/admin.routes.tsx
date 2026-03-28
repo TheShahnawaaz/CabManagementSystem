@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { LayoutDashboard, Users, MapPin, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, BarChart3, Activity } from "lucide-react";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import UserManagement from "@/pages/admin/users";
 import TripManagement from "@/pages/admin/trips";
@@ -10,6 +10,7 @@ import AllocationTab from "@/pages/admin/trips/detail/AllocationTab";
 import AllocationEditPage from "@/pages/admin/trips/detail/AllocationEditPage";
 import ReportsPage from "@/pages/admin/reports";
 import ReportDetailPage from "@/pages/admin/reports/ReportDetailPage";
+import ActivityLogs from "@/pages/admin/ActivityLogs";
 import type { CustomRouteObject } from "./guards";
 import { tripApi } from "@/services/trip.service";
 
@@ -175,6 +176,23 @@ export const adminRoutes: CustomRouteObject[] = [
       description: "View report details",
       breadcrumb: {
         label: "Report Details",
+      },
+    },
+  },
+  // ====================================
+  // ACTIVITY LOGS
+  // ====================================
+  {
+    path: "admin/activities",
+    element: <ActivityLogs />,
+    meta: {
+      requireAuth: true,
+      requireAdmin: true,
+      title: "Activity Logs",
+      description: "View admin activity logs",
+      breadcrumb: {
+        label: "Activity Logs",
+        icon: Activity,
       },
     },
   },

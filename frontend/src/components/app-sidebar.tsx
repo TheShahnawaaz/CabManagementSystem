@@ -6,6 +6,7 @@ import {
   MapPin,
   User2,
   BarChart3,
+  Activity,
 } from "lucide-react";
 
 import {
@@ -69,6 +70,11 @@ const adminMenuItems = [
     title: "Manage Users",
     url: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "Activity Logs",
+    url: "/admin/activities",
+    icon: Activity,
   },
 ];
 
