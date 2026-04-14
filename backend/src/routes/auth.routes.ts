@@ -20,27 +20,55 @@ const formatUserResponse = (user: any) => ({
 });
 
 // Google OAuth login - Initiates the OAuth flow
-router.get('/google', 
+router.get('/google', (req, res, next) => {
+  const returnTo = req.query.returnTo as string;
+  const state = returnTo ? Buffer.from(JSON.stringify({ returnTo })).toString('base64') : undefined;
+
   passport.authenticate('google', { 
     scope: ['profile', 'email'],
-    session: false 
-  })
-);
+    session: false,
+    state
+  })(req, res, next);
+});
 
 // Google OAuth callback - Handles the OAuth response
-router.get('/google/callback',
-  passport.authenticate('google', { 
-    session: false,
-    failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=auth_failed`
-  }),
-  (req, res) => {
-    try {
-      const user = req.user as any;
-      
-      if (!user) {
-        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=no_user`);
-      }
+router.get('/google/callback', (req, res, next) => {
+  let frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+  // Create a list of allowed frontend origins based on FRONTEND_URL and ALLOWED_ORIGINS
+  const allowedOrigins = [frontendUrl];
+  if (process.env.ALLOWED_ORIGINS) {
+    allowedOrigins.push(...process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()));
+  }
+
+  if (req.query.state && typeof req.query.state === 'string') {
+    try {
+      const stateObj = JSON.parse(Buffer.from(req.query.state, 'base64').toString('utf8'));
+      if (stateObj.returnTo) {
+        // Only allow redirection to trusted origins to prevent Open Redirect
+        const requestedOrigin = stateObj.returnTo;
+        if (allowedOrigins.includes(requestedOrigin)) {
+          frontendUrl = requestedOrigin;
+        } else {
+          console.warn(`Blocked redirect to untrusted origin: ${requestedOrigin}`);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse state parameter:', e);
+    }
+  }
+
+  passport.authenticate('google', { session: false }, (err, user, info) => {
+    if (err) {
+      console.error('OAuth callback error:', err);
+      return res.redirect(`${frontendUrl}/login?error=server_error`);
+    }
+
+    if (!user) {
+      return res.redirect(`${frontendUrl}/login?error=auth_failed`);
+    }
+
+    try {
       // Generate JWT token
       const token = generateToken({
         id: user.id,
@@ -49,14 +77,13 @@ router.get('/google/callback',
       });
 
       // Redirect to frontend with token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}`);
     } catch (error) {
-      console.error('OAuth callback error:', error);
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=server_error`);
+      console.error('OAuth callback token generation error:', error);
+      res.redirect(`${frontendUrl}/login?error=server_error`);
     }
-  }
-);
+  })(req, res, next);
+});
 
 // Get current user profile
 router.get('/me', authenticateUser, async (req, res) => {
