@@ -4,6 +4,7 @@ import { authenticateUser, AuthRequest } from '../middleware/auth.middleware';
 import { generateToken } from '../utils/jwt';
 import db from '../config/database';
 import { validateProfileUpdate } from '../middleware/validation.middleware';
+import { resolveFrontendOrigin } from '../utils/frontendOrigins';
 
 const router = Router();
 
@@ -20,25 +21,43 @@ const formatUserResponse = (user: any) => ({
 });
 
 // Google OAuth login - Initiates the OAuth flow
-router.get('/google', 
-  passport.authenticate('google', { 
+router.get('/google', (req, res, next) => {
+  const frontendOrigin = resolveFrontendOrigin(req.query.returnOrigin);
+
+  passport.authenticate('google', {
     scope: ['profile', 'email'],
-    session: false 
-  })
-);
+    session: false,
+    state: frontendOrigin
+  })(req, res, next);
+});
 
 // Google OAuth callback - Handles the OAuth response
 router.get('/google/callback',
-  passport.authenticate('google', { 
-    session: false,
-    failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=auth_failed`
-  }),
+  (req, res, next) => {
+    const frontendOrigin = resolveFrontendOrigin(req.query.state);
+
+    passport.authenticate('google', { session: false }, (error: unknown, user: any) => {
+      if (error) {
+        console.error('OAuth authentication error:', error);
+        return res.redirect(`${frontendOrigin}/login?error=auth_failed`);
+      }
+
+      if (!user) {
+        return res.redirect(`${frontendOrigin}/login?error=no_user`);
+      }
+
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   (req, res) => {
+    const frontendOrigin = resolveFrontendOrigin(req.query.state);
+
     try {
       const user = req.user as any;
       
       if (!user) {
-        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=no_user`);
+        return res.redirect(`${frontendOrigin}/login?error=no_user`);
       }
 
       // Generate JWT token
@@ -49,11 +68,10 @@ router.get('/google/callback',
       });
 
       // Redirect to frontend with token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}`);
+      res.redirect(`${frontendOrigin}/auth/callback?token=${encodeURIComponent(token)}`);
     } catch (error) {
       console.error('OAuth callback error:', error);
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=server_error`);
+      res.redirect(`${frontendOrigin}/login?error=server_error`);
     }
   }
 );

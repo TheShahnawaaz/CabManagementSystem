@@ -24,6 +24,7 @@ import cronRoutes from './routes/cron.routes';
 import notificationRoutes from './routes/notification.routes';
 import reportRoutes from './routes/report.routes';
 import { runMigrations } from './config/migrations';
+import { getAllowedFrontendOrigins } from './utils/frontendOrigins';
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
@@ -40,7 +41,14 @@ if (process.env.NODE_ENV === 'development') {
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || getAllowedFrontendOrigins().includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
@@ -136,4 +144,3 @@ startServer();
 
 
 export default app;
-

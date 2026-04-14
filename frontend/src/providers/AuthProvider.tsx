@@ -48,7 +48,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const backendUrl =
       import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
     // Redirect to backend Google OAuth endpoint
-    window.location.href = `${backendUrl}/auth/google`;
+    const returnOrigin = encodeURIComponent(window.location.origin);
+    window.location.href = `${backendUrl}/auth/google?returnOrigin=${returnOrigin}`;
   };
 
   const signOut = () => {

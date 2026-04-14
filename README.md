@@ -245,7 +245,8 @@ npm run dev
 
 ### Backend (`backend/.env`)
 
-- `PORT`, `NODE_ENV`, `FRONTEND_URL`
+- `PORT`, `NODE_ENV`, `FRONTEND_URL`, `FRONTEND_URLS`
+- `FRONTEND_URL` is the default OAuth redirect origin; `FRONTEND_URLS` is a comma-separated allowlist for multiple frontend domains.
 - `DATABASE_URL`
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
 - `JWT_SECRET`, `SESSION_SECRET`
