@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Search, Users } from "lucide-react";
+import { Search, SearchX, Users } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +23,33 @@ import {
   flattenStudentsByNewest,
   sortDemandsByNewest,
 } from "./demand/utils";
+
+function EmptySearchState({
+  title,
+  description,
+  onClear,
+}: {
+  title: string;
+  description: string;
+  onClear: () => void;
+}) {
+  return (
+    <Card className="border-dashed bg-muted/20 p-8">
+      <div className="flex flex-col items-center text-center gap-3">
+        <div className="rounded-full bg-background p-3 shadow-sm">
+          <SearchX className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="space-y-1">
+          <h4 className="text-sm font-semibold">{title}</h4>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={onClear}>
+          Clear search
+        </Button>
+      </div>
+    </Card>
+  );
+}
 
 export default function DemandTab() {
   const { tripId } = useParams<{ tripId: string }>();
@@ -150,38 +178,40 @@ export default function DemandTab() {
         onGranularityChange={setGranularity}
       />
 
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search users by name, email, phone, or hall..."
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          className="pl-9"
-        />
-      </div>
-
       <Tabs defaultValue="all" className="w-full">
-        <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:overflow-visible">
-          <TabsList className="w-max whitespace-nowrap">
-            <TabsTrigger value="all" className="gap-2 shrink-0">
-              All
-              <span className="rounded-full bg-muted-foreground/15 px-2 py-0.5 text-xs leading-none">
-                {totalStudents}
-              </span>
-            </TabsTrigger>
-            {sortedDemands.map((demand) => (
-              <TabsTrigger
-                key={demand.hall}
-                value={demand.hall}
-                className="gap-2 shrink-0"
-              >
-                {demand.hall}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="order-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:order-1 md:overflow-visible">
+            <TabsList className="w-max whitespace-nowrap">
+              <TabsTrigger value="all" className="gap-2 shrink-0">
+                All
                 <span className="rounded-full bg-muted-foreground/15 px-2 py-0.5 text-xs leading-none">
-                  {demand.student_count}
+                  {totalStudents}
                 </span>
               </TabsTrigger>
-            ))}
-          </TabsList>
+              {sortedDemands.map((demand) => (
+                <TabsTrigger
+                  key={demand.hall}
+                  value={demand.hall}
+                  className="gap-2 shrink-0"
+                >
+                  {demand.hall}
+                  <span className="rounded-full bg-muted-foreground/15 px-2 py-0.5 text-xs leading-none">
+                    {demand.student_count}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
+          <div className="order-1 relative w-full md:order-2 md:max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search users by name, email, phone..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         <TabsContent value="all" className="mt-6">
@@ -195,11 +225,11 @@ export default function DemandTab() {
               ))}
             </ItemGroup>
           ) : (
-            <Card className="p-6">
-              <p className="text-sm text-muted-foreground">
-                No users match your search.
-              </p>
-            </Card>
+            <EmptySearchState
+              title="No matching users found"
+              description="Try another name, email, or phone number to find bookings quickly."
+              onClear={() => setSearchQuery("")}
+            />
           )}
         </TabsContent>
 
@@ -220,11 +250,11 @@ export default function DemandTab() {
                   ))}
                 </ItemGroup>
               ) : (
-                <Card className="p-6">
-                  <p className="text-sm text-muted-foreground">
-                    No users match your search in this hall.
-                  </p>
-                </Card>
+                <EmptySearchState
+                  title={`No matching users in ${demand.hall}`}
+                  description="Try a broader query or clear search to view all students in this hall."
+                  onClear={() => setSearchQuery("")}
+                />
               );
             })()}
           </TabsContent>
