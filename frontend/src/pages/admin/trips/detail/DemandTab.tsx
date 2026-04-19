@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Users } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ItemGroup, ItemSeparator } from "@/components/ui/item";
 import { tripApi } from "@/services/trip.service";
@@ -30,6 +31,7 @@ export default function DemandTab() {
   const [chartType, setChartType] = useState<ChartType>("area");
   const [trendMode, setTrendMode] = useState<TrendMode>("interval");
   const [granularity, setGranularity] = useState<Granularity>("30m");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const sortedDemands = useMemo(() => sortDemandsByNewest(demands), [demands]);
 
@@ -55,8 +57,36 @@ export default function DemandTab() {
     return allStudents.filter((student) => student.hall === selectedHall);
   }, [allStudents, selectedHall]);
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+
+  const matchesSearchQuery = useCallback(
+    (student: StudentDemandWithHall) => {
+      if (!normalizedSearchQuery) {
+        return true;
+      }
+
+      const searchableFields = [
+        student.name,
+        student.email,
+        student.phone_number ?? "",
+        student.hall,
+      ];
+
+      return searchableFields.some((field) =>
+        field.toLowerCase().includes(normalizedSearchQuery)
+      );
+    },
+    [normalizedSearchQuery]
+  );
+
+  const searchedStudents = useMemo(
+    () => allStudents.filter(matchesSearchQuery),
+    [allStudents, matchesSearchQuery]
+  );
+
   const bookingTrend = useMemo(
-    () => buildBookingTrend(filteredStudents, granularity, trendMode, hallOptions),
+    () =>
+      buildBookingTrend(filteredStudents, granularity, trendMode, hallOptions),
     [filteredStudents, granularity, trendMode, hallOptions]
   );
 
@@ -120,6 +150,16 @@ export default function DemandTab() {
         onGranularityChange={setGranularity}
       />
 
+      <div className="relative max-w-md">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search users by name, email, phone, or hall..."
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <Tabs defaultValue="all" className="w-full">
         <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:overflow-visible">
           <TabsList className="w-max whitespace-nowrap">
@@ -145,32 +185,48 @@ export default function DemandTab() {
         </div>
 
         <TabsContent value="all" className="mt-6">
-          <ItemGroup className="rounded-lg border">
-            {allStudents.map((student, index) => (
-              <div key={`${student.booking_id}-${student.hall}`}>
-                <StudentDemandRow student={student} showHallInline />
-                {index !== allStudents.length - 1 && <ItemSeparator />}
-              </div>
-            ))}
-          </ItemGroup>
+          {searchedStudents.length > 0 ? (
+            <ItemGroup className="rounded-lg border">
+              {searchedStudents.map((student, index) => (
+                <div key={`${student.booking_id}-${student.hall}`}>
+                  <StudentDemandRow student={student} showHallInline />
+                  {index !== searchedStudents.length - 1 && <ItemSeparator />}
+                </div>
+              ))}
+            </ItemGroup>
+          ) : (
+            <Card className="p-6">
+              <p className="text-sm text-muted-foreground">
+                No users match your search.
+              </p>
+            </Card>
+          )}
         </TabsContent>
 
         {sortedDemands.map((demand) => (
           <TabsContent key={demand.hall} value={demand.hall} className="mt-6">
-            <ItemGroup className="rounded-lg border">
-              {demand.students.map((student, index) => {
-                const studentWithHall: StudentDemandWithHall = {
-                  ...student,
-                  hall: demand.hall,
-                };
-                return (
-                  <div key={student.id}>
-                    <StudentDemandRow student={studentWithHall} />
-                    {index !== demand.students.length - 1 && <ItemSeparator />}
-                  </div>
-                );
-              })}
-            </ItemGroup>
+            {(() => {
+              const hallStudents = demand.students
+                .map((student) => ({ ...student, hall: demand.hall }))
+                .filter(matchesSearchQuery);
+
+              return hallStudents.length > 0 ? (
+                <ItemGroup className="rounded-lg border">
+                  {hallStudents.map((studentWithHall, index) => (
+                    <div key={studentWithHall.id}>
+                      <StudentDemandRow student={studentWithHall} />
+                      {index !== hallStudents.length - 1 && <ItemSeparator />}
+                    </div>
+                  ))}
+                </ItemGroup>
+              ) : (
+                <Card className="p-6">
+                  <p className="text-sm text-muted-foreground">
+                    No users match your search in this hall.
+                  </p>
+                </Card>
+              );
+            })()}
           </TabsContent>
         ))}
       </Tabs>
