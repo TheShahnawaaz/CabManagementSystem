@@ -54,17 +54,24 @@ export default function Login() {
       return;
     }
 
+    let cancelled = false;
+
     const existingScript = document.querySelector<HTMLScriptElement>(
       'script[src="https://accounts.google.com/gsi/client"]',
     );
 
     const cancelGoogleOneTap = () => {
+      cancelled = true;
       const googleClient = (window as Window & { google?: GoogleOneTapClient })
         .google;
       googleClient?.accounts?.id?.cancel();
     };
 
     const initializeGoogleOneTap = () => {
+      if (cancelled) {
+        return;
+      }
+
       const googleClient = (window as Window & { google?: GoogleOneTapClient })
         .google;
 
@@ -99,19 +106,39 @@ export default function Login() {
       googleClient.accounts.id.prompt();
     };
 
-    if (existingScript) {
+    const handleScriptLoad = () => {
       initializeGoogleOneTap();
-      return cancelGoogleOneTap;
+    };
+
+    if (existingScript) {
+      const googleClient = (window as Window & { google?: GoogleOneTapClient })
+        .google;
+
+      if (googleClient?.accounts?.id) {
+        initializeGoogleOneTap();
+      } else {
+        existingScript.addEventListener("load", handleScriptLoad, {
+          once: true,
+        });
+      }
+
+      return () => {
+        existingScript.removeEventListener("load", handleScriptLoad);
+        cancelGoogleOneTap();
+      };
     }
 
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
-    script.onload = initializeGoogleOneTap;
+    script.addEventListener("load", handleScriptLoad, { once: true });
     document.head.appendChild(script);
 
-    return cancelGoogleOneTap;
+    return () => {
+      script.removeEventListener("load", handleScriptLoad);
+      cancelGoogleOneTap();
+    };
   }, [navigate, refetchUser]);
 
   return (
