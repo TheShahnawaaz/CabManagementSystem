@@ -58,6 +58,12 @@ export default function Login() {
       'script[src="https://accounts.google.com/gsi/client"]',
     );
 
+    const cancelGoogleOneTap = () => {
+      const googleClient = (window as Window & { google?: GoogleOneTapClient })
+        .google;
+      googleClient?.accounts?.id?.cancel();
+    };
+
     const initializeGoogleOneTap = () => {
       const googleClient = (window as Window & { google?: GoogleOneTapClient })
         .google;
@@ -95,7 +101,7 @@ export default function Login() {
 
     if (existingScript) {
       initializeGoogleOneTap();
-      return;
+      return cancelGoogleOneTap;
     }
 
     const script = document.createElement("script");
@@ -105,11 +111,7 @@ export default function Login() {
     script.onload = initializeGoogleOneTap;
     document.head.appendChild(script);
 
-    return () => {
-      const googleClient = (window as Window & { google?: GoogleOneTapClient })
-        .google;
-      googleClient?.accounts?.id?.cancel();
-    };
+    return cancelGoogleOneTap;
   }, [navigate, refetchUser]);
 
   return (
