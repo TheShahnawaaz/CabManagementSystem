@@ -1,6 +1,9 @@
 import { useAuth } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiClient } from "@/lib/api";
 
 // ============================================
 // TEMPORARY: Import for Razorpay verification
@@ -11,6 +14,21 @@ import {
   useVerifyLoginStatus,
 } from "@/components/VerifyLoginForm";
 
+type GoogleOneTapClient = {
+  accounts?: {
+    id?: {
+      initialize: (config: {
+        client_id: string;
+        callback: (response: { credential?: string }) => void;
+        auto_select?: boolean;
+        cancel_on_tap_outside?: boolean;
+      }) => void;
+      prompt: () => void;
+      cancel: () => void;
+    };
+  };
+};
+
 /**
  * Login Page
  *
@@ -20,13 +38,79 @@ import {
  * Manual redirect logic removed - handled by RouteGuard now.
  */
 export default function Login() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, refetchUser } = useAuth();
+  const navigate = useNavigate();
 
   // ============================================
   // TEMPORARY: Check if email/password login is enabled
   // DELETE this line after Razorpay verification
   // ============================================
   const { isEnabled: showEmailLogin } = useVerifyLoginStatus();
+
+  useEffect(() => {
+    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+    if (!googleClientId) {
+      return;
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://accounts.google.com/gsi/client"]',
+    );
+
+    const initializeGoogleOneTap = () => {
+      const googleClient = (window as Window & { google?: GoogleOneTapClient })
+        .google;
+
+      if (!googleClient?.accounts?.id) {
+        return;
+      }
+
+      googleClient.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async ({ credential }) => {
+          if (!credential) {
+            return;
+          }
+
+          try {
+            const response = (await apiClient.post("/auth/google/onetap", {
+              credential,
+            })) as { token: string };
+
+            localStorage.setItem("auth_token", response.token);
+            await refetchUser();
+            navigate("/dashboard");
+          } catch (error) {
+            console.error("Google One Tap authentication failed:", error);
+            navigate("/login?error=onetap_failed");
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      googleClient.accounts.id.prompt();
+    };
+
+    if (existingScript) {
+      initializeGoogleOneTap();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initializeGoogleOneTap;
+    document.head.appendChild(script);
+
+    return () => {
+      const googleClient = (window as Window & { google?: GoogleOneTapClient })
+        .google;
+      googleClient?.accounts?.id?.cancel();
+    };
+  }, [navigate, refetchUser]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

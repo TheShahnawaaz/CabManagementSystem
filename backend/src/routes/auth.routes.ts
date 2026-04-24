@@ -1,12 +1,15 @@
 import { Router } from 'express';
+import { OAuth2Client } from 'google-auth-library';
 import passport from '../config/passport';
 import { authenticateUser, AuthRequest } from '../middleware/auth.middleware';
 import { generateToken } from '../utils/jwt';
 import db from '../config/database';
 import { validateProfileUpdate } from '../middleware/validation.middleware';
 import { resolveFrontendOrigin } from '../utils/frontendOrigins';
+import { findOrCreateGoogleUser } from '../services/googleUser.service';
 
 const router = Router();
+const googleClient = new OAuth2Client();
 
 const formatUserResponse = (user: any) => ({
   id: user.id,
@@ -75,6 +78,67 @@ router.get('/google/callback',
     }
   }
 );
+
+// Google One Tap login - verifies the ID token returned directly by Google Identity Services
+router.post('/google/onetap', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Google credential is required'
+      });
+    }
+
+    if (!clientId) {
+      return res.status(500).json({
+        success: false,
+        error: 'Google client ID is not configured'
+      });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: clientId
+    });
+
+    const payload = ticket.getPayload();
+    const email = payload?.email;
+
+    if (!payload || !email || !payload.email_verified) {
+      return res.status(401).json({
+        success: false,
+        error: 'Google account email could not be verified'
+      });
+    }
+
+    const user = await findOrCreateGoogleUser({
+      email,
+      name: payload.name,
+      profilePicture: payload.picture
+    });
+
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      isAdmin: user.is_admin
+    });
+
+    res.json({
+      success: true,
+      token,
+      user: formatUserResponse(user)
+    });
+  } catch (error) {
+    console.error('Google One Tap authentication error:', error);
+    res.status(401).json({
+      success: false,
+      error: 'Google One Tap authentication failed'
+    });
+  }
+});
 
 // Get current user profile
 router.get('/me', authenticateUser, async (req, res) => {
