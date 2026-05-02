@@ -14,5 +14,5 @@ ADD COLUMN IF NOT EXISTS net_amount INTEGER;
 -- Add comment for documentation
 COMMENT ON COLUMN payments.gateway_fee IS 'Payment gateway fee in paise';
 COMMENT ON COLUMN payments.gateway_tax IS 'GST on gateway fee in paise';
-COMMENT ON COLUMN payments.net_amount IS 'Amount received after deductions (amount - fee - tax) in paise';
+COMMENT ON COLUMN payments.net_amount IS 'Amount received after deductions (amount - fee) in paise. Note: fee already includes GST (tax), so tax is not deducted separately.';
 

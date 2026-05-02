@@ -238,7 +238,7 @@ LEFT JOIN (
     COALESCE(SUM(
       CASE 
         WHEN net_amount IS NOT NULL THEN net_amount / 100.0
-        ELSE payment_amount - ((COALESCE(gateway_fee, 0) + COALESCE(gateway_tax, 0)) / 100.0)
+        ELSE payment_amount - (COALESCE(gateway_fee, 0) / 100.0)
       END
     ) FILTER (WHERE payment_status = 'confirmed'), 0) as net_revenue
   FROM payments 
@@ -269,7 +269,7 @@ SELECT
   COALESCE(SUM(total_students), 0) as total_students,
   COALESCE(SUM(total_cabs), 0) as total_cabs,
   COALESCE(SUM(gross_revenue), 0) as total_gross_revenue,
-  COALESCE(SUM(gateway_fees + gateway_tax), 0) as total_gateway_deductions,
+  COALESCE(SUM(gateway_fees), 0) as total_gateway_deductions,
   COALESCE(SUM(net_revenue), 0) as total_net_revenue,
   COALESCE(SUM(total_cab_expense), 0) as total_cab_expense,
   COALESCE(SUM(additional_expense), 0) as total_additional_expense,

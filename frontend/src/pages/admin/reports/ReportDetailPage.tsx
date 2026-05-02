@@ -224,9 +224,7 @@ export default function ReportDetailPage() {
               <span className="ml-11">Gateway fees</span>
               <span className="text-red-600">
                 -
-                {formatCurrency(
-                  Number(report.gateway_fees) + Number(report.gateway_tax)
-                )}
+                {formatCurrency(Number(report.gateway_fees))}
               </span>
             </div>
 
