@@ -424,7 +424,8 @@ export const paymentService = {
       const fee = verifyResult.fee || 0;
       const tax = verifyResult.tax || 0;
       const amountInPaise = Math.round(payment.payment_amount * 100); // Convert rupees to paise (rounded to avoid floating-point issues)
-      const netAmount = amountInPaise - fee - tax;
+      // Razorpay's `fee` already includes GST (`tax` is a sub-component of `fee`, not an extra charge)
+      const netAmount = amountInPaise - fee;
 
       // Merge existing metadata with gateway response
       const existingMetadata = payment.metadata || {};
@@ -661,7 +662,7 @@ export const paymentService = {
         // Calculate fee, tax, and net amount
         const fee = event.fee || 0;
         const tax = event.tax || 0;
-        const netAmount = event.amount - fee - tax;
+        const netAmount = event.amount - fee; // fee already includes tax (GST)
 
         // Merge with existing metadata
         const existingMetadata = payment.metadata || {};
@@ -727,7 +728,7 @@ export const paymentService = {
         // Already confirmed - just update webhook data if missing
         const fee = event.fee || 0;
         const tax = event.tax || 0;
-        const netAmount = event.amount - fee - tax;
+        const netAmount = event.amount - fee; // fee already includes tax (GST)
 
         // Merge gateway response if not already stored
         const existingMetadata = payment.metadata || {};
